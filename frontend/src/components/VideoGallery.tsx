@@ -1,0 +1,212 @@
+'use client'
+
+import { useState, useMemo } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+
+interface Video {
+    _id: string
+    _createdAt: string
+    title: string
+    youtubeId: string
+    youtubeUrl: string
+    category: string
+    ageRange: string
+    tags: string[]
+}
+
+interface VideoGalleryProps {
+    videos: Video[]
+}
+
+const CATEGORIES = [
+    { value: 'education', label: 'Education' },
+    { value: 'entertainment', label: 'Entertainment' },
+    { value: 'music', label: 'Music' },
+    { value: 'science', label: 'Science' },
+    { value: 'arts-crafts', label: 'Arts & Crafts' },
+    { value: 'sports', label: 'Sports' },
+    { value: 'nature', label: 'Nature' },
+    { value: 'stories', label: 'Stories' },
+]
+
+const AGE_RANGES = [
+    { value: '0-2', label: '0-2 years' },
+    { value: '3-5', label: '3-5 years' },
+    { value: '6-8', label: '6-8 years' },
+    { value: '9-12', label: '9-12 years' },
+    { value: '13+', label: '13+ years' },
+]
+
+export default function VideoGallery({ videos }: VideoGalleryProps) {
+    const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+    const [selectedAgeRanges, setSelectedAgeRanges] = useState<string[]>([])
+    const [searchQuery, setSearchQuery] = useState('')
+
+    const toggleCategory = (category: string) => {
+        setSelectedCategories((prev) =>
+            prev.includes(category)
+                ? prev.filter((c) => c !== category)
+                : [...prev, category]
+        )
+    }
+
+    const toggleAgeRange = (ageRange: string) => {
+        setSelectedAgeRanges((prev) =>
+            prev.includes(ageRange)
+                ? prev.filter((a) => a !== ageRange)
+                : [...prev, ageRange]
+        )
+    }
+
+    const clearAllFilters = () => {
+        setSelectedCategories([])
+        setSelectedAgeRanges([])
+        setSearchQuery('')
+    }
+
+    const filteredVideos = useMemo(() => {
+        return videos.filter((video) => {
+            if (
+                selectedCategories.length > 0 &&
+                !selectedCategories.includes(video.category)
+            ) {
+                return false
+            }
+
+            if (
+                selectedAgeRanges.length > 0 &&
+                !selectedAgeRanges.includes(video.ageRange)
+            ) {
+                return false
+            }
+
+            if (searchQuery) {
+                const query = searchQuery.toLowerCase()
+                const matchesTitle = video.title.toLowerCase().includes(query)
+                const matchesTags = video.tags?.some((tag) =>
+                    tag.toLowerCase().includes(query)
+                )
+                return matchesTitle || matchesTags
+            }
+
+            return true
+        })
+    }, [videos, selectedCategories, selectedAgeRanges, searchQuery])
+
+    const hasActiveFilters =
+        selectedCategories.length > 0 ||
+        selectedAgeRanges.length > 0 ||
+        searchQuery.length > 0
+
+    return (
+        <div className="space-y-6">
+            {/* Filters Section */}
+            <Card>
+                <CardContent className="p-4 space-y-3">
+                    {/* Search Row */}
+                    <div className="flex items-center gap-4">
+                        <Input
+                            type="text"
+                            placeholder="Search videos..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="max-w-sm"
+                        />
+                        {hasActiveFilters && (
+                            <Button variant="outline" size="sm" onClick={clearAllFilters}>
+                                Clear filters ({filteredVideos.length} results)
+                            </Button>
+                        )}
+                    </div>
+
+                    {/* Filter Chips Row */}
+                    <div className="flex flex-wrap items-center gap-2">
+                        {CATEGORIES.map((category) => (
+                            <button
+                                key={category.value}
+                                onClick={() => toggleCategory(category.value)}
+                                className={cn(
+                                    "px-3 py-1.5 rounded-md text-sm font-medium transition-all",
+                                    selectedCategories.includes(category.value)
+                                        ? "bg-violet-600 text-white"
+                                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                )}
+                            >
+                                {category.label}
+                            </button>
+                        ))}
+                        <span className="text-muted-foreground mx-2">|</span>
+                        {AGE_RANGES.map((ageRange) => (
+                            <button
+                                key={ageRange.value}
+                                onClick={() => toggleAgeRange(ageRange.value)}
+                                className={cn(
+                                    "px-3 py-1.5 rounded-md text-sm font-medium transition-all",
+                                    selectedAgeRanges.includes(ageRange.value)
+                                        ? "bg-blue-600 text-white"
+                                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                )}
+                            >
+                                {ageRange.label}
+                            </button>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Videos Grid */}
+            {filteredVideos.length === 0 ? (
+                <Card>
+                    <CardContent className="p-16 text-center">
+                        <p className="text-xl text-muted-foreground">
+                            {hasActiveFilters
+                                ? 'No videos match your filters. Try adjusting your selection.'
+                                : 'No videos published yet. Add some in Sanity Studio!'}
+                        </p>
+                    </CardContent>
+                </Card>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredVideos.map((video) => (
+                        <Card key={video._id} className="overflow-hidden p-0">
+                            <div className="aspect-video bg-black">
+                                <iframe
+                                    className="w-full h-full"
+                                    src={`https://www.youtube.com/embed/${video.youtubeId}`}
+                                    title={video.title}
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                />
+                            </div>
+                            <CardContent className="p-4 space-y-3">
+                                <h2 className="font-semibold text-lg">
+                                    {video.title}
+                                </h2>
+                                <div className="flex flex-wrap gap-2">
+                                    <Badge>{video.category}</Badge>
+                                    <Badge variant="secondary">{video.ageRange} years</Badge>
+                                </div>
+                                {video.tags && video.tags.length > 0 && (
+                                    <div className="flex flex-wrap gap-1">
+                                        {video.tags.slice(0, 3).map((tag) => (
+                                            <span
+                                                key={tag}
+                                                className="text-xs text-muted-foreground"
+                                            >
+                                                #{tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            )}
+        </div>
+    )
+}

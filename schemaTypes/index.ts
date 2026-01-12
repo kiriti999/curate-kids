@@ -1,14 +1,33 @@
 import blockContent from './blockContent'
 
-// TODO: Import new schema types here as they are created
-// Example:
-// import videoCollection from './videoCollection'
-// import category from './category'
-// import ad from './ad'
+// Document schemas
+import category from './documents/category'
+import video from './documents/video'
+import user from './documents/user'
+import adPlacement from './documents/adPlacement'
+import affiliatePartner from './documents/affiliatePartner'
+import activityLog from './documents/activityLog'
+
+// Object schemas
+import youtubeEmbed from './objects/youtubeEmbed'
+import categoryPath from './objects/categoryPath'
+import adContent from './objects/adContent'
+import logMetadata from './objects/logMetadata'
 
 export const schemaTypes = [
   // Document types
-  // TODO: Add new document types (videoCollection, category, ad, etc.)
+  category,
+  video,
+  user,
+  adPlacement,
+  affiliatePartner,
+  activityLog,
+
+  // Object types
+  youtubeEmbed,
+  categoryPath,
+  adContent,
+  logMetadata,
 
   // Other types
   blockContent,

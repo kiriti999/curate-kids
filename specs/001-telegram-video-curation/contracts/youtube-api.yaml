@@ -1,0 +1,432 @@
+openapi: 3.0.3
+info:
+  title: YouTube Data API v3 Contract
+  description: Interface for fetching video metadata from YouTube API
+  version: 1.0.0
+  contact:
+    name: CurateKids Bot Integration
+
+servers:
+  - url: https://www.googleapis.com/youtube/v3
+    description: YouTube Data API v3
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: query
+      name: key
+      description: YouTube Data API key
+
+  schemas:
+    VideoSnippet:
+      type: object
+      properties:
+        publishedAt:
+          type: string
+          format: date-time
+          description: Video publication date
+        channelId:
+          type: string
+          description: Channel ID
+        title:
+          type: string
+          description: Video title (used for Sanity submission)
+          example: "Learning Colors with Fun Animations"
+        description:
+          type: string
+          description: Video description
+        thumbnails:
+          type: object
+          properties:
+            default:
+              $ref: '#/components/schemas/Thumbnail'
+            medium:
+              $ref: '#/components/schemas/Thumbnail'
+            high:
+              $ref: '#/components/schemas/Thumbnail'
+        channelTitle:
+          type: string
+          description: Channel name
+        categoryId:
+          type: string
+          description: YouTube category ID
+        
+    Thumbnail:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        width:
+          type: integer
+        height:
+          type: integer
+          
+    VideoContentDetails:
+      type: object
+      properties:
+        duration:
+          type: string
+          description: ISO 8601 duration format (e.g., PT4M13S)
+          example: "PT4M13S"
+        dimension:
+          type: string
+          enum:
+            - 2d
+            - 3d
+        definition:
+          type: string
+          enum:
+            - hd
+            - sd
+        caption:
+          type: string
+          enum:
+            - 'true'
+            - 'false'
+            
+    VideoStatistics:
+      type: object
+      properties:
+        viewCount:
+          type: string
+          description: Number of views
+        likeCount:
+          type: string
+          description: Number of likes
+        commentCount:
+          type: string
+          description: Number of comments
+          
+    VideoItem:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum:
+            - youtube#video
+        etag:
+          type: string
+        id:
+          type: string
+          description: YouTube video ID
+          example: "dQw4w9WgXcQ"
+        snippet:
+          $ref: '#/components/schemas/VideoSnippet'
+        contentDetails:
+          $ref: '#/components/schemas/VideoContentDetails'
+        statistics:
+          $ref: '#/components/schemas/VideoStatistics'
+          
+    VideosListResponse:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum:
+            - youtube#videoListResponse
+        etag:
+          type: string
+        pageInfo:
+          type: object
+          properties:
+            totalResults:
+              type: integer
+            resultsPerPage:
+              type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/VideoItem'
+            
+    YouTubeError:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+              description: HTTP status code
+            message:
+              type: string
+              description: Error message
+            errors:
+              type: array
+              items:
+                type: object
+                properties:
+                  domain:
+                    type: string
+                  reason:
+                    type: string
+                    enum:
+                      - quotaExceeded
+                      - keyInvalid
+                      - forbidden
+                      - notFound
+                  message:
+                    type: string
+
+paths:
+  /videos:
+    get:
+      summary: Fetch video metadata
+      description: |
+        Retrieve video metadata by video ID. Used by bot to extract video title
+        for Sanity submission.
+        
+        **Quota Cost**: 1 unit per request + part costs
+        - snippet: 2 units
+        - contentDetails: 2 units
+        - Total: ~3-5 units per video
+        
+        **Bot Usage**: Fetches only `snippet` part to minimize quota usage
+      operationId: getVideoById
+      tags:
+        - Videos
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: part
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - snippet
+              - contentDetails
+              - statistics
+          description: |
+            Comma-separated list of video resource properties.
+            Bot uses: `snippet` (for title)
+          example: snippet
+          
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-zA-Z0-9_-]{11}$'
+          description: YouTube video ID (11 characters)
+          example: dQw4w9WgXcQ
+          
+        - name: key
+          in: query
+          required: true
+          schema:
+            type: string
+          description: API key
+          
+      responses:
+        '200':
+          description: Video metadata retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideosListResponse'
+              example:
+                kind: "youtube#videoListResponse"
+                etag: "etag123"
+                pageInfo:
+                  totalResults: 1
+                  resultsPerPage: 1
+                items:
+                  - kind: "youtube#video"
+                    etag: "etag456"
+                    id: "dQw4w9WgXcQ"
+                    snippet:
+                      publishedAt: "2009-10-25T06:57:33Z"
+                      channelId: "UCuAXFkgsw1L7xaCfnd5JJOw"
+                      title: "Rick Astley - Never Gonna Give You Up (Official Video)"
+                      description: "The official video for..."
+                      thumbnails:
+                        default:
+                          url: "https://i.ytimg.com/vi/dQw4w9WgXcQ/default.jpg"
+                          width: 120
+                          height: 90
+                      channelTitle: "Rick Astley"
+                      categoryId: "10"
+                      
+        '400':
+          description: Bad request (invalid video ID format)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/YouTubeError'
+              example:
+                error:
+                  code: 400
+                  message: "Invalid video ID"
+                  errors:
+                    - domain: "youtube.parameter"
+                      reason: "invalidParameter"
+                      message: "Invalid video ID"
+                      
+        '403':
+          description: Quota exceeded or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/YouTubeError'
+              examples:
+                quotaExceeded:
+                  value:
+                    error:
+                      code: 403
+                      message: "The request cannot be completed because you have exceeded your quota"
+                      errors:
+                        - domain: "usageLimits"
+                          reason: "quotaExceeded"
+                          message: "Quota exceeded"
+                invalidKey:
+                  value:
+                    error:
+                      code: 403
+                      message: "API key not valid"
+                      errors:
+                        - domain: "usageLimits"
+                          reason: "keyInvalid"
+                          message: "Bad Request"
+                          
+        '404':
+          description: Video not found (deleted, private, or region-restricted)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/YouTubeError'
+              example:
+                error:
+                  code: 404
+                  message: "Video not found"
+                  errors:
+                    - domain: "youtube.video"
+                      reason: "notFound"
+                      message: "Video not found"
+
+# TypeScript Interface Definition
+# (For bot implementation reference)
+x-typescript-definitions: |
+  import { youtube_v3 } from '@googleapis/youtube';
+  
+  /**
+   * YouTube service interface for bot
+   */
+  export interface IYouTubeService {
+    /**
+     * Extract video metadata by video ID
+     * @param videoId - 11-character YouTube video ID
+     * @returns Video title and optional metadata
+     * @throws YouTubeError on API failures or quota exceeded
+     */
+    getVideoMetadata(videoId: string): Promise<VideoMetadata>;
+  }
+  
+  /**
+   * Simplified metadata structure for bot usage
+   */
+  export interface VideoMetadata {
+    title: string;          // Required for Sanity submission
+    duration?: number;      // Optional: Duration in seconds
+    channelTitle?: string;  // Optional: Channel name
+    publishedAt?: string;   // Optional: Publication date
+  }
+  
+  /**
+   * YouTube API error types
+   */
+  export class YouTubeError extends Error {
+    constructor(
+      public code: number,
+      public reason: string,
+      message: string
+    ) {
+      super(message);
+      this.name = 'YouTubeError';
+    }
+  }
+  
+  /**
+   * Implementation using googleapis client
+   */
+  export class YouTubeService implements IYouTubeService {
+    private youtube: youtube_v3.Youtube;
+    
+    constructor(apiKey: string) {
+      this.youtube = new youtube_v3.Youtube({
+        auth: apiKey,
+      });
+    }
+    
+    async getVideoMetadata(videoId: string): Promise<VideoMetadata> {
+      try {
+        const response = await this.youtube.videos.list({
+          part: ['snippet'],  // Minimal quota usage (2 units)
+          id: [videoId],
+        });
+        
+        if (!response.data.items || response.data.items.length === 0) {
+          throw new YouTubeError(404, 'notFound', 'Video not found');
+        }
+        
+        const video = response.data.items[0];
+        const snippet = video.snippet;
+        
+        if (!snippet?.title) {
+          throw new YouTubeError(500, 'invalidResponse', 'Video title not available');
+        }
+        
+        return {
+          title: snippet.title,
+          channelTitle: snippet.channelTitle,
+          publishedAt: snippet.publishedAt || undefined,
+        };
+      } catch (error: any) {
+        // Handle quota exceeded
+        if (error.code === 403 && error.errors?.[0]?.reason === 'quotaExceeded') {
+          throw new YouTubeError(403, 'quotaExceeded', 'YouTube API quota exceeded');
+        }
+        
+        // Handle invalid API key
+        if (error.code === 403 && error.errors?.[0]?.reason === 'keyInvalid') {
+          throw new YouTubeError(403, 'keyInvalid', 'Invalid YouTube API key');
+        }
+        
+        // Handle not found
+        if (error.code === 404) {
+          throw new YouTubeError(404, 'notFound', 'Video not found or unavailable');
+        }
+        
+        // Rethrow as YouTubeError
+        throw new YouTubeError(
+          error.code || 500,
+          error.errors?.[0]?.reason || 'unknown',
+          error.message || 'YouTube API error'
+        );
+      }
+    }
+  }
+  
+  /**
+   * Fallback: Use URL as title when YouTube API fails
+   */
+  export function createFallbackMetadata(youtubeUrl: string): VideoMetadata {
+    return {
+      title: youtubeUrl,
+    };
+  }
+  
+  /**
+   * Configuration
+   */
+  export interface YouTubeConfig {
+    apiKey: string;
+  }
+  
+  /**
+   * Initialize YouTube service
+   */
+  export function createYouTubeService(config: YouTubeConfig): IYouTubeService {
+    return new YouTubeService(config.apiKey);
+  }

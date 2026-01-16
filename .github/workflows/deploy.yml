@@ -30,7 +30,7 @@ jobs:
         uses: denoland/deployctl@v1
         with:
           project: "the-curate-kids"
-          entrypoint: "bot-deno/src/main.ts"
-          root: "."
+          entrypoint: "src/main.ts"
+          root: "bot-deno"
           
           

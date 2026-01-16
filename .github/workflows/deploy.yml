@@ -31,6 +31,6 @@ jobs:
         with:
           project: "the-curate-kids"
           entrypoint: "main.ts"
-          root: "deno-bot"
+          root: "./deno-bot"
           
           

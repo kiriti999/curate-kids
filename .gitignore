@@ -27,5 +27,14 @@
 
 # Dotenv and similar local-only files
 *.local
+.env
+.env.*
+!.env.example
+
+# Bot directory
+bot/node_modules
+bot/dist
+bot/.env
+!bot/.env.example
 
 ~/.amplify/*

@@ -1,0 +1,586 @@
+openapi: 3.0.3
+info:
+  title: Telegram Bot API Contract
+  description: Bot message handling and inline keyboard interface using grammY framework
+  version: 1.0.0
+  contact:
+    name: CurateKids Bot Integration
+
+servers:
+  - url: https://api.telegram.org/bot{token}
+    variables:
+      token:
+        default: '{TELEGRAM_BOT_TOKEN}'
+        description: Telegram bot token
+    description: Telegram Bot API
+
+components:
+  schemas:
+    MessageHandler:
+      type: object
+      description: |
+        Message handler configuration for grammY bot.
+        Processes incoming messages with YouTube links.
+      x-typescript: |
+        import { Bot, Context } from 'grammy';
+        
+        export interface IMessageHandler {
+          /**
+           * Handle incoming text messages
+           * @param ctx - grammY context
+           */
+          handleMessage(ctx: Context): Promise<void>;
+        }
+        
+    CallbackHandler:
+      type: object
+      description: |
+        Callback query handler for category selection buttons.
+        Processes inline keyboard button clicks.
+      x-typescript: |
+        import { CallbackQueryContext } from 'grammy';
+        
+        export interface ICallbackHandler {
+          /**
+           * Handle callback queries from inline keyboard buttons
+           * @param ctx - grammY callback context
+           */
+          handleCallback(ctx: CallbackQueryContext): Promise<void>;
+        }
+        
+    YouTubeMessageData:
+      type: object
+      description: Extracted data from message containing YouTube link
+      required:
+        - messageId
+        - chatId
+        - userId
+        - youtubeUrl
+        - youtubeId
+      properties:
+        messageId:
+          type: integer
+          description: Telegram message ID
+          example: 12345
+        chatId:
+          type: integer
+          description: Telegram chat ID (negative for groups)
+          example: -1001234567890
+        userId:
+          type: integer
+          description: Telegram user ID
+          example: 987654321
+        youtubeUrl:
+          type: string
+          format: uri
+          description: Full YouTube URL from message text
+          example: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        youtubeId:
+          type: string
+          pattern: '^[a-zA-Z0-9_-]{11}$'
+          description: Extracted YouTube video ID
+          example: "dQw4w9WgXcQ"
+        text:
+          type: string
+          description: Full message text
+          
+    CategoryCallbackData:
+      type: object
+      description: Parsed callback data from category button click
+      required:
+        - prefix
+        - messageId
+        - chatId
+        - category
+      properties:
+        prefix:
+          type: string
+          enum:
+            - cat
+          description: Callback data prefix (identifies category selection)
+          example: cat
+        messageId:
+          type: integer
+          description: Original message ID
+          example: 12345
+        chatId:
+          type: integer
+          description: Original chat ID
+          example: -1001234567890
+        category:
+          type: string
+          enum:
+            - education
+            - entertainment
+            - music
+            - science
+            - arts-crafts
+            - sports
+            - nature
+            - stories
+          description: Selected category
+          example: education
+          
+    InlineKeyboardConfig:
+      type: object
+      description: Configuration for category selection inline keyboard
+      properties:
+        rows:
+          type: integer
+          default: 4
+          description: Number of button rows
+        columns:
+          type: integer
+          default: 2
+          description: Number of buttons per row
+        buttons:
+          type: array
+          items:
+            type: object
+            properties:
+              text:
+                type: string
+                description: Button display text
+                example: "📚 Education"
+              category:
+                type: string
+                description: Category value
+                example: education
+                
+    BotResponse:
+      type: object
+      description: Bot response messages
+      properties:
+        categoryPrompt:
+          type: string
+          default: "📺 Video detected! Please select a category:"
+          description: Message shown with category buttons
+        successConfirmation:
+          type: string
+          default: "✅ Video saved! Category: {category}, Age Range: {ageRange}"
+          description: Message shown after successful submission
+        errorMessages:
+          type: object
+          properties:
+            invalidUrl:
+              type: string
+              default: "❌ Invalid YouTube link format"
+            quotaExceeded:
+              type: string
+              default: "⚠️ Video metadata unavailable. Using link as title."
+            submissionFailed:
+              type: string
+              default: "❌ Submission failed. Please try selecting the category again."
+            selectionExpired:
+              type: string
+              default: "⏰ Selection expired. Please share the video link again."
+            unauthorizedSelection:
+              type: string
+              default: "❌ Only the person who shared the video can select its category"
+
+# TypeScript Interface Definitions
+x-typescript-definitions: |
+  import { Bot, Context, InlineKeyboard } from 'grammy';
+  import type { Message, CallbackQuery } from '@grammyjs/types';
+  
+  /**
+   * Main bot interface
+   */
+  export interface ITelegramBot {
+    /**
+     * Start bot with long-polling
+     */
+    start(): Promise<void>;
+    
+    /**
+     * Stop bot gracefully
+     */
+    stop(): Promise<void>;
+    
+    /**
+     * Register message handler
+     */
+    onMessage(handler: IMessageHandler): void;
+    
+    /**
+     * Register callback query handler
+     */
+    onCallbackQuery(handler: ICallbackHandler): void;
+  }
+  
+  /**
+   * Message handler interface
+   */
+  export interface IMessageHandler {
+    /**
+     * Handle incoming text messages
+     * @param ctx - grammY context
+     */
+    handleMessage(ctx: Context): Promise<void>;
+  }
+  
+  /**
+   * Callback query handler interface
+   */
+  export interface ICallbackHandler {
+    /**
+     * Handle callback queries from inline keyboard buttons
+     * @param ctx - Context with callback query
+     */
+    handleCallback(ctx: Context): Promise<void>;
+  }
+  
+  /**
+   * YouTube URL parser interface
+   */
+  export interface IYouTubeUrlParser {
+    /**
+     * Check if text contains a YouTube URL
+     * @param text - Message text
+     * @returns true if YouTube URL found
+     */
+    hasYouTubeUrl(text: string): boolean;
+    
+    /**
+     * Extract YouTube video ID from URL
+     * @param text - Message text or URL
+     * @returns 11-character video ID or null
+     */
+    extractVideoId(text: string): string | null;
+    
+    /**
+     * Extract full YouTube URL from text
+     * @param text - Message text
+     * @returns Full YouTube URL or null
+     */
+    extractYouTubeUrl(text: string): string | null;
+  }
+  
+  /**
+   * Category keyboard builder
+   */
+  export interface ICategoryKeyboard {
+    /**
+     * Build inline keyboard for category selection
+     * @param messageId - Original message ID
+     * @param chatId - Chat ID
+     * @returns grammY InlineKeyboard instance
+     */
+    build(messageId: number, chatId: number): InlineKeyboard;
+  }
+  
+  /**
+   * Callback data parser
+   */
+  export interface ICallbackDataParser {
+    /**
+     * Parse callback data string
+     * @param data - Callback data (format: "cat:messageId:chatId:category")
+     * @returns Parsed callback data or null if invalid
+     */
+    parse(data: string): CategoryCallbackData | null;
+  }
+  
+  /**
+   * Bot configuration
+   */
+  export interface BotConfig {
+    token: string;
+    parseMode?: 'Markdown' | 'HTML';
+    dropPendingUpdates?: boolean;
+  }
+  
+  /**
+   * Category button configuration
+   */
+  export interface CategoryButton {
+    text: string;
+    value: string;
+  }
+  
+  /**
+   * Implementation: Message Handler
+   */
+  export class MessageHandler implements IMessageHandler {
+    constructor(
+      private urlParser: IYouTubeUrlParser,
+      private youtubeService: IYouTubeService,
+      private stateStore: IStateStore,
+      private categoryKeyboard: ICategoryKeyboard,
+      private ageRangeMapper: IAgeRangeMapper
+    ) {}
+    
+    async handleMessage(ctx: Context): Promise<void> {
+      // Guard: Only process text messages
+      if (!ctx.message?.text) return;
+      
+      // Guard: Only process messages with YouTube URLs
+      const youtubeUrl = this.urlParser.extractYouTubeUrl(ctx.message.text);
+      if (!youtubeUrl) return;
+      
+      // Extract video ID
+      const youtubeId = this.urlParser.extractVideoId(youtubeUrl);
+      if (!youtubeId) {
+        await ctx.reply("❌ Invalid YouTube link format");
+        return;
+      }
+      
+      // Get age range from chat ID
+      const ageRange = this.ageRangeMapper.getAgeRange(ctx.chat.id);
+      
+      // Fetch video metadata
+      let title: string;
+      try {
+        const metadata = await this.youtubeService.getVideoMetadata(youtubeId);
+        title = metadata.title;
+      } catch (error) {
+        if (error instanceof YouTubeError && error.reason === 'quotaExceeded') {
+          await ctx.reply("⚠️ Video metadata unavailable. Using link as title.");
+        }
+        // Fallback: use URL as title
+        title = youtubeUrl;
+      }
+      
+      // Create message state
+      const state: MessageState = {
+        messageId: ctx.message.message_id,
+        chatId: ctx.chat.id,
+        userId: ctx.from.id,
+        youtubeUrl,
+        youtubeId,
+        title,
+        timestamp: Date.now(),
+        expiresAt: Date.now() + 86400000, // 24 hours
+        ageRange,
+      };
+      
+      // Store state
+      const key = `${ctx.chat.id}:${ctx.message.message_id}`;
+      await this.stateStore.set(key, state);
+      
+      // Send category selection keyboard
+      const keyboard = this.categoryKeyboard.build(
+        ctx.message.message_id,
+        ctx.chat.id
+      );
+      
+      await ctx.reply(
+        "📺 Video detected! Please select a category:",
+        { reply_markup: keyboard }
+      );
+    }
+  }
+  
+  /**
+   * Implementation: Callback Handler
+   */
+  export class CallbackHandler implements ICallbackHandler {
+    constructor(
+      private callbackParser: ICallbackDataParser,
+      private stateStore: IStateStore,
+      private sanityService: ISanityService
+    ) {}
+    
+    async handleCallback(ctx: Context): Promise<void> {
+      // Guard: Only process callback queries
+      if (!ctx.callbackQuery?.data) return;
+      
+      // Parse callback data
+      const callbackData = this.callbackParser.parse(ctx.callbackQuery.data);
+      if (!callbackData) {
+        await ctx.answerCallbackQuery({ text: "Invalid selection" });
+        return;
+      }
+      
+      // Lookup message state
+      const key = `${callbackData.chatId}:${callbackData.messageId}`;
+      const state = await this.stateStore.get(key);
+      
+      if (!state) {
+        await ctx.answerCallbackQuery({ text: "Selection expired" });
+        await ctx.reply("⏰ Selection expired. Please share the video link again.");
+        return;
+      }
+      
+      // Validate: Only original sender can select
+      if (ctx.from.id !== state.userId) {
+        await ctx.answerCallbackQuery({ text: "Unauthorized" });
+        await ctx.reply("❌ Only the person who shared the video can select its category");
+        return;
+      }
+      
+      // Create video submission
+      const submission: VideoSubmission = {
+        _type: 'video',
+        title: state.title,
+        youtubeUrl: state.youtubeUrl,
+        youtubeId: state.youtubeId,
+        category: callbackData.category,
+        ageRange: state.ageRange,
+        status: 'pending',
+        tags: [],
+      };
+      
+      // Submit to Sanity
+      try {
+        await this.sanityService.createVideo(submission);
+        
+        // Delete state
+        await this.stateStore.delete(key);
+        
+        // Confirm to user
+        await ctx.answerCallbackQuery({ text: "Video saved!" });
+        await ctx.reply(
+          `✅ Video saved! Category: ${callbackData.category}, Age Range: ${state.ageRange}`
+        );
+      } catch (error) {
+        await ctx.answerCallbackQuery({ text: "Submission failed" });
+        await ctx.reply("❌ Submission failed. Please try selecting the category again.");
+        console.error('Sanity submission error:', error);
+      }
+    }
+  }
+  
+  /**
+   * Implementation: YouTube URL Parser
+   */
+  export class YouTubeUrlParser implements IYouTubeUrlParser {
+    private readonly urlRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([a-zA-Z0-9_-]{11})/;
+    
+    hasYouTubeUrl(text: string): boolean {
+      return this.urlRegex.test(text);
+    }
+    
+    extractVideoId(text: string): string | null {
+      const match = text.match(this.urlRegex);
+      return match ? match[1] : null;
+    }
+    
+    extractYouTubeUrl(text: string): string | null {
+      const match = text.match(this.urlRegex);
+      return match ? match[0] : null;
+    }
+  }
+  
+  /**
+   * Implementation: Category Keyboard Builder
+   */
+  export class CategoryKeyboard implements ICategoryKeyboard {
+    private readonly buttons: CategoryButton[] = [
+      { text: '📚 Education', value: 'education' },
+      { text: '🎭 Entertainment', value: 'entertainment' },
+      { text: '🎵 Music', value: 'music' },
+      { text: '🔬 Science', value: 'science' },
+      { text: '🎨 Arts & Crafts', value: 'arts-crafts' },
+      { text: '⚽ Sports', value: 'sports' },
+      { text: '🌳 Nature', value: 'nature' },
+      { text: '📖 Stories', value: 'stories' },
+    ];
+    
+    build(messageId: number, chatId: number): InlineKeyboard {
+      const keyboard = new InlineKeyboard();
+      
+      this.buttons.forEach((button, index) => {
+        const callbackData = `cat:${messageId}:${chatId}:${button.value}`;
+        keyboard.text(button.text, callbackData);
+        
+        // New row after every 2 buttons (2 columns)
+        if ((index + 1) % 2 === 0) {
+          keyboard.row();
+        }
+      });
+      
+      return keyboard;
+    }
+  }
+  
+  /**
+   * Implementation: Callback Data Parser
+   */
+  export class CallbackDataParser implements ICallbackDataParser {
+    parse(data: string): CategoryCallbackData | null {
+      const parts = data.split(':');
+      
+      if (parts.length !== 4 || parts[0] !== 'cat') {
+        return null;
+      }
+      
+      const messageId = parseInt(parts[1]);
+      const chatId = parseInt(parts[2]);
+      const category = parts[3];
+      
+      if (isNaN(messageId) || isNaN(chatId)) {
+        return null;
+      }
+      
+      return {
+        prefix: 'cat',
+        messageId,
+        chatId,
+        category,
+      };
+    }
+  }
+  
+  /**
+   * Age range mapper interface
+   */
+  export interface IAgeRangeMapper {
+    /**
+     * Get age range for a chat ID
+     * @param chatId - Telegram chat ID
+     * @returns Age range or default
+     */
+    getAgeRange(chatId: number): AgeRange;
+  }
+  
+  /**
+   * Implementation: Age Range Mapper
+   */
+  export class AgeRangeMapper implements IAgeRangeMapper {
+    constructor(private mapping: Record<number, AgeRange>) {}
+    
+    getAgeRange(chatId: number): AgeRange {
+      return this.mapping[chatId] || '0-2'; // Default to youngest age range
+    }
+  }
+  
+  /**
+   * Bot initialization
+   */
+  export function createBot(config: BotConfig): Bot {
+    return new Bot(config.token, {
+      botInfo: {
+        // Bot info will be fetched automatically
+      },
+    });
+  }
+  
+  /**
+   * Register handlers and start bot
+   */
+  export async function initializeBot(
+    bot: Bot,
+    messageHandler: IMessageHandler,
+    callbackHandler: ICallbackHandler
+  ): Promise<void> {
+    // Register message handler
+    bot.on('message:text', async (ctx) => {
+      await messageHandler.handleMessage(ctx);
+    });
+    
+    // Register callback query handler
+    bot.on('callback_query:data', async (ctx) => {
+      await callbackHandler.handleCallback(ctx);
+    });
+    
+    // Error handling
+    bot.catch((err) => {
+      console.error('Bot error:', err);
+    });
+    
+    // Start bot with long-polling
+    await bot.start({
+      drop_pending_updates: true,
+    });
+  }

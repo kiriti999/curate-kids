@@ -1,0 +1,43 @@
+{
+  "name": "curatekids-telegram-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot for curating YouTube videos by age range and category",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint src --ext .ts"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "youtube",
+    "sanity",
+    "curation"
+  ],
+  "author": "CurateKids Team",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "grammy": "^1.33.0",
+    "@googleapis/youtube": "^20.0.0",
+    "@sanity/client": "^7.14.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.8.0",
+    "tsx": "^4.21.0",
+    "jest": "^30.2.0",
+    "@types/jest": "^30.0.0",
+    "ts-jest": "^29.3.0",
+    "eslint": "^9.28.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0"
+  }
+}

@@ -41,7 +41,7 @@ export async function getPublishedVideos() {
       tags
     }`,
     {},
-    { next: { revalidate: 60 } } // Cache for 60 seconds
+    { next: { revalidate: 300 } } // Cache for 5 minutes - better Vercel performance
   )
 
   // Extract YouTube IDs from URLs if they're not already set

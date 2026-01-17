@@ -29,8 +29,8 @@ function extractYoutubeId(url: string): string | null {
 }
 
 export async function getPublishedVideos() {
-  const videos = await client.fetch(`
-    *[_type == "video" && !(_id in path("drafts.**"))] | order(_createdAt desc) {
+  const videos = await client.fetch(
+    `*[_type == "video" && !(_id in path("drafts.**"))] | order(_createdAt desc) {
       _id,
       _createdAt,
       title,
@@ -39,8 +39,10 @@ export async function getPublishedVideos() {
       category,
       ageRange,
       tags
-    }
-  `)
+    }`,
+    {},
+    { next: { revalidate: 60 } } // Cache for 60 seconds
+  )
 
   // Extract YouTube IDs from URLs if they're not already set
   return videos.map((video: any) => ({

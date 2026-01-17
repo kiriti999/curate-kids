@@ -1,18 +1,33 @@
-import { createClient } from '@sanity/client'
+/**
+ * Migration script: Remove deprecated status and publishedAt fields
+ * Cleans up legacy fields from video documents
+ */
 
-const client = createClient({
-    projectId: '3rcl6ir9',
-    dataset: 'production',
-    apiVersion: '2024-01-01',
-    token: process.env.SANITY_API_TOKEN, // You'll need to provide this
-    useCdn: false, // Don't use CDN for mutations
+import { createSanityClient } from '../services/sanity/client'
+import { logger } from '../utils/logger'
+import { env } from '../config/env'
+import { SANITY_CONFIG } from '../config/constants'
+import { VideoDocument } from '../types/sanity'
+import type { Patch } from '@sanity/client'
+
+interface VideoWithLegacyFields extends Partial<VideoDocument> {
+  status?: string
+  publishedAt?: string
+}
+
+const client = createSanityClient({
+  projectId: env.SANITY_PROJECT_ID,
+  dataset: env.SANITY_DATASET,
+  apiVersion: SANITY_CONFIG.API_VERSION,
+  token: env.SANITY_TOKEN,
+  useCdn: false,
 })
 
-async function removeStatusField() {
-    console.log('🔍 Fetching all video documents...')
+async function removeStatusField(): Promise<void> {
+  logger.info('Fetching all video documents')
 
-    // Fetch all video documents (both drafts and published)
-    const videos = await client.fetch(`
+  // Fetch all video documents (both drafts and published)
+  const videos = await client.fetch<VideoWithLegacyFields[]>(`
     *[_type == "video"] {
       _id,
       _rev,
@@ -22,62 +37,70 @@ async function removeStatusField() {
     }
   `)
 
-    console.log(`📊 Found ${videos.length} video documents`)
+  logger.info('Videos fetched', { count: videos.length })
 
-    // Filter videos that have status or publishedAt fields
-    const videosToUpdate = videos.filter(
-        (video: any) => video.status !== undefined || video.publishedAt !== undefined
-    )
+  // Filter videos that have status or publishedAt fields
+  const videosToUpdate = videos.filter(
+    (video: VideoWithLegacyFields) => video.status !== undefined || video.publishedAt !== undefined
+  )
 
-    console.log(`🎯 ${videosToUpdate.length} documents need cleanup`)
+  logger.info('Documents needing cleanup', { count: videosToUpdate.length })
 
-    if (videosToUpdate.length === 0) {
-        console.log('✅ No cleanup needed!')
-        return
+  if (videosToUpdate.length === 0) {
+    logger.info('No cleanup needed')
+    return
+  }
+
+  logger.info('Documents to update', {
+    videos: videosToUpdate.map((video: VideoWithLegacyFields) => ({
+      id: video._id,
+      title: video.title,
+      hasStatus: !!video.status,
+      hasPublishedAt: !!video.publishedAt,
+    })),
+  })
+
+  logger.warn('Starting cleanup in 5 seconds. Press Ctrl+C to cancel.')
+
+  // Wait 5 seconds before proceeding
+  await new Promise((resolve) => setTimeout(resolve, 5000))
+
+  logger.info('Starting field cleanup')
+
+  // Create a transaction to unset the fields
+  let transaction = client.transaction()
+
+  videosToUpdate.forEach((video: VideoWithLegacyFields) => {
+    if (video._id) {
+      transaction = transaction.patch(video._id, (patch: Patch) =>
+        patch.unset(['status', 'publishedAt'])
+      )
     }
+  })
 
-    console.log('\n📝 Documents to update:')
-    videosToUpdate.forEach((video: any) => {
-        console.log(`  - ${video.title} (${video._id})`)
-        if (video.status) console.log(`    └─ status: ${video.status}`)
-        if (video.publishedAt) console.log(`    └─ publishedAt: ${video.publishedAt}`)
+  // Execute the transaction
+  try {
+    const result = await transaction.commit()
+    logger.info('Cleanup complete', { updatedCount: result.results.length })
+  } catch (error) {
+    logger.error('Error during cleanup', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
     })
-
-    console.log('\n⚠️  This will remove the status and publishedAt fields from these documents.')
-    console.log('Press Ctrl+C to cancel, or wait 5 seconds to continue...\n')
-
-    // Wait 5 seconds before proceeding
-    await new Promise((resolve) => setTimeout(resolve, 5000))
-
-    console.log('🚀 Starting cleanup...\n')
-
-    // Create a transaction to unset the fields
-    let transaction = client.transaction()
-
-    videosToUpdate.forEach((video: any) => {
-        transaction = transaction.patch(video._id, (patch) =>
-            patch.unset(['status', 'publishedAt'])
-        )
-    })
-
-    // Execute the transaction
-    try {
-        const result = await transaction.commit()
-        console.log('✅ Cleanup complete!')
-        console.log(`📦 Updated ${result.results.length} documents`)
-    } catch (error) {
-        console.error('❌ Error during cleanup:', error)
-        throw error
-    }
+    throw error
+  }
 }
 
 // Run the migration
 removeStatusField()
-    .then(() => {
-        console.log('\n🎉 Migration completed successfully!')
-        process.exit(0)
+  .then(() => {
+    logger.info('Migration completed successfully')
+    process.exit(0)
+  })
+  .catch((error) => {
+    logger.error('Migration failed', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
     })
-    .catch((error) => {
-        console.error('\n💥 Migration failed:', error)
-        process.exit(1)
-    })
+    process.exit(1)
+  })

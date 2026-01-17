@@ -1,5 +1,6 @@
 import {defineField, defineType} from 'sanity'
 import {UsersIcon} from '@sanity/icons'
+import {SANITY_CONFIG} from '../../config/constants'
 
 export default defineType({
   name: 'user',
@@ -25,7 +26,7 @@ export default defineType({
             if (!email) return true
 
             const {getClient, document} = context
-            const client = getClient({apiVersion: '2024-01-01'})
+            const client = getClient({apiVersion: SANITY_CONFIG.API_VERSION})
 
             // Check for duplicate email (excluding current document)
             const duplicates = await client.fetch(
@@ -90,7 +91,7 @@ export default defineType({
             if (!addedBy?._ref) return true
 
             const {getClient} = context
-            const client = getClient({apiVersion: '2024-01-01'})
+            const client = getClient({apiVersion: SANITY_CONFIG.API_VERSION})
 
             // Verify that addedBy user is an admin
             const addedByUser = await client.fetch(

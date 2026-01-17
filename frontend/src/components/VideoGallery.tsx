@@ -20,11 +20,11 @@ interface Video {
     _id: string
     _createdAt: string
     title: string
-    youtubeId: string
-    youtubeUrl: string
-    category: string
-    ageRange: string
-    tags: string[]
+    youtubeId?: string
+    youtubeUrl?: string
+    category?: string
+    ageRange?: string
+    tags?: string[]
 }
 
 interface VideoGalleryProps {
@@ -136,14 +136,14 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
         return videos.filter((video) => {
             if (
                 selectedCategories.length > 0 &&
-                !selectedCategories.includes(video.category)
+                (!video.category || !selectedCategories.includes(video.category))
             ) {
                 return false
             }
 
             if (
                 selectedAgeRanges.length > 0 &&
-                !selectedAgeRanges.includes(video.ageRange)
+                (!video.ageRange || !selectedAgeRanges.includes(video.ageRange))
             ) {
                 return false
             }
@@ -245,8 +245,8 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
                                     {video.title}
                                 </h2>
                                 <div className="flex flex-wrap gap-2">
-                                    <Badge>{video.category}</Badge>
-                                    <Badge variant="secondary">{video.ageRange} years</Badge>
+                                    {video.category && <Badge>{video.category}</Badge>}
+                                    {video.ageRange && <Badge variant="secondary">{video.ageRange} years</Badge>}
                                 </div>
                                 {video.tags && video.tags.length > 0 && (
                                     <div className="flex flex-wrap gap-1">

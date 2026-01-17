@@ -6,8 +6,21 @@
 import { createClient } from '@sanity/client'
 import { extractYoutubeId } from '../../../utils/extractYoutubeId'
 import { logger } from '../../../utils/logger'
-import { VideoQueryResult } from '../../../types/sanity'
 import { SANITY_CONFIG } from '../../../config/constants'
+
+/**
+ * Video query result type for frontend
+ */
+export interface VideoQueryResult {
+  _id: string
+  _createdAt: string
+  title: string
+  youtubeId?: string
+  youtubeUrl?: string
+  category?: string
+  ageRange?: string
+  tags?: string[]
+}
 
 // Use Next.js public environment variables (client-side safe)
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || ''

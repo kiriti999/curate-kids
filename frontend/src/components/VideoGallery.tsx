@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -40,6 +41,46 @@ const AGE_RANGES = [
     { value: '9-12', label: '9-12 years' },
     { value: '13+', label: '13+ years' },
 ]
+
+function VideoThumbnail({ video }: { video: Video }) {
+    const [showVideo, setShowVideo] = useState(false)
+
+    if (showVideo) {
+        return (
+            <iframe
+                className="w-full h-full"
+                src={`https://www.youtube.com/embed/${video.youtubeId}?autoplay=1`}
+                title={video.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+            />
+        )
+    }
+
+    return (
+        <button
+            onClick={() => setShowVideo(true)}
+            className="relative w-full h-full group"
+            aria-label={`Play ${video.title}`}
+        >
+            <Image
+                src={`https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg`}
+                alt={video.title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                priority={false}
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
+                <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                    </svg>
+                </div>
+            </div>
+        </button>
+    )
+}
 
 export default function VideoGallery({ videos }: VideoGalleryProps) {
     const [selectedCategories, setSelectedCategories] = useState<string[]>([])
@@ -174,13 +215,7 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
                     {filteredVideos.map((video) => (
                         <Card key={video._id} className="overflow-hidden p-0">
                             <div className="aspect-video bg-black">
-                                <iframe
-                                    className="w-full h-full"
-                                    src={`https://www.youtube.com/embed/${video.youtubeId}`}
-                                    title={video.title}
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                />
+                                <VideoThumbnail video={video} />
                             </div>
                             <CardContent className="p-4 space-y-3">
                                 <h2 className="font-semibold text-lg">

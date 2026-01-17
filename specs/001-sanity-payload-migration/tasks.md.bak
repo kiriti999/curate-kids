@@ -1,0 +1,531 @@
+# Tasks: Sanity CMS to PayloadCMS Migration
+
+**Input**: Design documents from `/specs/001-sanity-payload-migration/`
+**Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/, quickstart.md
+
+**Tests**: Tests are NOT explicitly requested in the specification, so test tasks are excluded per constitution guidelines.
+
+**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
+
+## Format: `[ID] [P?] [Story] Description`
+
+- **[P]**: Can run in parallel (different files, no dependencies)
+- **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3)
+- Include exact file paths in descriptions
+
+## Path Conventions
+
+This project uses a web application structure:
+- PayloadCMS backend: `payload/`, `migration/`, root-level `server.ts`, `payload.config.ts`
+- Next.js frontend: `frontend/src/`
+- Shared utilities: `utils/`, `config/`, `types/`
+
+---
+
+## Phase 1: Setup (Project Initialization) ✅ COMPLETE
+
+**Purpose**: Install dependencies and create directory structure
+
+- [X] T001 Install PayloadCMS dependencies in package.json (payload@latest, @payloadcms/db-mongodb@latest, @payloadcms/richtext-slate@latest, express@latest)
+- [X] T002 [P] Install development dependencies in package.json (@types/express, ts-node-dev)
+- [X] T003 [P] Create directory structure: payload/collections/, payload/hooks/, migration/, migration/exported-data/
+- [X] T004 [P] Update .env file with MongoDB connection string, PayloadCMS secret, and Sanity credentials
+- [X] T005 [P] Add .env to .gitignore if not already present
+
+---
+
+## Phase 2: Foundational (Core Infrastructure) ✅ COMPLETE
+
+**Purpose**: Core PayloadCMS setup that MUST be complete before ANY user story implementation
+
+**⚠️ CRITICAL**: No user story work can begin until this phase is complete
+
+- [X] T006 Create payload.config.ts in repository root with MongoDB adapter, admin config, and CORS settings
+- [X] T007 Create server.ts in repository root with Express + PayloadCMS initialization
+- [X] T008 [P] Create constants file in config/constants.ts for age ranges, categories, and validation rules
+- [X] T009 [P] Create shared utility functions in utils/retry.ts for API retry logic with exponential backoff
+- [X] T010 [P] Create error handling utilities in utils/errors.ts for migration and API integration
+- [X] T011 [P] Create slug generation utility in utils/slugify.ts for consistent slug creation
+- [X] T012 [P] Create YouTube ID extraction utility in utils/youtube.ts with URL validation regex (already exists as extractYoutubeId.ts)
+
+**Checkpoint**: ✅ Foundation ready - user story implementation can now begin in parallel
+
+---
+
+## Phase 3: User Story 1 - Content Management with PayloadCMS (Priority: P1) 🎯 MVP
+
+**Goal**: Enable admins to create, read, update, and delete all content types through PayloadCMS admin interface with the same structure and relationships as Sanity CMS
+
+**Independent Test**: Access PayloadCMS admin UI, create sample documents for each content type, verify all fields/validations/relationships function correctly
+
+### Collection Schema Definitions
+
+- [X] T013 [P] [US1] Create Video collection in payload/collections/Video.ts with all fields per data-model.md (title, slug, youtubeUrl, youtubeId, duration, category, ageRange, tags, notes, viewCount, lastViewedAt)
+- [X] T014 [P] [US1] Create Category collection in payload/collections/Category.ts with hierarchical fields per data-model.md (name, slug, description, icon, ageRange, parent, fullPath, depth, isAgeRangeRoot, sortOrder, isVisible, childCount, videoCount, notes)
+- [X] T015 [P] [US1] Create User collection in payload/collections/User.ts with auth fields per data-model.md (name, email, password, role, status, addedBy, lastLoginAt, loginCount, notes, deactivatedAt)
+- [X] T016 [P] [US1] Create ActivityLog collection in payload/collections/ActivityLog.ts with immutable fields per data-model.md (actionType, userId, sessionId, ipAddress, userAgent, resourceType, resourceId, metadata, createdAt)
+- [X] T017 [P] [US1] Create AdPlacement collection in payload/collections/AdPlacement.ts with ad config fields per data-model.md (name, type, position, content group, ageRanges, priority, status, startDate, endDate, inlinePosition group, affiliatePartner, impressionCount, clickCount, ctr, notes)
+- [X] T018 [P] [US1] Create AffiliatePartner collection in payload/collections/AffiliatePartner.ts with partner fields per data-model.md (name, contactEmail, website, trackingUrlTemplate, commissionRate, commissionType, paymentTerms, status, totalImpressions, totalClicks, conversionRate, onboardedAt, lastPayoutAt, notes)
+
+### Collection Hooks and Validations
+
+- [X] T019 [US1] Implement beforeValidate hook for Video in payload/hooks/videoHooks.ts to extract youtubeId from youtubeUrl
+- [X] T020 [US1] Implement Video validation in payload/collections/Video.ts for YouTube URL regex, tags max 20 items, slug uniqueness
+- [X] T021 [US1] Implement beforeValidate hook for Category in payload/hooks/categoryHooks.ts to calculate depth and fullPath
+- [X] T022 [US1] Implement Category validation in payload/hooks/categoryHooks.ts for parent rules (age range root cannot have parent, non-root must have parent, same age range, max depth 10, circular reference prevention)
+- [X] T023 [US1] Implement afterChange hook for Category in payload/hooks/categoryHooks.ts to update parent's childCount when category added/removed
+- [X] T024 [US1] Implement beforeChange hook for User in payload/hooks/userHooks.ts to set addedBy, prevent role changes, set deactivatedAt timestamp
+- [X] T025 [US1] Implement User validation in payload/collections/User.ts for email uniqueness, role immutability after creation
+- [X] T026 [US1] Implement ActivityLog read-only access control in payload/collections/ActivityLog.ts (no manual creation/editing)
+- [X] T027 [US1] Implement ActivityLog validation in payload/collections/ActivityLog.ts for actionType pattern (resource.action), resourceType enum, anonymized IP
+- [X] T028 [US1] Implement beforeValidate hook for AdPlacement in payload/hooks/adPlacementHooks.ts to validate inline position when required, startDate < endDate
+- [X] T029 [US1] Implement afterRead hook for AdPlacement in payload/hooks/adPlacementHooks.ts to calculate CTR from clicks/impressions
+- [X] T030 [US1] Implement AdPlacement validation in payload/collections/AdPlacement.ts for priority 1-100, URL formats, conditional inlinePosition
+- [X] T031 [US1] Implement AffiliatePartner validation in payload/collections/AffiliatePartner.ts for email format, URL formats, tracking URL placeholders, commission rate 0-100
+- [X] T032 [US1] Implement afterRead hook for AffiliatePartner in payload/hooks/affiliatePartnerHooks.ts to calculate conversion rate
+
+### Collection Integration
+
+- [X] T033 [US1] Register all six collections in payload.config.ts collections array
+- [X] T034 [US1] Configure User collection as admin authentication collection in payload.config.ts
+- [X] T035 [US1] Add access control rules to all collections in their respective files (read: public for Video/Category, authenticated for others)
+
+### Admin UI Testing
+
+- [ ] T036 [US1] Start PayloadCMS server with npm run dev:payload and verify admin UI loads at http://localhost:3000/admin
+- [ ] T037 [US1] Create first admin user through PayloadCMS setup wizard
+- [ ] T038 [US1] Create sample Video document and verify YouTube ID auto-extraction, slug generation, validation
+- [ ] T039 [US1] Create sample Category documents with parent-child hierarchy and verify depth calculation, fullPath, circular reference prevention
+- [ ] T040 [US1] Create sample User and verify role/email validation, addedBy auto-set
+- [ ] T041 [US1] Create sample AdPlacement and verify inline position validation, date validation, CTR calculation
+- [ ] T042 [US1] Create sample AffiliatePartner and verify URL validation, tracking template validation
+
+**Checkpoint**: At this point, User Story 1 is fully functional - all collections accessible in admin UI with proper validations and relationships
+
+---
+
+## Phase 4: User Story 2 - Data Migration from Sanity to PayloadCMS (Priority: P2)
+
+**Goal**: Export all existing Sanity content, transform to PayloadCMS format, import to MongoDB Atlas with complete data integrity
+
+**Independent Test**: Run migration scripts against production Sanity data, compare record counts, verify relationships preserved, check calculated fields correct
+
+### Migration Script Setup
+
+- [X] T043 [P] [US2] Create export script migration/export-from-sanity.ts with Sanity client initialization and GROQ queries
+- [X] T044 [P] [US2] Create transformation script migration/transform-data.ts with field mapping logic per research.md section 5
+- [X] T045 [P] [US2] Create import script migration/import-to-payloadcms.ts with PayloadCMS local API and ID mapping
+- [X] T046 [P] [US2] Create verification script migration/verify-migration.ts with record count and relationship validation
+
+### Export Implementation
+
+- [X] T047 [US2] Implement Sanity data export in migration/export-from-sanity.ts for all six collections (video, category, user, activityLog, adPlacement, affiliatePartner)
+- [X] T048 [US2] Add progress logging and error handling to export script with record counts per collection
+- [X] T049 [US2] Save exported data to JSON files in migration/exported-data/ directory (videos.json, categories.json, users.json, activityLogs.json, adPlacements.json, affiliatePartners.json)
+
+### Transformation Implementation
+
+- [X] T050 [US2] Implement Sanity to PayloadCMS field mapping in migration/transform-data.ts (_id → sanityId, _type → metadata, _createdAt/_updatedAt → createdAt/updatedAt)
+- [X] T051 [US2] Implement reference field transformation in migration/transform-data.ts (Sanity _ref → PayloadCMS relationship IDs)
+- [X] T052 [US2] Implement slug extraction in migration/transform-data.ts (Sanity slug.current → PayloadCMS slug string)
+- [X] T053 [US2] Implement image URL handling in migration/transform-data.ts (extract Sanity image URLs, keep as-is for initial migration)
+- [X] T054 [US2] Add validation in migration/transform-data.ts to check transformed data against PayloadCMS schema rules
+- [X] T055 [US2] Save transformed data to JSON files in migration/exported-data/ directory (*-transformed.json files)
+
+### Import Implementation
+
+- [X] T056 [US2] Implement dependency-ordered import in migration/import-to-payloadcms.ts (Users → Categories root→leaf → Videos → ActivityLogs → AffiliatePartners → AdPlacements)
+- [X] T057 [US2] Implement ID mapping in migration/import-to-payloadcms.ts to track Sanity IDs → PayloadCMS IDs for reference updates
+- [X] T058 [US2] Implement reference resolution in migration/import-to-payloadcms.ts (update parent category IDs, user references, video category references)
+- [X] T059 [US2] Implement error handling in migration/import-to-payloadcms.ts with checkpoint system (track last imported ID, resume on failure)
+- [X] T060 [US2] Add retry logic in migration/import-to-payloadcms.ts for network errors with exponential backoff (max 3 attempts)
+- [X] T061 [US2] Implement dry-run mode in migration/import-to-payloadcms.ts (validate without writing to database)
+- [X] T062 [US2] Generate detailed import report in migration/import-to-payloadcms.ts (total attempted, successful, failed with reasons, relationship validation)
+
+### Verification Implementation
+
+- [X] T063 [US2] Implement record count comparison in migration/verify-migration.ts (Sanity vs PayloadCMS for each collection)
+- [X] T064 [US2] Implement category hierarchy validation in migration/verify-migration.ts (parent-child relationships, depth values, fullPath arrays match Sanity)
+- [X] T065 [US2] Implement video-category reference validation in migration/verify-migration.ts (all video categories point to valid migrated categories)
+- [X] T066 [US2] Implement activity log reference validation in migration/verify-migration.ts (userId and resourceId references preserved correctly)
+- [X] T067 [US2] Implement calculated field verification in migration/verify-migration.ts (childCount, videoCount, viewCount match expected values)
+- [X] T068 [US2] Implement slug uniqueness check in migration/verify-migration.ts across all collections
+- [X] T069 [US2] Generate detailed verification report in migration/verify-migration.ts highlighting any discrepancies
+
+### Migration Execution
+
+- [ ] T070 [US2] Run export script against production Sanity data with npm run migrate:export (requires valid SANITY_TOKEN in .env)
+- [ ] T071 [US2] Run transformation script with npm run migrate:transform and review transformed data samples
+- [ ] T072 [US2] Run import script in dry-run mode with npm run migrate:import:dry-run to validate without writing
+- [ ] T073 [US2] Run import script for real with npm run migrate:import and monitor progress logs
+- [ ] T074 [US2] Run verification script with npm run migrate:verify and review verification report
+- [ ] T075 [US2] Spot-check migrated data in PayloadCMS admin UI (sample videos, categories, users) against Sanity originals
+
+**Checkpoint**: At this point, User Story 2 is complete - all Sanity data successfully migrated to PayloadCMS with verified integrity
+
+---
+
+## Phase 5: User Story 3 - Frontend Integration with PayloadCMS API (Priority: P3)
+
+**Goal**: Update frontend to fetch content from PayloadCMS REST API instead of Sanity, maintaining identical user experience
+
+**Independent Test**: Run frontend against migrated PayloadCMS data, verify all pages load correctly, video playback works, category navigation functions, filtering behaves identically
+
+### API Client Creation
+
+- [ ] T076 [P] [US3] Create PayloadCMS API client in frontend/src/lib/payloadcms.ts with type-safe fetch wrapper and retry logic
+- [ ] T077 [P] [US3] Create TypeScript types in frontend/src/types/payload.ts generated from PayloadCMS collections
+- [ ] T078 [US3] Implement getVideos function in frontend/src/lib/payloadcms.ts with filtering (category, ageRange, limit) and caching (Next.js revalidate)
+- [ ] T079 [US3] Implement getVideoBySlug function in frontend/src/lib/payloadcms.ts with caching
+- [ ] T080 [US3] Implement getVideoById function in frontend/src/lib/payloadcms.ts with caching
+- [ ] T081 [US3] Implement getCategories function in frontend/src/lib/payloadcms.ts with hierarchy filtering (parent, isAgeRangeRoot, isVisible)
+- [ ] T082 [US3] Implement getCategoryBySlug function in frontend/src/lib/payloadcms.ts with caching
+- [ ] T083 [US3] Implement getCategoryChildren function in frontend/src/lib/payloadcms.ts to fetch direct children of a category
+- [ ] T084 [US3] Implement getCategoryAncestors function in frontend/src/lib/payloadcms.ts to build breadcrumb path
+- [ ] T085 [US3] Implement createActivityLog function in frontend/src/lib/payloadcms.ts for video views, category navigation, ad interactions
+
+### Frontend Component Updates
+
+- [ ] T086 [US3] Update VideoGallery component in frontend/src/components/VideoGallery.tsx to use getVideos from PayloadCMS client
+- [ ] T087 [US3] Update VideoCard component in frontend/src/components/VideoCard.tsx to handle PayloadCMS video data structure
+- [ ] T088 [US3] Update VideoDetail page in frontend/src/app/videos/[slug]/page.tsx to use getVideoBySlug from PayloadCMS client
+- [ ] T089 [US3] Update CategoryNav component in frontend/src/components/CategoryNav.tsx to use getCategories from PayloadCMS client
+- [ ] T090 [US3] Update CategoryTree component in frontend/src/components/CategoryTree.tsx to handle PayloadCMS category hierarchy
+- [ ] T091 [US3] Update category filter logic in frontend/src/components/VideoFilters.tsx to use PayloadCMS category data
+- [ ] T092 [US3] Update age range filter logic in frontend/src/components/AgeRangeFilter.tsx to use PayloadCMS constants
+- [ ] T093 [US3] Update search functionality in frontend/src/components/SearchBar.tsx to use PayloadCMS query syntax (where[title][contains])
+
+### Activity Logging Integration
+
+- [ ] T094 [US3] Update video view tracking in frontend/src/app/videos/[slug]/page.tsx to call createActivityLog with video.view action
+- [ ] T095 [US3] Update category navigation tracking in frontend/src/components/CategoryNav.tsx to call createActivityLog with category.navigate action
+- [ ] T096 [US3] Update ad impression tracking in frontend/src/components/AdBanner.tsx to call createActivityLog with ad.impression action
+- [ ] T097 [US3] Update ad click tracking in frontend/src/components/AdBanner.tsx to call createActivityLog with ad.click action
+- [ ] T098 [US3] Add error handling to activity logging in frontend/src/lib/payloadcms.ts to fail gracefully without disrupting user experience
+
+### Environment Configuration
+
+- [ ] T099 [US3] Add NEXT_PUBLIC_PAYLOAD_API_URL to frontend/.env.local pointing to PayloadCMS server
+- [ ] T100 [US3] Add feature flag USE_PAYLOADCMS to frontend/.env.local (default: true after migration) for gradual rollout
+
+### Frontend Testing
+
+- [ ] T101 [US3] Test homepage video list loads from PayloadCMS API with correct data
+- [ ] T102 [US3] Test video detail page loads with all metadata (title, YouTube URL, category, age range, tags, duration)
+- [ ] T103 [US3] Test category navigation displays correct hierarchy with parent-child relationships
+- [ ] T104 [US3] Test category filtering shows only videos in selected category or descendants
+- [ ] T105 [US3] Test age range filtering shows only videos tagged for selected age range
+- [ ] T106 [US3] Test search functionality matches against video titles and tags
+- [ ] T107 [US3] Test video view activity log created with proper metadata (sessionId, videoId, categoryPath, ageRange)
+- [ ] T108 [US3] Test ad impression and click tracking increments counts correctly in PayloadCMS
+
+**Checkpoint**: At this point, User Story 3 is complete - frontend fully integrated with PayloadCMS API, identical user experience to Sanity version
+
+---
+
+## Phase 6: User Story 4 - Admin Scripts Update for PayloadCMS (Priority: P4)
+
+**Goal**: Update all administrative scripts to work with PayloadCMS API instead of Sanity client
+
+**Independent Test**: Run each script against test PayloadCMS data, verify output matches expected behavior
+
+### Script Identification and Analysis
+
+- [ ] T109 [US4] Audit all scripts in scripts/ directory and document Sanity dependencies (list scripts that import @sanity/client)
+- [ ] T110 [US4] Document each script's functionality and expected input/output formats in scripts/README.md
+
+### Script Updates
+
+- [ ] T111 [P] [US4] Update extract-youtube-ids.ts in scripts/ to use PayloadCMS API instead of Sanity client
+- [ ] T112 [P] [US4] Update seed-age-ranges.ts in scripts/ to use PayloadCMS API instead of Sanity client
+- [ ] T113 [P] [US4] Update bulk-import.ts in scripts/ to use PayloadCMS API instead of Sanity client
+- [ ] T114 [P] [US4] Update analytics.ts in scripts/ to use PayloadCMS API for activity log aggregation
+- [ ] T115 [P] [US4] Update any other admin scripts in scripts/ to use PayloadCMS API (identified in T109)
+
+### Script Testing
+
+- [ ] T116 [US4] Test extract-youtube-ids.ts against PayloadCMS data and verify output matches expected format
+- [ ] T117 [US4] Test seed-age-ranges.ts creates categories in PayloadCMS with correct age range roots
+- [ ] T118 [US4] Test bulk-import.ts imports videos to PayloadCMS with proper validation and relationships
+- [ ] T119 [US4] Test analytics.ts generates reports from PayloadCMS activity logs with correct metrics
+- [ ] T120 [US4] Test all other updated scripts (identified in T109) against PayloadCMS test data
+
+**Checkpoint**: At this point, User Story 4 is complete - all admin scripts functional with PayloadCMS API
+
+---
+
+## Phase 7: User Story 5 - Sanity Dependency Removal (Priority: P5)
+
+**Goal**: Remove all Sanity CMS dependencies, configuration files, and related code after successful migration and testing
+
+**Independent Test**: Remove Sanity packages, run application, verify builds without errors, run all tests to confirm 100% pass rate
+
+### Pre-Removal Validation
+
+- [ ] T121 [US5] Validate both CMSs running in parallel for 7+ days with no issues (monitor logs for errors, performance, data consistency)
+- [ ] T122 [US5] Confirm all stakeholders approved to proceed with Sanity removal
+- [ ] T123 [US5] Create MongoDB backup before removing Sanity access
+- [ ] T124 [US5] Document rollback procedure in case issues arise post-removal
+
+### Sanity Code Removal
+
+- [ ] T125 [P] [US5] Remove @sanity/* packages from package.json (sanity, @sanity/client, @sanity/image-url, etc.)
+- [ ] T126 [P] [US5] Delete sanity.config.ts from repository root
+- [ ] T127 [P] [US5] Delete sanity.cli.ts from repository root
+- [ ] T128 [P] [US5] Delete schemaTypes/ directory and all Sanity schema files
+- [ ] T129 [P] [US5] Delete lib/sanity.ts client file from frontend/src/lib/
+- [ ] T130 [P] [US5] Delete types/sanity.ts type definitions from frontend/src/types/ or types/ directory
+- [ ] T131 [P] [US5] Remove Sanity environment variables from .env.example (SANITY_PROJECT_ID, SANITY_DATASET, SANITY_TOKEN)
+- [ ] T132 [P] [US5] Remove Sanity environment variables from deployment configuration (Vercel, etc.)
+
+### Documentation Updates
+
+- [ ] T133 [P] [US5] Update README.md to reference PayloadCMS instead of Sanity for CMS setup instructions
+- [ ] T134 [P] [US5] Update architecture documentation to show PayloadCMS in system diagrams
+- [ ] T135 [P] [US5] Update developer onboarding guide in docs/ to use PayloadCMS admin UI instructions
+- [ ] T136 [P] [US5] Update deployment documentation with PayloadCMS server deployment steps
+- [ ] T137 [P] [US5] Archive Sanity migration scripts in migration/ directory for historical reference (add README noting these are complete)
+
+### Validation
+
+- [ ] T138 [US5] Run npm install to ensure package.json resolves without Sanity dependencies
+- [ ] T139 [US5] Run npm run build to ensure application builds successfully without Sanity code
+- [ ] T140 [US5] Run application in development mode and verify no Sanity-related errors or warnings
+- [ ] T141 [US5] Search codebase for remaining Sanity references with grep -r "sanity" . --exclude-dir=node_modules --exclude-dir=.git
+- [ ] T142 [US5] Search codebase for remaining @sanity imports with grep -r "@sanity" . --exclude-dir=node_modules --exclude-dir=.git
+- [ ] T143 [US5] Review all import statements and confirm only PayloadCMS and MongoDB-related packages for CMS functionality
+- [ ] T144 [US5] Monitor production logs for 48 hours after Sanity removal to catch any missed references
+
+**Checkpoint**: At this point, User Story 5 is complete - Sanity completely removed, application running solely on PayloadCMS
+
+---
+
+## Phase 8: Polish & Cross-Cutting Concerns
+
+**Purpose**: Final improvements and documentation updates
+
+- [ ] T145 [P] Add comprehensive inline documentation to all PayloadCMS collection configs in payload/collections/
+- [ ] T146 [P] Add comprehensive inline documentation to all migration scripts in migration/
+- [ ] T147 [P] Update quickstart.md in specs/001-sanity-payload-migration/ with actual migration results (record counts, time taken, lessons learned)
+- [ ] T148 [P] Create monitoring dashboard configuration for PayloadCMS performance metrics (response times, error rates)
+- [ ] T149 [P] Create runbook in docs/ for common PayloadCMS admin tasks (creating users, bulk imports, backups)
+- [ ] T150 [P] Review all code for cyclomatic complexity ≤5 compliance per constitution
+- [ ] T151 [P] Review all code for magic strings replaced with constants per constitution
+- [ ] T152 [P] Review all code for logger utility usage instead of console.log per constitution
+- [ ] T153 Run final validation of quickstart.md setup instructions with fresh environment
+- [ ] T154 Update specs/001-sanity-payload-migration/plan.md with actual implementation notes and deviations
+- [ ] T155 Mark feature as COMPLETE in specs/001-sanity-payload-migration/spec.md
+
+---
+
+## Dependencies & Execution Order
+
+### Phase Dependencies
+
+- **Setup (Phase 1)**: No dependencies - can start immediately
+- **Foundational (Phase 2)**: Depends on Setup completion - BLOCKS all user stories
+- **User Story 1 (Phase 3)**: Depends on Foundational (Phase 2) completion
+- **User Story 2 (Phase 4)**: Depends on User Story 1 completion (needs collections defined before migration)
+- **User Story 3 (Phase 5)**: Depends on User Story 2 completion (needs migrated data for frontend to consume)
+- **User Story 4 (Phase 6)**: Depends on User Story 2 completion (scripts need PayloadCMS data to operate on)
+- **User Story 5 (Phase 7)**: Depends on User Stories 3 AND 4 completion (frontend and scripts must work with PayloadCMS before removing Sanity)
+- **Polish (Phase 8)**: Depends on all user stories completion
+
+### User Story Dependencies
+
+```text
+Setup (Phase 1)
+    ↓
+Foundational (Phase 2) ← CRITICAL BLOCKER
+    ↓
+User Story 1 (Phase 3) ← MVP - PayloadCMS collections setup
+    ↓
+User Story 2 (Phase 4) ← Data migration
+    ↓ ↘
+User Story 3 (Phase 5)   User Story 4 (Phase 6)
+(Frontend)               (Admin scripts)
+    ↓                        ↓
+    └─────→ User Story 5 (Phase 7) ← Sanity removal
+               ↓
+           Polish (Phase 8)
+```
+
+### Within Each User Story
+
+**User Story 1 (PayloadCMS Setup)**:
+- All collection schema files (T013-T018) can be created in parallel [P]
+- Hooks and validations (T019-T032) must follow their respective collection creation
+- Collection integration (T033-T035) after all collections and hooks complete
+- Admin UI testing (T036-T042) at the end to validate everything works
+
+**User Story 2 (Data Migration)**:
+- All migration script files (T043-T046) can be created in parallel [P]
+- Export → Transformation → Import → Verification (sequential execution: T047-T075)
+- Error handling and validation within each script runs as part of that script's implementation
+
+**User Story 3 (Frontend Integration)**:
+- API client functions (T078-T085) after client creation (T076-T077)
+- All component updates (T086-T093) can be done in parallel after API client ready
+- Activity logging (T094-T098) can be done in parallel with component updates
+- Environment config (T099-T100) can be done anytime
+- Frontend testing (T101-T108) at the end to validate integration
+
+**User Story 4 (Admin Scripts)**:
+- Script identification (T109-T110) must complete first
+- All script updates (T111-T115) can be done in parallel [P] after identification
+- Script testing (T116-T120) for each script after its update completes
+
+**User Story 5 (Sanity Removal)**:
+- Pre-removal validation (T121-T124) must complete first (CRITICAL)
+- All code removal tasks (T125-T132) can be done in parallel [P] after validation
+- All documentation updates (T133-T137) can be done in parallel [P] with code removal
+- Validation (T138-T144) at the end to confirm clean removal
+
+### Parallel Opportunities
+
+Within each phase:
+
+**Phase 1 (Setup)**: T002-T005 can all run in parallel [P]
+
+**Phase 2 (Foundational)**: T008-T012 can all run in parallel [P]
+
+**Phase 3 (User Story 1)**:
+- Collection schemas: T013-T018 in parallel
+- After collections ready, can parallelize some hooks for different collections if they don't depend on each other
+
+**Phase 4 (User Story 2)**:
+- Script file creation: T043-T046 in parallel
+- Execution is sequential (export → transform → import → verify)
+
+**Phase 5 (User Story 3)**:
+- API client function implementation: T078-T085 can be split among multiple devs
+- Component updates: T086-T093 in parallel (different files)
+- Activity logging: T094-T098 in parallel (different files)
+
+**Phase 6 (User Story 4)**:
+- Script updates: T111-T115 in parallel (different files)
+
+**Phase 7 (User Story 5)**:
+- Code removal: T125-T132 in parallel (different files)
+- Documentation: T133-T137 in parallel (different files)
+
+**Phase 8 (Polish)**:
+- All documentation and review tasks: T145-T152 in parallel
+
+---
+
+## Parallel Example: User Story 1 Collection Creation
+
+```bash
+# Launch all collection schema files together:
+Task T013: "Create Video collection in payload/collections/Video.ts"
+Task T014: "Create Category collection in payload/collections/Category.ts"  
+Task T015: "Create User collection in payload/collections/User.ts"
+Task T016: "Create ActivityLog collection in payload/collections/ActivityLog.ts"
+Task T017: "Create AdPlacement collection in payload/collections/AdPlacement.ts"
+Task T018: "Create AffiliatePartner collection in payload/collections/AffiliatePartner.ts"
+
+# Then once all schemas are created, launch their respective hooks:
+Task T019: "Implement beforeValidate hook for Video in payload/hooks/videoHooks.ts"
+Task T021: "Implement beforeValidate hook for Category in payload/hooks/categoryHooks.ts"
+Task T024: "Implement beforeChange hook for User in payload/hooks/userHooks.ts"
+# ... etc
+```
+
+---
+
+## Implementation Strategy
+
+### MVP First (User Story 1 Only)
+
+1. Complete Phase 1: Setup (T001-T005)
+2. Complete Phase 2: Foundational (T006-T012) - CRITICAL
+3. Complete Phase 3: User Story 1 (T013-T042)
+4. **STOP and VALIDATE**: Test PayloadCMS admin UI with all collections functioning
+5. Deploy/demo PayloadCMS backend if ready
+6. **DECISION POINT**: Proceed with migration or adjust collections based on feedback
+
+### Incremental Delivery
+
+1. **Foundation** (Phases 1-2): Setup + Foundational → PayloadCMS backend ready
+2. **MVP** (Phase 3): User Story 1 → Test independently → Deploy/Demo PayloadCMS admin UI
+3. **Migration** (Phase 4): User Story 2 → Test independently → Validate data integrity
+4. **Frontend** (Phase 5): User Story 3 → Test independently → Deploy/Demo full application with PayloadCMS
+5. **Scripts** (Phase 6): User Story 4 → Test independently → Restore admin automation
+6. **Cleanup** (Phase 7): User Story 5 → Test independently → Finalize migration
+7. **Polish** (Phase 8): Documentation and monitoring
+
+### Parallel Team Strategy
+
+With multiple developers:
+
+**Phase 1-2**: Team completes Setup + Foundational together (essential foundation)
+
+**Phase 3 (User Story 1)**: Split by collection type
+- Developer A: Video + User collections (T013, T015, T019-T020, T024-T025)
+- Developer B: Category collection (T014, T021-T023) - more complex due to hierarchy
+- Developer C: ActivityLog + AdPlacement (T016, T017, T026-T030)
+- Developer D: AffiliatePartner + integration (T018, T031-T035)
+- All: Admin UI testing together (T036-T042)
+
+**Phase 4 (User Story 2)**: Assign sequentially to one developer or pair
+- Developer A: Export + Transform (T043, T044, T047-T055)
+- Developer B: Import + Verify (T045, T046, T056-T075)
+
+**Phase 5 (User Story 3)**: Split by functionality
+- Developer A: API client + types (T076-T085)
+- Developer B: Video components (T086-T088)
+- Developer C: Category components (T089-T093)
+- Developer D: Activity logging (T094-T098)
+- All: Testing together (T101-T108)
+
+**Phase 6 (User Story 4)**: Split by script
+- Each developer takes 1-2 scripts (T111-T115 in parallel)
+
+**Phase 7 (User Story 5)**: Can be done by one developer or split
+- Developer A: Code removal (T125-T132)
+- Developer B: Documentation (T133-T137)
+- Together: Validation (T138-T144)
+
+**Phase 8 (Polish)**: Distribute documentation tasks
+
+---
+
+## Task Summary
+
+**Total Tasks**: 155
+
+**By User Story**:
+- Setup (Phase 1): 5 tasks
+- Foundational (Phase 2): 7 tasks
+- User Story 1 (Phase 3): 30 tasks - PayloadCMS collections setup
+- User Story 2 (Phase 4): 33 tasks - Data migration
+- User Story 3 (Phase 5): 33 tasks - Frontend integration
+- User Story 4 (Phase 6): 12 tasks - Admin scripts update
+- User Story 5 (Phase 7): 24 tasks - Sanity removal
+- Polish (Phase 8): 11 tasks
+
+**Parallel Opportunities**: 52 tasks marked [P] can run in parallel within their phase
+
+**Independent Test Criteria**:
+- US1: All collections accessible in admin UI with validations working
+- US2: Record counts match, relationships preserved, calculated fields correct
+- US3: All frontend pages load, filtering works, activity logging functions
+- US4: All admin scripts execute successfully against PayloadCMS data
+- US5: Application builds and runs without Sanity dependencies
+
+**Suggested MVP Scope**: Phases 1-3 (User Story 1) - PayloadCMS admin UI fully functional with all collections
+
+---
+
+## Notes
+
+- [P] tasks = different files, no dependencies within phase
+- [Story] label (US1, US2, etc.) maps task to user story for traceability
+- Each user story builds on previous: US1 (collections) → US2 (migration) → US3 (frontend) → US4 (scripts) → US5 (cleanup)
+- Migration scripts (Phase 4) are idempotent - safe to re-run if failures occur
+- Parallel testing phase (FR-055 to FR-058) integrated into US3 frontend testing tasks
+- Constitution compliance checks integrated into Phase 8 (Polish)
+- All file paths are absolute from repository root
+- Commit after each task or logical group of related tasks
+- Stop at any checkpoint to validate story independently before proceeding

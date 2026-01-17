@@ -1,54 +1,38 @@
 /**
  * Migration script: Extract and populate YouTube IDs from URLs
+ * Updated to work with PayloadCMS instead of Sanity
  * Processes all video documents missing youtubeId field
  */
 
-import { createSanityClient } from '../services/sanity/client'
+import { getPayload } from 'payload'
+import config from '../payload.config'
 import { extractYoutubeId } from '../utils/extractYoutubeId'
 import { logger } from '../utils/logger'
-import { env } from '../config/env'
-import { SANITY_CONFIG } from '../config/constants'
-import { VideoDocument, MutationResult, Transaction } from '../types/sanity'
-
-const client = createSanityClient({
-  projectId: env.SANITY_PROJECT_ID,
-  dataset: env.SANITY_DATASET,
-  apiVersion: SANITY_CONFIG.API_VERSION,
-  token: env.SANITY_TOKEN,
-  useCdn: false,
-})
+import type { Video } from '../types/payload'
 
 /**
- * Fetch videos from Sanity with retry logic
+ * Fetch videos from PayloadCMS
  */
-async function fetchVideos(): Promise<Partial<VideoDocument>[]> {
+async function fetchVideos() {
+  logger.info('Initializing PayloadCMS')
+  const payload = await getPayload({ config })
+
   logger.info('Fetching all video documents')
-
-  const { withRetry } = await import('../utils/retry')
   
-  const videos = await withRetry(
-    async () => client.fetch<Partial<VideoDocument>[]>(`
-      *[_type == "video"] {
-        _id,
-        title,
-        youtubeUrl,
-        youtubeId
-      }
-    `)
-  )
+  const result = await payload.find({
+    collection: 'videos',
+    limit: 1000, // Adjust if you have more videos
+    pagination: false,
+  })
 
-  if (!videos) {
-    throw new Error('Failed to fetch videos after all retry attempts')
-  }
-
-  logger.info('Videos fetched', { count: videos.length })
-  return videos
+  logger.info('Videos fetched', { count: result.docs.length })
+  return result.docs
 }
 
 /**
  * Filter videos that need YouTube ID extraction
  */
-function filterVideosNeedingUpdate(videos: Partial<VideoDocument>[]): Partial<VideoDocument>[] {
+function filterVideosNeedingUpdate(videos: Video[]): Video[] {
   const videosToUpdate = videos.filter((video) => video.youtubeUrl && !video.youtubeId)
   
   logger.info('Videos needing YouTube ID extraction', { count: videosToUpdate.length })
@@ -59,7 +43,7 @@ function filterVideosNeedingUpdate(videos: Partial<VideoDocument>[]): Partial<Vi
 /**
  * Log videos that will be updated
  */
-function logVideosToUpdate(videos: Partial<VideoDocument>[]): void {
+function logVideosToUpdate(videos: Video[]): void {
   logger.info('Videos to update', {
     videos: videos.map((video) => ({
       title: video.title,
@@ -79,69 +63,53 @@ async function waitForConfirmation(): Promise<void> {
 }
 
 /**
- * Build transaction with YouTube ID patches
+ * Update videos with extracted YouTube IDs
  */
-function buildUpdateTransaction(videos: Partial<VideoDocument>[]): { transaction: Transaction; updateCount: number } {
-  let transaction = client.transaction()
+async function updateVideosWithYoutubeIds(videos: Video[]): Promise<void> {
+  const payload = await getPayload({ config })
+  
   let updateCount = 0
+  let failCount = 0
 
-  videos.forEach((video) => {
+  for (const video of videos) {
     const youtubeId = extractYoutubeId(video.youtubeUrl || '')
-    if (youtubeId && video._id) {
-      transaction = transaction.patch(video._id, { set: { youtubeId } })
-      updateCount++
-    } else {
+    
+    if (!youtubeId) {
       logger.warn('Could not extract YouTube ID', {
-        videoId: video._id,
+        videoId: video.id,
         title: video.title,
         url: video.youtubeUrl,
       })
+      failCount++
+      continue
     }
+
+    try {
+      await payload.update({
+        collection: 'videos',
+        id: video.id,
+        data: {
+          youtubeId,
+        },
+      })
+      
+      updateCount++
+      logger.debug('Updated video', { id: video.id, title: video.title, youtubeId })
+    } catch (error) {
+      logger.error('Error updating video', {
+        videoId: video.id,
+        title: video.title,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      failCount++
+    }
+  }
+
+  logger.info('Update complete', { 
+    updatedCount: updateCount,
+    failedCount: failCount,
+    totalProcessed: videos.length 
   })
-
-  return { transaction, updateCount }
-}
-
-/**
- * Commit updates to Sanity with retry logic
- */
-async function commitUpdates(transaction: Transaction, updateCount: number): Promise<void> {
-  if (updateCount === 0) {
-    logger.error('No valid YouTube IDs could be extracted')
-    return
-  }
-
-  const { withRetry } = await import('../utils/retry')
-
-  try {
-    const result = await withRetry<MutationResult>(
-      async () => transaction.commit(),
-      {
-        shouldRetry: (error) => {
-          // Retry on network errors, but not on validation errors
-          const message = error.message.toLowerCase()
-          if (message.includes('validation') || message.includes('conflict')) {
-            return false
-          }
-          return true
-        }
-      }
-    )
-
-    if (!result) {
-      throw new Error('Failed to commit updates after all retry attempts')
-    }
-
-    logger.info('Update complete', { updatedCount: result.results.length })
-  } catch (error) {
-    logger.error('Error during update', {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      operation: 'commitUpdates',
-      updateCount,
-    })
-    throw error
-  }
 }
 
 async function updateYoutubeIds(): Promise<void> {
@@ -155,9 +123,7 @@ async function updateYoutubeIds(): Promise<void> {
 
   logVideosToUpdate(videosToUpdate)
   await waitForConfirmation()
-
-  const { transaction, updateCount } = buildUpdateTransaction(videosToUpdate)
-  await commitUpdates(transaction, updateCount)
+  await updateVideosWithYoutubeIds(videosToUpdate)
 }
 
 updateYoutubeIds()

@@ -16,15 +16,33 @@ function isValidYoutubeId(id: string | undefined | null): boolean {
     return /^[a-zA-Z0-9_-]{11}$/.test(id)
 }
 
+// Support both Sanity and PayloadCMS data structures
 interface Video {
-    _id: string
-    _createdAt: string
+    // PayloadCMS fields (preferred)
+    id?: string
     title: string
-    youtubeId: string
+    youtubeId?: string | null
     youtubeUrl: string
     category: string
     ageRange: string
-    tags: string[]
+    tags?: Array<{ tag: string; id?: string | null }> | string[] | null
+    createdAt?: string
+    
+    // Sanity fields (legacy - for backward compatibility)
+    _id?: string
+    _createdAt?: string
+}
+
+// Normalize video data to handle both Sanity and PayloadCMS formats
+function normalizeVideo(video: Video): Video & { _id: string; tags: string[] } {
+    return {
+        ...video,
+        _id: video.id || video._id || '',
+        youtubeId: video.youtubeId || '',
+        tags: Array.isArray(video.tags)
+            ? video.tags.map(tag => typeof tag === 'string' ? tag : tag.tag)
+            : [],
+    }
 }
 
 interface VideoGalleryProps {
@@ -50,7 +68,7 @@ const AGE_RANGES = [
     { value: '13+', label: '13+ years' },
 ]
 
-function VideoThumbnail({ video }: { video: Video }) {
+function VideoThumbnail({ video }: { video: Video & { _id: string; youtubeId: string } }) {
     const [showVideo, setShowVideo] = useState(false)
     const hasValidYoutubeId = isValidYoutubeId(video.youtubeId)
 
@@ -133,7 +151,7 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
     }
 
     const filteredVideos = useMemo(() => {
-        return videos.filter((video) => {
+        return videos.map(normalizeVideo).filter((video) => {
             if (
                 selectedCategories.length > 0 &&
                 !selectedCategories.includes(video.category)

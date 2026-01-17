@@ -1,6 +1,7 @@
 import {defineType, defineField} from 'sanity'
 import {TagIcon} from '@sanity/icons'
 import {depthRule} from '../validation/categoryPath'
+import {CATEGORY_AGE_RANGE_OPTIONS, SANITY_CONFIG} from '../../config/constants'
 
 function validateRootParent(isRoot: boolean, parent: any) {
   if (isRoot && parent) {
@@ -27,7 +28,7 @@ async function validateParentCategory(parent: any, context: any) {
   if (!parent?._ref) return true
   
   const {getClient} = context
-  const client = getClient({apiVersion: '2024-01-01'})
+  const client = getClient({apiVersion: SANITY_CONFIG.API_VERSION})
   
   // Fetch parent category
   const parentCategory = await client.fetch(
@@ -114,15 +115,7 @@ export default defineType({
       title: 'Age Range',
       type: 'string',
       options: {
-        list: [
-          {title: '0-2 years', value: '0-2'},
-          {title: '2-4 years', value: '2-4'},
-          {title: '5-7 years', value: '5-7'},
-          {title: '8-9 years', value: '8-9'},
-          {title: '10-15 years', value: '10-15'},
-          {title: '16+ years', value: '16+'},
-          {title: '18+ years', value: '18+'},
-        ],
+        list: CATEGORY_AGE_RANGE_OPTIONS,
         layout: 'dropdown',
       },
       validation: (Rule) => Rule.required(),

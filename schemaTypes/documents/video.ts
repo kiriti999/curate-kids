@@ -1,6 +1,7 @@
 import { defineField, defineType } from 'sanity'
 import { PlayIcon } from '@sanity/icons'
 import { YoutubeIdInput } from '../components/YoutubeIdInput'
+import { VIDEO_CATEGORY_OPTIONS, VIDEO_AGE_RANGE_OPTIONS } from '../../config/constants'
 
 export default defineType({
   name: 'video',
@@ -58,16 +59,7 @@ export default defineType({
       title: 'Category',
       type: 'string',
       options: {
-        list: [
-          { title: 'Education', value: 'education' },
-          { title: 'Entertainment', value: 'entertainment' },
-          { title: 'Music', value: 'music' },
-          { title: 'Science', value: 'science' },
-          { title: 'Arts & Crafts', value: 'arts-crafts' },
-          { title: 'Sports', value: 'sports' },
-          { title: 'Nature', value: 'nature' },
-          { title: 'Stories', value: 'stories' },
-        ],
+        list: VIDEO_CATEGORY_OPTIONS,
         layout: 'dropdown',
       },
       validation: (Rule) => Rule.required(),
@@ -77,13 +69,7 @@ export default defineType({
       title: 'Age Range',
       type: 'string',
       options: {
-        list: [
-          { title: '0-2 years', value: '0-2' },
-          { title: '3-5 years', value: '3-5' },
-          { title: '6-8 years', value: '6-8' },
-          { title: '9-12 years', value: '9-12' },
-          { title: '13+ years', value: '13+' },
-        ],
+        list: VIDEO_AGE_RANGE_OPTIONS,
         layout: 'dropdown',
       },
       validation: (Rule) => Rule.required(),

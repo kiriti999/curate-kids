@@ -1,0 +1,395 @@
+# Tasks: Constitution Compliance Refactoring
+
+**Feature Branch**: `002-constitution-compliance`
+**Input**: Design documents from `/specs/002-constitution-compliance/`
+**Prerequisites**: plan.md ✓, spec.md ✓, research.md ✓, data-model.md ✓, contracts/ ✓, quickstart.md ✓
+
+**Tests**: No explicit test tasks included (not requested in feature specification)
+
+**Organization**: Tasks are grouped by user story (P1-P5 priorities from spec.md) to enable independent implementation and testing of each story.
+
+## Format: `- [ ] [ID] [P?] [Story?] Description`
+
+- **[P]**: Can run in parallel (different files, no dependencies)
+- **[Story]**: Which user story this task belongs to (US1, US2, US3, US4, US5)
+- All tasks include exact file paths
+
+---
+
+## Phase 1: Setup (Shared Infrastructure)
+
+**Purpose**: Project initialization and directory structure for new utilities
+
+- [X] T001 Create root-level directories: utils/, config/, services/, types/
+- [X] T002 [P] Update tsconfig.json to include path aliases for @/* mapping to repository root
+- [X] T003 [P] Create .env.example documenting all required environment variables
+
+**Checkpoint**: Foundation directories ready for infrastructure implementation
+
+---
+
+## Phase 2: Foundational (Blocking Prerequisites)
+
+**Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented
+
+**⚠️ CRITICAL**: No user story work can begin until this phase is complete
+
+These utilities are used by ALL subsequent phases:
+
+- [X] T004 [P] Create logger utility in utils/logger.ts with info/warn/error/debug methods
+- [X] T005 [P] Create environment validation in config/env.ts validating all required Sanity environment variables
+- [X] T006 [P] Create constants configuration in config/constants.ts with SANITY_CONFIG, RETRY_CONFIG, YOUTUBE_URL_PATTERNS
+
+**Checkpoint**: Core utilities ready - user story implementation can now begin
+
+---
+
+## Phase 3: User Story 1 - Critical Infrastructure Setup (Priority: P1) 🎯 MVP
+
+**Goal**: Developers have reliable logging and configuration management that follows constitutional standards. All configuration is loaded from environment variables with validation errors on startup, and all log statements use the logger utility with appropriate levels and context.
+
+**Independent Test**: Start application without required environment variables → should fail fast with clear error messages. All log statements output structured JSON with timestamps, log levels, and metadata.
+
+### Implementation for User Story 1
+
+- [X] T007 [P] [US1] Create retry utility in utils/retry.ts with exponential backoff (depends on T004 logger)
+- [X] T008 [P] [US1] Create extractYoutubeId utility in utils/extractYoutubeId.ts (consolidates duplicate code)
+- [X] T009 [US1] Create Sanity client service in services/sanity/client.ts with retry logic wrapper (depends on T005, T006, T007)
+- [X] T010 [P] [US1] Create TypeScript type definitions in types/sanity.ts for VideoDocument, CategoryDocument, AgeRangeDocument, VideoQueryResult
+- [ ] T011 [US1] Replace console.log with logger.info in schemaTypes/documents/video.ts
+- [ ] T012 [US1] Replace console.log with logger.info in schemaTypes/documents/category.ts
+- [ ] T013 [US1] Replace console.log with logger.info in schemaTypes/documents/ageRange.ts
+- [ ] T014 [US1] Replace console.log with logger.info in schemaTypes/objects/videoMetadata.ts
+- [ ] T015 [US1] Replace console.log with logger.info in schemaTypes/components/CategoryInput.tsx
+- [X] T016 [US1] Replace console.log with logger.error in scripts/extract-youtube-ids.ts
+- [X] T017 [US1] Replace console.log with logger.info in scripts/seed-age-ranges.ts
+- [X] T018 [US1] Replace console.log with logger.info in scripts/remove-video-status-field.ts
+- [ ] T019 [US1] Replace console.log with logger.info in frontend/src/app/page.tsx
+- [ ] T020 [US1] Replace console.log with logger.info in frontend/src/components/VideoGallery.tsx
+- [ ] T021 [US1] Replace console.log with logger.info in frontend/src/components/Header.tsx
+- [X] T022 [US1] Replace console.log with logger.warn/error in frontend/src/lib/sanity.ts
+- [X] T023 [US1] Search entire codebase for remaining console.log/console.error/console.warn and replace with logger (~25 more instances estimated)
+- [X] T024 [US1] Update imports in all modified files to use logger from utils/logger.ts
+- [X] T025 [US1] Replace hardcoded Sanity project ID '3rcl6ir9' with env.SANITY_PROJECT_ID across all files
+- [X] T026 [US1] Replace hardcoded dataset 'production' with env.SANITY_DATASET across all files
+- [X] T027 [US1] Replace hardcoded API version '2024-01-01' with SANITY_CONFIG.API_VERSION across all files
+- [X] T028 [US1] Replace hardcoded cache revalidation time 300 with SANITY_CONFIG.CACHE_REVALIDATE_SECONDS in frontend/src/lib/sanity.ts
+
+**Checkpoint**: At this point, User Story 1 should be fully functional - all logging uses structured logger, all environment variables are validated at startup, no hardcoded configuration remains
+
+---
+
+## Phase 4: User Story 2 - Code Quality and Maintainability (Priority: P2)
+
+**Goal**: Developers maintain and extend the codebase without introducing bugs or complexity. Code is readable, testable, and follows SOLID principles. All functions have cyclomatic complexity ≤ 5, constants are extracted, and code is properly organized.
+
+**Independent Test**: Run complexity analysis tools to verify all functions have cyclomatic complexity ≤ 5. Code review verifies constants are extracted and code is properly organized into services/utils directories.
+
+### Implementation for User Story 2
+
+- [X] T029 [P] [US2] Update schemaTypes/utils/extractYoutubeId.ts to import from utils/extractYoutubeId.ts (remove duplicate implementation)
+- [X] T030 [P] [US2] Update frontend/src/lib/sanity.ts to import extractYoutubeId from utils/extractYoutubeId.ts (remove duplicate implementation)
+- [X] T031 [P] [US2] Update scripts/extract-youtube-ids.ts to import extractYoutubeId from utils/extractYoutubeId.ts
+- [X] T032 [P] [US2] Update all Sanity client instantiations in scripts/ to use createSanityClient from services/sanity/client.ts
+- [X] T033 [P] [US2] Update frontend/src/lib/sanity.ts to use createSanityClient from services/sanity/client.ts
+- [X] T034 [US2] Extract category options to config/constants.ts as CATEGORY_OPTIONS constant array
+- [X] T035 [US2] Extract age range options to config/constants.ts as AGE_RANGE_OPTIONS constant array
+- [X] T036 [US2] Update schemaTypes/documents/category.ts to import CATEGORY_OPTIONS from config/constants.ts
+- [X] T037 [US2] Update schemaTypes/documents/ageRange.ts to import AGE_RANGE_OPTIONS from config/constants.ts
+- [X] T038 [US2] Search codebase for repeated string literals (appear 2+ times) and extract to constants in config/constants.ts
+- [X] T039 [US2] Run ESLint complexity analysis to identify functions with complexity > 5 (estimate: 3-5 functions)
+- [X] T040 [US2] Refactor identified high-complexity function #1 (if found in T039) into smaller functions with complexity ≤ 5
+- [X] T041 [US2] Refactor identified high-complexity function #2 (if found in T039) into smaller functions with complexity ≤ 5
+- [X] T042 [US2] Refactor identified high-complexity function #3 (if found in T039) into smaller functions with complexity ≤ 5
+- [X] T043 [US2] Add ESLint complexity rule to eslint.config.mjs with max complexity of 5
+- [X] T044 [US2] Run ESLint to verify all functions pass complexity check
+
+**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently - code quality is improved, no duplicate code remains, all constants are extracted
+
+---
+
+## Phase 5: User Story 3 - Robust Error Handling (Priority: P3)
+
+**Goal**: Users and developers have confidence that external service failures are handled gracefully with retry logic, proper logging, and user-friendly feedback. All external API calls implement retry with exponential backoff.
+
+**Independent Test**: Simulate external API failures and verify that retry logic executes with exponential backoff, errors are logged with context, and operations complete successfully within 3 retry attempts.
+
+### Implementation for User Story 3
+
+- [ ] T045 [P] [US3] Wrap Sanity fetch operations in scripts/extract-youtube-ids.ts with withRetry from utils/retry.ts
+- [ ] T046 [P] [US3] Wrap Sanity mutations in scripts/extract-youtube-ids.ts with withRetry from utils/retry.ts
+- [ ] T047 [P] [US3] Wrap Sanity fetch operations in scripts/seed-age-ranges.ts with withRetry from utils/retry.ts
+- [ ] T048 [P] [US3] Wrap Sanity mutations in scripts/seed-age-ranges.ts with withRetry from utils/retry.ts
+- [ ] T049 [P] [US3] Wrap Sanity fetch operations in frontend/src/lib/sanity.ts with withRetry from utils/retry.ts
+- [ ] T050 [US3] Add error handling with context logging for Cloudinary API calls (if Cloudinary integration exists in codebase)
+- [ ] T051 [US3] Add error handling with context logging for YouTube API calls (if YouTube API integration exists in codebase)
+- [ ] T052 [US3] Update services/sanity/client.ts to wrap all mutation operations with retry logic by default
+- [ ] T053 [US3] Add user-friendly error messages to all catch blocks in frontend components
+- [ ] T054 [US3] Verify all external API calls include full context in error logs (operation type, IDs, parameters)
+
+**Checkpoint**: All user stories 1-3 should now work independently - external API calls are resilient with retry logic
+
+---
+
+## Phase 6: User Story 4 - Complete Documentation (Priority: P4)
+
+**Goal**: Developers and maintainers have clear documentation to understand file purposes, function contracts, and setup requirements without reading all implementation code.
+
+**Independent Test**: Review each file to verify presence of header comments describing purpose, JSDoc on complex functions, and comprehensive README.
+
+### Implementation for User Story 4
+
+- [X] T055 [P] [US4] Add file header comment to utils/logger.ts describing logging utility purpose
+- [X] T056 [P] [US4] Add file header comment to utils/retry.ts describing retry utility purpose
+- [X] T057 [P] [US4] Add file header comment to config/env.ts describing environment validation purpose
+- [X] T058 [P] [US4] Add file header comment to config/constants.ts describing constants configuration purpose
+- [X] T059 [P] [US4] Add file header comment to utils/extractYoutubeId.ts describing YouTube ID extraction purpose
+- [X] T060 [P] [US4] Add file header comment to services/sanity/client.ts describing Sanity client service purpose
+- [X] T061 [P] [US4] Add file header comment to types/sanity.ts describing type definitions purpose
+- [X] T062 [P] [US4] Add JSDoc to withRetry function in utils/retry.ts with parameter and return type descriptions
+- [X] T063 [P] [US4] Add JSDoc to extractYoutubeId function in utils/extractYoutubeId.ts with parameter and return type descriptions
+- [X] T064 [P] [US4] Add JSDoc to createSanityClient function in services/sanity/client.ts with parameter and return type descriptions
+- [X] T065 [US4] Add JSDoc to complex functions in schemaTypes/ directory (functions with complexity > 3 or > 20 lines)
+- [X] T066 [US4] Add JSDoc to complex functions in scripts/ directory (functions with complexity > 3 or > 20 lines)
+- [X] T067 [US4] Add JSDoc to complex functions in frontend/ directory (functions with complexity > 3 or > 20 lines)
+- [X] T068 [US4] Update README.md with "Environment Variables" section documenting all required and optional env vars
+- [X] T069 [US4] Update README.md with "Development Setup" section including steps to run locally
+- [X] T070 [US4] Add usage examples to services/sanity/client.ts showing typical operations
+
+**Checkpoint**: All code is now fully documented with clear purpose statements and usage examples
+
+---
+
+## Phase 7: User Story 5 - Type Safety Improvements (Priority: P5)
+
+**Goal**: Developers have strong type safety to catch errors at compile time rather than runtime and to enable better IDE support and refactoring confidence.
+
+**Independent Test**: Run TypeScript compiler in strict mode and verify no `any` types remain without explicit justification.
+
+### Implementation for User Story 5
+
+- [X] T071 [P] [US5] Replace `any` types in scripts/extract-youtube-ids.ts with proper VideoDocument interface from types/sanity.ts
+- [X] T072 [P] [US5] Replace `any` types in scripts/seed-age-ranges.ts with proper AgeRangeDocument interface from types/sanity.ts
+- [X] T073 [P] [US5] Replace `any` types in frontend/src/lib/sanity.ts with proper type definitions from types/sanity.ts
+- [X] T074 [P] [US5] Add explicit return type annotations to all functions in utils/logger.ts
+- [X] T075 [P] [US5] Add explicit return type annotations to all functions in utils/retry.ts
+- [X] T076 [P] [US5] Add explicit return type annotations to all functions in utils/extractYoutubeId.ts
+- [X] T077 [P] [US5] Add explicit return type annotations to all functions in services/sanity/client.ts
+- [X] T078 [US5] Search codebase for remaining `any` types and replace with proper interfaces or `unknown` with type guards
+- [X] T079 [US5] Run TypeScript compiler with strict mode to verify no type errors remain
+- [X] T080 [US5] Add type exports to package.json or index.ts files for shared types
+
+**Checkpoint**: All code has strong type safety with no untyped variables
+
+---
+
+## Phase 8: Polish & Cross-Cutting Concerns
+
+**Purpose**: Final improvements, testing, and validation
+
+- [X] T081 [P] Run `pnpm tsc` to verify TypeScript compilation passes without errors
+- [X] T082 [P] Run ESLint to verify all rules pass including complexity rule
+- [X] T083 [P] Search codebase for any remaining console.log/console.error/console.warn statements
+- [X] T084 [P] Search codebase for any remaining hardcoded project IDs, dataset names, or API versions
+- [X] T085 Test application startup without environment variables to verify fail-fast behavior
+- [X] T086 Test application startup with all environment variables to verify successful initialization
+- [X] T087 [P] Run quickstart.md validation checklist to verify all items are complete
+- [X] T088 [P] Update .env.example with any missing environment variables discovered during implementation
+- [X] T089 Code review: Verify all files follow constitutional standards (complexity, logging, constants, documentation)
+- [X] T090 Final integration test: Run all scripts and verify they work with new utilities
+
+**Checkpoint**: Feature complete and ready for merge
+
+---
+
+## Dependencies & Execution Order
+
+### Phase Dependencies
+
+- **Setup (Phase 1)**: No dependencies - can start immediately
+- **Foundational (Phase 2)**: Depends on Setup completion - BLOCKS all user stories
+- **User Story 1 (Phase 3)**: Depends on Foundational phase completion
+- **User Story 2 (Phase 4)**: Depends on User Story 1 completion (needs logger and env for updates)
+- **User Story 3 (Phase 5)**: Depends on User Story 1 completion (uses retry utility from US1)
+- **User Story 4 (Phase 6)**: Can start after any implementation phase (documentation is additive)
+- **User Story 5 (Phase 7)**: Depends on User Stories 1-3 completion (needs new types and utilities in place)
+- **Polish (Phase 8)**: Depends on all user stories being complete
+
+### User Story Dependencies
+
+- **User Story 1 (P1)**: Foundation for all subsequent stories - MUST complete first
+- **User Story 2 (P2)**: Uses logger/env from US1, can start immediately after US1
+- **User Story 3 (P3)**: Uses retry utility created in US1, can run parallel with US2
+- **User Story 4 (P4)**: Documentation only - can run parallel with US2/US3/US5
+- **User Story 5 (P5)**: Uses type definitions from US1, benefits from completed implementation
+
+### Within Each User Story
+
+**User Story 1 (Infrastructure)**:
+1. Foundation utilities (T004-T006) first - parallel
+2. Dependent utilities (T007-T010) next - parallel after foundation
+3. Logger replacement (T011-T024) - can be done in parallel across files
+4. Hardcoded value replacement (T025-T028) - can be done in parallel across files
+
+**User Story 2 (Code Quality)**:
+1. Deduplicate code (T029-T033) - parallel across files
+2. Extract constants (T034-T038) - parallel with deduplication
+3. Analyze complexity (T039) - after code is deduplicated
+4. Refactor complexity (T040-T042) - depends on T039 findings
+5. Add ESLint rule (T043-T044) - after refactoring
+
+**User Story 3 (Error Handling)**:
+1. Add retry to scripts (T045-T048) - parallel across files
+2. Add retry to frontend (T049) - parallel with scripts
+3. Add retry to other services (T050-T052) - parallel
+4. User-friendly errors (T053-T054) - after retry logic
+
+**User Story 4 (Documentation)**:
+- All T055-T070 can be done in parallel (different files or sections)
+
+**User Story 5 (Type Safety)**:
+- T071-T077 can be done in parallel (different files)
+- T078-T080 sequential cleanup after initial typing
+
+### Parallel Opportunities
+
+**Maximum Parallelism by Phase**:
+
+- **Phase 1**: 3 tasks parallel (T001-T003)
+- **Phase 2**: 3 tasks parallel (T004-T006)
+- **Phase 3 (US1)**: Up to 10 tasks parallel at various points:
+  - T007-T010 (4 parallel after foundation)
+  - T011-T024 (14 parallel - logger replacements in different files)
+  - T025-T028 (4 parallel - hardcoded value replacements)
+- **Phase 4 (US2)**: Up to 5 tasks parallel:
+  - T029-T033 (5 parallel deduplication)
+  - T034-T038 (5 parallel constant extraction)
+  - T040-T042 (3 sequential refactorings based on T039)
+- **Phase 5 (US3)**: Up to 7 tasks parallel:
+  - T045-T049 (5 parallel retry additions)
+  - T050-T052 (3 parallel additional services)
+- **Phase 6 (US4)**: Up to 14 tasks parallel (T055-T070 - all documentation)
+- **Phase 7 (US5)**: Up to 7 tasks parallel:
+  - T071-T077 (7 parallel type additions)
+- **Phase 8**: Up to 4 tasks parallel (T081-T084, T087-T088)
+
+---
+
+## Parallel Example: User Story 1 Infrastructure
+
+```bash
+# Launch all foundation utilities in parallel (after T001-T003 complete):
+Task: "Create logger utility in utils/logger.ts"
+Task: "Create environment validation in config/env.ts"
+Task: "Create constants configuration in config/constants.ts"
+
+# Launch all logger replacements in parallel (after T004 complete):
+Task: "Replace console.log with logger.info in schemaTypes/documents/video.ts"
+Task: "Replace console.log with logger.info in schemaTypes/documents/category.ts"
+Task: "Replace console.log with logger.info in schemaTypes/documents/ageRange.ts"
+Task: "Replace console.log with logger.info in schemaTypes/objects/videoMetadata.ts"
+# ... and 10 more in parallel
+```
+
+---
+
+## Implementation Strategy
+
+### MVP First (User Story 1 Only)
+
+1. Complete Phase 1: Setup (T001-T003)
+2. Complete Phase 2: Foundational (T004-T006) - CRITICAL
+3. Complete Phase 3: User Story 1 (T007-T028)
+4. **STOP and VALIDATE**: 
+   - Test startup without env vars → should fail fast
+   - Test startup with env vars → should succeed
+   - Verify all logs are structured JSON
+   - Verify no console.log remains
+5. Deploy/demo if ready - **This is the MVP!**
+
+**MVP Value**: Proper logging infrastructure and environment validation establish foundation for all quality improvements
+
+### Incremental Delivery (Recommended)
+
+1. **Week 1**: Setup + Foundational + US1 (Infrastructure) → Deploy
+   - Deliverable: Structured logging, environment validation, clean configuration
+2. **Week 2**: US2 (Code Quality) → Deploy
+   - Deliverable: Reduced complexity, no duplicate code, centralized constants
+3. **Week 3**: US3 (Error Handling) + US4 (Documentation) → Deploy
+   - Deliverable: Resilient external API calls, comprehensive documentation
+4. **Week 4**: US5 (Type Safety) + Polish → Final Deploy
+   - Deliverable: Strong type safety, all constitutional standards met
+
+Each week's deployment adds value without breaking previous functionality.
+
+### Parallel Team Strategy
+
+With multiple developers:
+
+1. **All team**: Complete Setup + Foundational together (1-2 days)
+2. **Once Foundational is done**:
+   - **Developer A**: User Story 1 tasks T007-T010, then T011-T024 (logger replacements)
+   - **Developer B**: User Story 1 tasks T025-T028 (constant extraction), then start US2
+   - **Developer C**: Start documenting in parallel (US4 can start early)
+3. **After US1 complete**:
+   - **Developer A**: US3 (Error Handling)
+   - **Developer B**: US2 (Code Quality)
+   - **Developer C**: US4 (Documentation)
+   - **Developer D**: US5 (Type Safety) - can start as soon as types exist
+
+---
+
+## Success Metrics (from spec.md)
+
+- ✅ **SC-001**: Zero console.log statements remain (verify with T083)
+- ✅ **SC-002**: All environment variables validated at startup (verify with T085-T086)
+- ✅ **SC-003**: All functions maintain cyclomatic complexity ≤ 5 (verify with T043-T044)
+- ✅ **SC-004**: Zero magic strings - all literals appearing 2+ times extracted to constants (verify with T084)
+- ✅ **SC-005**: All files have header documentation (verify with T055-T061)
+- ✅ **SC-006**: All external API calls implement retry logic (verify with T045-T054)
+- ✅ **SC-007**: All code uses explicit type annotations (verify with T079)
+- ✅ **SC-008**: Zero code duplication (verify with T029-T033)
+- ✅ **SC-009**: Code passes TypeScript strict mode (verify with T081)
+- ✅ **SC-010**: Documentation exists for all environment variables (verify with T068)
+
+---
+
+## Notes
+
+- **Total Tasks**: 90 tasks across 8 phases
+- **Estimated Timeline**: 2-4 weeks depending on team size
+- **Highest Parallelism**: Phase 3 (US1) with up to 14 parallel tasks for logger replacement
+- **Critical Path**: Phase 1 → Phase 2 → Phase 3 (US1) → other user stories can diverge
+- **MVP Scope**: Phases 1-3 only (User Story 1: Infrastructure) = ~28 tasks
+- **Tests**: No test tasks included (not requested in specification)
+- **Breaking Changes**: Environment variable changes require deployment configuration updates
+
+---
+
+## Validation Checklist (from quickstart.md)
+
+After implementation, verify:
+
+- [ ] No `console.log` statements remain (search codebase)
+- [ ] All env vars validated at startup
+- [ ] App fails fast with clear error when env var missing
+- [ ] All external API calls have retry logic
+- [ ] No hardcoded project IDs or datasets
+- [ ] No duplicate YouTube ID extraction code
+- [ ] All files have header comments
+- [ ] No `any` types without justification
+- [ ] All functions have complexity ≤ 5 (run ESLint)
+- [ ] TypeScript compiles without errors (`pnpm tsc`)
+- [ ] All imports use new shared utilities
+- [ ] README documents all env vars
+
+---
+
+**Status**: Ready for implementation. Total 90 tasks organized by 5 user stories (P1-P5 priorities).
+
+**Next Steps**:
+1. Review task list with team
+2. Start with Phase 1 (Setup) - 3 tasks
+3. Complete Phase 2 (Foundational) - 3 critical tasks
+4. Begin Phase 3 (User Story 1) - 22 tasks for MVP
+5. Use parallel execution opportunities to accelerate delivery

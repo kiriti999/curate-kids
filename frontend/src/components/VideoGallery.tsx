@@ -8,6 +8,14 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
+/**
+ * Check if a string is a valid YouTube video ID (11 alphanumeric characters)
+ */
+function isValidYoutubeId(id: string | undefined | null): boolean {
+    if (!id) return false
+    return /^[a-zA-Z0-9_-]{11}$/.test(id)
+}
+
 interface Video {
     _id: string
     _createdAt: string
@@ -44,8 +52,9 @@ const AGE_RANGES = [
 
 function VideoThumbnail({ video }: { video: Video }) {
     const [showVideo, setShowVideo] = useState(false)
+    const hasValidYoutubeId = isValidYoutubeId(video.youtubeId)
 
-    if (showVideo) {
+    if (showVideo && hasValidYoutubeId) {
         return (
             <iframe
                 className="w-full h-full"
@@ -54,6 +63,20 @@ function VideoThumbnail({ video }: { video: Video }) {
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
             />
+        )
+    }
+
+    // Show placeholder for non-YouTube videos
+    if (!hasValidYoutubeId) {
+        return (
+            <div className="relative w-full h-full bg-muted flex items-center justify-center">
+                <div className="text-center p-4">
+                    <svg className="w-12 h-12 mx-auto text-muted-foreground mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <p className="text-sm text-muted-foreground">External video</p>
+                </div>
+            </div>
         )
     }
 
@@ -154,7 +177,7 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
                             type="text"
                             placeholder="Search videos..."
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
                             className="max-w-sm"
                         />
                         {hasActiveFilters && (

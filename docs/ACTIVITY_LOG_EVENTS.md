@@ -8,7 +8,7 @@ Example: `video.view`, `ad.click`, `user.login`
 
 ---
 
-## Video Events
+## Video Events.
 
 ### video.create
 **Triggered**: When a new video document is created  

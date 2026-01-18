@@ -13,7 +13,7 @@ import type { Video } from '../types/payload'
 /**
  * Fetch videos from PayloadCMS
  */
-async function fetchVideos() {
+async function fetchVideos(): Promise<Video[]> {
   logger.info('Initializing PayloadCMS')
   const payload = await getPayload({ config })
 
@@ -26,7 +26,7 @@ async function fetchVideos() {
   })
 
   logger.info('Videos fetched', { count: result.docs.length })
-  return result.docs
+  return result.docs as Video[]
 }
 
 /**

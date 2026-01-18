@@ -28,11 +28,28 @@ interface Video {
     createdAt?: string
 }
 
+// Normalized video with string[] tags
+interface NormalizedVideo {
+    id: string
+    title: string
+    youtubeId: string
+    youtubeUrl: string
+    category: string
+    ageRange: string
+    tags: string[]
+    createdAt?: string
+}
+
 // Normalize video data for consistent rendering
-function normalizeVideo(video: Video): Video & { tags: string[] } {
+function normalizeVideo(video: Video): NormalizedVideo {
     return {
-        ...video,
+        id: video.id,
+        title: video.title,
         youtubeId: video.youtubeId || '',
+        youtubeUrl: video.youtubeUrl,
+        category: video.category,
+        ageRange: video.ageRange,
+        createdAt: video.createdAt,
         tags: Array.isArray(video.tags)
             ? video.tags.map(tag => typeof tag === 'string' ? tag : tag.tag)
             : [],
@@ -62,7 +79,7 @@ const AGE_RANGES = [
     { value: '13+', label: '13+ years' },
 ]
 
-function VideoThumbnail({ video }: { video: Video & { id: string; youtubeId: string } }) {
+function VideoThumbnail({ video }: { video: NormalizedVideo }) {
     const [showVideo, setShowVideo] = useState(false)
     const hasValidYoutubeId = isValidYoutubeId(video.youtubeId)
 

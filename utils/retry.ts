@@ -148,9 +148,9 @@ export async function withRetry<T>(
       return result.result
     }
 
-    lastError = result.error
+    lastError = (result as { error: Error }).error
     
-    if (!result.shouldContinue) {
+    if (!(result as { shouldContinue: boolean }).shouldContinue) {
       break
     }
   }

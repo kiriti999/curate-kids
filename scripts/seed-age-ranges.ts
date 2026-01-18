@@ -54,7 +54,7 @@ async function createCategory(
     })
 
     logger.info('Created age range category', { name: ageRange.name, id: category.id })
-    return category
+    return category as Category
   } catch (error) {
     // Check if it's a duplicate slug error
     const errorMessage = error instanceof Error ? error.message : String(error)
@@ -70,7 +70,7 @@ async function createCategory(
       })
       
       if (result.docs.length > 0) {
-        return result.docs[0]
+        return result.docs[0] as Category
       }
     }
     

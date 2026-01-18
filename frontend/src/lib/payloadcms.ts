@@ -2,7 +2,7 @@
  * PayloadCMS API Client
  * 
  * Provides type-safe wrapper functions for PayloadCMS REST API with retry logic,
- * caching, and error handling. Replaces Sanity client for frontend data fetching.
+ * caching, and error handling. Handles frontend data fetching from PayloadCMS API.
  */
 
 import { logger } from '../../../utils/logger'

@@ -6,7 +6,7 @@
  */
 
 /**
- * Sanity CMS Configuration
+ * PayloadCMS Configuration
  */
 export const SANITY_CONFIG = {
   API_VERSION: '2024-01-01',

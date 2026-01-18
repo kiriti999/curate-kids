@@ -193,16 +193,6 @@ export const Category: CollectionConfig = {
         position: 'sidebar',
       },
     },
-    
-    // Sanity ID for migration tracking
-    {
-      name: 'sanityId',
-      type: 'text',
-      admin: {
-        hidden: true,
-        description: 'Original Sanity CMS document ID (for migration tracking)',
-      },
-    },
   ],
   
   // Hooks

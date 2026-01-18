@@ -16,10 +16,9 @@ function isValidYoutubeId(id: string | undefined | null): boolean {
     return /^[a-zA-Z0-9_-]{11}$/.test(id)
 }
 
-// Support both Sanity and PayloadCMS data structures
+// PayloadCMS Video interface
 interface Video {
-    // PayloadCMS fields (preferred)
-    id?: string
+    id: string
     title: string
     youtubeId?: string | null
     youtubeUrl: string
@@ -27,17 +26,12 @@ interface Video {
     ageRange: string
     tags?: Array<{ tag: string; id?: string | null }> | string[] | null
     createdAt?: string
-    
-    // Sanity fields (legacy - for backward compatibility)
-    _id?: string
-    _createdAt?: string
 }
 
-// Normalize video data to handle both Sanity and PayloadCMS formats
-function normalizeVideo(video: Video): Video & { _id: string; tags: string[] } {
+// Normalize video data for consistent rendering
+function normalizeVideo(video: Video): Video & { tags: string[] } {
     return {
         ...video,
-        _id: video.id || video._id || '',
         youtubeId: video.youtubeId || '',
         tags: Array.isArray(video.tags)
             ? video.tags.map(tag => typeof tag === 'string' ? tag : tag.tag)
@@ -68,7 +62,7 @@ const AGE_RANGES = [
     { value: '13+', label: '13+ years' },
 ]
 
-function VideoThumbnail({ video }: { video: Video & { _id: string; youtubeId: string } }) {
+function VideoThumbnail({ video }: { video: Video & { id: string; youtubeId: string } }) {
     const [showVideo, setShowVideo] = useState(false)
     const hasValidYoutubeId = isValidYoutubeId(video.youtubeId)
 
@@ -247,14 +241,14 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
                         <p className="text-xl text-muted-foreground">
                             {hasActiveFilters
                                 ? 'No videos match your filters. Try adjusting your selection.'
-                                : 'No videos published yet. Add some in Sanity Studio!'}
+                                : 'No videos published yet. Add videos via the admin panel!'}
                         </p>
                     </CardContent>
                 </Card>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredVideos.map((video) => (
-                        <Card key={video._id} className="overflow-hidden p-0">
+                        <Card key={video.id} className="overflow-hidden p-0">
                             <div className="aspect-video bg-black">
                                 <VideoThumbnail video={video} />
                             </div>

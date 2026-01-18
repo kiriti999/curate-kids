@@ -67,7 +67,7 @@ async function fetchPayload<T>(
 ): Promise<T> {
   logger.debug('Fetching from PayloadCMS', { endpoint })
 
-  return withRetry<T>(
+  const result = await withRetry<T>(
     async () => {
       const url = `${PAYLOAD_API_URL}/api${endpoint}`
       const response = await fetch(url, {
@@ -78,7 +78,7 @@ async function fetchPayload<T>(
         },
         next: { 
           revalidate: CACHE_REVALIDATE_SECONDS,
-          ...options.next 
+          ...((options as { next?: Record<string, unknown> }).next || {})
         },
       })
 
@@ -95,7 +95,7 @@ async function fetchPayload<T>(
 
       const data = await response.json()
       logger.debug('PayloadCMS fetch successful', { endpoint, dataReceived: !!data })
-      return data
+      return data as T
     },
     {
       shouldRetry: (error) => {
@@ -108,6 +108,12 @@ async function fetchPayload<T>(
       },
     }
   )
+
+  if (result === null) {
+    throw new Error(`Failed to fetch from PayloadCMS: ${endpoint}`)
+  }
+
+  return result
 }
 
 /**

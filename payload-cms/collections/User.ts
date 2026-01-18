@@ -69,17 +69,6 @@ export const User: CollectionConfig = {
       },
     },
     
-    // Email (auth field - automatically added by PayloadCMS but we define it for validation)
-    {
-      name: 'email',
-      type: 'email',
-      required: true,
-      unique: true,
-      admin: {
-        description: 'Email address (used for login)',
-      },
-    },
-    
     // Role
     {
       name: 'role',

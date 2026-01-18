@@ -16,7 +16,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { logger } from '../utils/logger.js'
-import { getPayloadClient } from '../payload/index.js'
+import { getPayloadClient } from '../payload-cms/index.js'
 import dotenv from 'dotenv'
 
 // Load environment variables

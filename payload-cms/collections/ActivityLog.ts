@@ -145,7 +145,7 @@ export const ActivityLog: CollectionConfig = {
   
   // Hooks
   hooks: {
-    beforeCreate: [
+    beforeChange: [
       // Ensure createdAt is set to current timestamp (immutable)
       ({ data }) => {
         if (!data.createdAt) {

@@ -6,13 +6,12 @@
  */
 
 import dotenv from 'dotenv'
+// Load environment variables FIRST
+dotenv.config()
+
 import express from 'express'
 import payload from 'payload'
 import { logger } from './utils/logger.js'
-import config from './payload.config.js'
-
-// Load environment variables FIRST
-dotenv.config()
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -24,7 +23,7 @@ const start = async () => {
 
     // Initialize PayloadCMS
     await payload.init({
-      config,
+      secret: process.env.PAYLOAD_SECRET || 'fallback-key-please-set-env-var',
       express: app,
       onInit: async () => {
         logger.info('PayloadCMS initialized successfully', {
@@ -32,6 +31,11 @@ const start = async () => {
           apiURL: `${payload.getAdminURL()}/api`,
         })
       },
+    })
+
+    // Redirect root to admin panel
+    app.get('/', (req, res) => {
+      res.redirect('/admin')
     })
 
     // Add custom health check endpoint

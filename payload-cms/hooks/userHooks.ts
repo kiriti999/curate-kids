@@ -17,14 +17,18 @@ export const beforeChangeUserHook: CollectionBeforeChangeHook = async ({
   operation,
   originalDoc,
 }) => {
-  // Set addedBy to current admin user (only on create)
-  if (operation === 'create' && req.user) {
-    // Ensure the current user is an admin
-    if (req.user.role !== 'admin') {
-      throw new Error('Only admin users can create new user accounts')
+  // Set addedBy to current admin user (only on create, if user exists)
+  if (operation === 'create') {
+    // Allow first user registration (no existing user) OR admin-created users
+    if (req.user) {
+      if (req.user.role !== 'admin') {
+        throw new Error('Only admin users can create new user accounts')
+      }
+      data.addedBy = req.user.id
+    } else {
+      // If no req.user, this is first-register - make them admin
+      data.role = 'admin'
     }
-    
-    data.addedBy = req.user.id
   }
 
   // Prevent role changes after initial creation (immutable)
@@ -56,14 +60,21 @@ export const beforeChangeUserHook: CollectionBeforeChangeHook = async ({
  */
 export const afterLoginUserHook = async ({ user, req }) => {
   if (user && user.id) {
-    await req.payload.update({
-      collection: 'users',
-      id: user.id,
-      data: {
-        lastLoginAt: new Date(),
-        loginCount: (user.loginCount || 0) + 1,
-      },
-    })
+    try {
+      await req.payload.update({
+        collection: 'users',
+        id: user.id,
+        data: {
+          lastLoginAt: new Date(),
+          loginCount: (user.loginCount || 0) + 1,
+        },
+        req, // Pass req to use the same transaction context
+      })
+    } catch (error) {
+      // Silently ignore errors during first-register flow
+      // The user was just created in a transaction that hasn't committed yet
+      console.log('Note: Could not update login stats (may be during first-register):', error.message)
+    }
   }
 
   return user

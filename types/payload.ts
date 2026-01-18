@@ -172,9 +172,6 @@ export interface User {
   sanityId?: string | null;
   updatedAt: string;
   createdAt: string;
-  /**
-   * Email address (used for login)
-   */
   email: string;
   resetPasswordToken?: string | null;
   resetPasswordExpiration?: string | null;

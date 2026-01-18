@@ -31,7 +31,7 @@ export const beforeValidateCategoryHook: CollectionBeforeValidateHook = async ({
     // Fetch parent category to validate rules
     const parentCategory = await req.payload.findByID({
       collection: 'categories',
-      id: typeof data.parent === 'string' ? data.parent : data.parent.id,
+      id: typeof data.parent === 'string' ? data.parent : String(data.parent.id),
     })
 
     // Rule 1: Age range root categories cannot be children
@@ -47,7 +47,7 @@ export const beforeValidateCategoryHook: CollectionBeforeValidateHook = async ({
     // Rule 3: Prevent circular references
     if (operation === 'update' && originalDoc?.id) {
       // Check if parent or any ancestor is the current category
-      let currentAncestor = parentCategory
+      let currentAncestor: typeof parentCategory | null = parentCategory
       const visitedIds = new Set<string>()
       
       while (currentAncestor) {
@@ -55,20 +55,20 @@ export const beforeValidateCategoryHook: CollectionBeforeValidateHook = async ({
           throw new Error('Circular reference detected: Category cannot be its own ancestor')
         }
         
-        visitedIds.add(currentAncestor.id)
+        visitedIds.add(String(currentAncestor.id))
         
         if (currentAncestor.parent) {
-          const parentId = typeof currentAncestor.parent === 'string' 
+          const ancestorParentId: string = typeof currentAncestor.parent === 'string' 
             ? currentAncestor.parent 
-            : currentAncestor.parent.id
+            : String(currentAncestor.parent.id)
           
-          if (visitedIds.has(parentId)) {
+          if (visitedIds.has(ancestorParentId)) {
             throw new Error('Circular reference detected in category hierarchy')
           }
           
           currentAncestor = await req.payload.findByID({
             collection: 'categories',
-            id: parentId,
+            id: ancestorParentId,
           })
         } else {
           break
@@ -86,18 +86,18 @@ export const beforeValidateCategoryHook: CollectionBeforeValidateHook = async ({
 
     // Build fullPath by traversing up the parent chain
     const pathSegments: string[] = []
-    let currentCat = parentCategory
+    let currentCat: typeof parentCategory | null = parentCategory
     
     while (currentCat) {
       pathSegments.unshift(currentCat.slug)
       
       if (currentCat.parent) {
-        const parentId = typeof currentCat.parent === 'string' 
+        const catParentId: string = typeof currentCat.parent === 'string' 
           ? currentCat.parent 
-          : currentCat.parent.id
+          : String(currentCat.parent.id)
         currentCat = await req.payload.findByID({
           collection: 'categories',
-          id: parentId,
+          id: catParentId,
         })
       } else {
         break
@@ -134,10 +134,10 @@ export const afterChangeCategoryHook: CollectionAfterChangeHook = async ({
   previousDoc,
 }) => {
   // Update parent category's childCount
-  const updateParentChildCount = async (parentId: string | any) => {
+  const updateParentChildCount = async (parentId: string | { id: string | number } | null | undefined) => {
     if (!parentId) return
     
-    const actualParentId = typeof parentId === 'string' ? parentId : parentId.id
+    const actualParentId = typeof parentId === 'string' ? parentId : String(parentId.id)
     
     // Count children
     const childrenCount = await req.payload.count({
@@ -184,7 +184,7 @@ export const afterChangeCategoryHook: CollectionAfterChangeHook = async ({
  */
 export const afterDeleteCategoryHook: CollectionAfterDeleteHook = async ({ doc, req }) => {
   if (doc.parent) {
-    const parentId = typeof doc.parent === 'string' ? doc.parent : doc.parent.id
+    const parentId = typeof doc.parent === 'string' ? doc.parent : String(doc.parent.id)
     
     // Count remaining children
     const childrenCount = await req.payload.count({

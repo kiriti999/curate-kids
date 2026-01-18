@@ -4,17 +4,26 @@ This directory contains utility scripts for seeding and managing data in the You
 
 ## Available Scripts
 
-### seed-age-ranges.ts
+### seed-admin.ts
 
-Seeds the 7 predefined age range root categories into Sanity.
-
-**Prerequisites:**
-- Install `tsx` for running TypeScript: `pnpm add -D tsx`
-- Generate a Sanity API token with write permissions from [sanity.io/manage](https://sanity.io/manage)
+Seeds the first admin user into PayloadCMS.
 
 **Usage:**
 ```bash
-SANITY_TOKEN=your_token_here npx tsx scripts/seed-age-ranges.ts
+pnpm seed:admin
+```
+
+### seed-age-ranges.ts
+
+Seeds the 7 predefined age range root categories into PayloadCMS.
+
+**Prerequisites:**
+- PayloadCMS server must be running (`pnpm dev`)
+- An admin user must exist (run `pnpm seed:admin` first)
+
+**Usage:**
+```bash
+npx tsx scripts/seed-age-ranges.ts
 ```
 
 **What it does:**
@@ -34,14 +43,11 @@ These categories serve as the root of the category hierarchy. All content catego
 - Age range categories cannot be deleted or modified
 - Running multiple times will create duplicates (avoid this)
 
-## Generating a Sanity Token
+### extract-youtube-ids.ts
 
-1. Go to [sanity.io/manage](https://sanity.io/manage)
-2. Select your project
-3. Navigate to "API" → "Tokens"
-4. Click "Add API token"
-5. Give it a name (e.g., "Seed Script")
-6. Set permissions to "Editor" or "Admin"
-7. Copy the token and use it with the scripts
+Extracts YouTube video IDs from URLs in the database.
 
-**Security Note:** Never commit tokens to version control!
+**Usage:**
+```bash
+npx tsx scripts/extract-youtube-ids.ts
+```

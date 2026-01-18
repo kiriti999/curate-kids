@@ -6,9 +6,9 @@
  */
 
 /**
- * PayloadCMS Configuration
+ * API Configuration
  */
-export const SANITY_CONFIG = {
+export const API_CONFIG = {
   API_VERSION: '2024-01-01',
   CACHE_REVALIDATE_SECONDS: 300,
 } as const

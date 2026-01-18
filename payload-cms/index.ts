@@ -5,9 +5,10 @@
  * and other server-side operations that need direct database access
  */
 
-import payload from 'payload'
+import { getPayload } from 'payload'
+import config from '../payload.config'
 
-let initialized = false
+let cachedPayload: Awaited<ReturnType<typeof getPayload>> | null = null
 
 /**
  * Get PayloadCMS client (singleton pattern)
@@ -15,12 +16,8 @@ let initialized = false
  * @returns PayloadCMS instance
  */
 export async function getPayloadClient() {
-  if (!initialized) {
-    await payload.init({
-      secret: process.env.PAYLOAD_SECRET || 'fallback-key-please-set-env-var',
-      local: true,
-    })
-    initialized = true
+  if (!cachedPayload) {
+    cachedPayload = await getPayload({ config })
   }
-  return payload
+  return cachedPayload
 }

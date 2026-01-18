@@ -60,7 +60,8 @@ export const Video: CollectionConfig = {
       admin: {
         description: 'Full YouTube URL (e.g., https://www.youtube.com/watch?v=...)',
       },
-      validate: (value) => {
+      validate: (value: string | null | undefined) => {
+        if (!value) return 'YouTube URL is required'
         const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([a-zA-Z0-9_-]{11})/
         if (!youtubeRegex.test(value)) {
           return 'Please enter a valid YouTube URL'

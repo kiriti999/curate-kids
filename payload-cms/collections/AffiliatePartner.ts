@@ -56,7 +56,7 @@ export const AffiliatePartner: CollectionConfig = {
       admin: {
         description: 'Partner website URL',
       },
-      validate: (value) => {
+      validate: (value: string | null | undefined) => {
         if (value && !value.match(/^https?:\/\/.+/)) {
           return 'Please enter a valid URL'
         }
@@ -72,7 +72,8 @@ export const AffiliatePartner: CollectionConfig = {
       admin: {
         description: 'Tracking URL template with {adId} and {sessionId} placeholders',
       },
-      validate: (value) => {
+      validate: (value: string | null | undefined) => {
+        if (!value) return 'Tracking URL is required'
         if (!value.match(/^https?:\/\/.+/)) {
           return 'Please enter a valid URL'
         }
@@ -99,7 +100,7 @@ export const AffiliatePartner: CollectionConfig = {
       name: 'commissionType',
       type: 'radio',
       required: true,
-      options: COMMISSION_TYPES,
+      options: [...COMMISSION_TYPES],
       admin: {
         description: 'Commission payment model',
       },
@@ -120,7 +121,7 @@ export const AffiliatePartner: CollectionConfig = {
       type: 'radio',
       required: true,
       defaultValue: 'pending',
-      options: AFFILIATE_PARTNER_STATUSES,
+      options: [...AFFILIATE_PARTNER_STATUSES],
       admin: {
         description: 'Current partner status',
       },

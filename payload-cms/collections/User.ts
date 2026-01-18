@@ -75,7 +75,7 @@ export const User: CollectionConfig = {
       type: 'select',
       required: true,
       defaultValue: 'editor',
-      options: USER_ROLES,
+      options: [...USER_ROLES],
       admin: {
         description: 'User role (admin or editor) - cannot be changed after creation',
       },
@@ -88,7 +88,7 @@ export const User: CollectionConfig = {
       type: 'select',
       required: true,
       defaultValue: 'active',
-      options: USER_STATUSES,
+      options: [...USER_STATUSES],
       admin: {
         description: 'Account status',
       },

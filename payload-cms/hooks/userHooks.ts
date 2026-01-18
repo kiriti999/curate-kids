@@ -58,7 +58,7 @@ export const beforeChangeUserHook: CollectionBeforeChangeHook = async ({
  * 
  * This is called by PayloadCMS auth system on successful login
  */
-export const afterLoginUserHook = async ({ user, req }) => {
+export const afterLoginUserHook = async ({ user, req }: { user: any, req: any }) => {
   if (user && user.id) {
     try {
       await req.payload.update({
@@ -70,7 +70,7 @@ export const afterLoginUserHook = async ({ user, req }) => {
         },
         req, // Pass req to use the same transaction context
       })
-    } catch (error) {
+    } catch (error: any) {
       // Silently ignore errors during first-register flow
       // The user was just created in a transaction that hasn't committed yet
       console.log('Note: Could not update login stats (may be during first-register):', error.message)

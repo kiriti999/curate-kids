@@ -35,7 +35,8 @@ export const ActivityLog: CollectionConfig = {
       admin: {
         description: 'Action type in resource.action format (e.g., "video.view", "ad.click")',
       },
-      validate: (value) => {
+      validate: (value: string | null | undefined) => {
+        if (!value) return 'Action type is required'
         // Validate pattern: resource.action
         const pattern = /^[a-z]+\.[a-z]+$/
         if (!pattern.test(value)) {
@@ -71,7 +72,7 @@ export const ActivityLog: CollectionConfig = {
       admin: {
         description: 'Anonymized IP address (last octet removed)',
       },
-      validate: (value) => {
+      validate: (value: string | null | undefined) => {
         if (!value) return true
         
         // Check if IP is anonymized (last octet should be 0)
@@ -97,7 +98,7 @@ export const ActivityLog: CollectionConfig = {
       name: 'resourceType',
       type: 'select',
       required: true,
-      options: ACTIVITY_LOG_RESOURCE_TYPES,
+      options: [...ACTIVITY_LOG_RESOURCE_TYPES],
       admin: {
         description: 'Type of resource affected by this action',
       },

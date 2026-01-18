@@ -50,7 +50,7 @@ export const AdPlacement: CollectionConfig = {
       name: 'type',
       type: 'radio',
       required: true,
-      options: AD_PLACEMENT_TYPES,
+      options: [...AD_PLACEMENT_TYPES],
       admin: {
         description: 'Type of advertisement',
       },
@@ -61,7 +61,7 @@ export const AdPlacement: CollectionConfig = {
       name: 'position',
       type: 'select',
       required: true,
-      options: AD_PLACEMENT_POSITIONS,
+      options: [...AD_PLACEMENT_POSITIONS],
       admin: {
         description: 'Where the ad appears on the page',
       },
@@ -77,7 +77,7 @@ export const AdPlacement: CollectionConfig = {
           type: 'radio',
           required: true,
           defaultValue: 'html',
-          options: AD_CONTENT_TYPES,
+          options: [...AD_CONTENT_TYPES],
           admin: {
             description: 'Type of ad content',
           },
@@ -97,7 +97,7 @@ export const AdPlacement: CollectionConfig = {
             description: 'URL of the ad image',
             condition: (data, siblingData) => siblingData?.contentType === 'image',
           },
-          validate: (value, { siblingData }) => {
+          validate: (value: any, { siblingData }: any) => {
             if (siblingData?.contentType === 'image' && !value) {
               return 'Image URL is required when content type is image'
             }
@@ -114,7 +114,7 @@ export const AdPlacement: CollectionConfig = {
           admin: {
             description: 'Click destination URL',
           },
-          validate: (value) => {
+          validate: (value: any) => {
             if (!value.match(/^https?:\/\/.+/)) {
               return 'Please enter a valid URL'
             }
@@ -128,7 +128,7 @@ export const AdPlacement: CollectionConfig = {
             description: 'Alt text for image ads',
             condition: (data, siblingData) => siblingData?.contentType === 'image',
           },
-          validate: (value, { siblingData }) => {
+          validate: (value: any, { siblingData }: any) => {
             if (siblingData?.contentType === 'image' && !value) {
               return 'Alt text is required for image ads'
             }
@@ -171,7 +171,7 @@ export const AdPlacement: CollectionConfig = {
       type: 'radio',
       required: true,
       defaultValue: 'inactive',
-      options: AD_PLACEMENT_STATUSES,
+      options: [...AD_PLACEMENT_STATUSES],
       admin: {
         description: 'Current status of the ad',
       },
@@ -199,8 +199,9 @@ export const AdPlacement: CollectionConfig = {
           pickerAppearance: 'dayAndTime',
         },
       },
-      validate: (value, { data }) => {
-        if (value && data.startDate && new Date(value) <= new Date(data.startDate)) {
+      validate: (value, { data }: { data: Record<string, unknown> }) => {
+        const startDate = data.startDate as string | undefined
+        if (value && startDate && new Date(String(value)) <= new Date(startDate)) {
           return 'End date must be after start date'
         }
         return true

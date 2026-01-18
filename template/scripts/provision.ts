@@ -17,8 +17,8 @@ import inquirer from 'inquirer';
 import ora from 'ora';
 import chalk from 'chalk';
 import { MongoClient } from 'mongodb';
-import { execSync, exec } from 'child_process';
-import { writeFileSync, readFileSync } from 'fs';
+import { execSync } from 'child_process';
+import { writeFileSync } from 'fs';
 import { join } from 'path';
 
 // ============================================================================

@@ -5,7 +5,7 @@
  * and circular reference prevention.
  */
 
-import { CollectionBeforeValidateHook, CollectionAfterChangeHook } from 'payload'
+import { CollectionBeforeValidateHook, CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
 import { slugify } from '../../utils/slugify'
 import { PAYLOAD_CONFIG } from '../../config/constants'
 
@@ -108,13 +108,15 @@ export const beforeValidateCategoryHook: CollectionBeforeValidateHook = async ({
     data.fullPath = pathSegments
   } else {
     // No parent: This is a root category
-    if (!data.isAgeRangeRoot) {
+    if (!data?.isAgeRangeRoot) {
       // Non-age-range-root categories must have a parent
       throw new Error('Non-root categories must have a parent category')
     }
     
-    data.depth = 0
-    data.fullPath = [data.slug]
+    if (data) {
+      data.depth = 0
+      data.fullPath = [data.slug]
+    }
   }
 
   return data
@@ -180,7 +182,7 @@ export const afterChangeCategoryHook: CollectionAfterChangeHook = async ({
 /**
  * afterDelete Hook: Update parent's childCount when category deleted
  */
-export const afterDeleteCategoryHook = async ({ doc, req }) => {
+export const afterDeleteCategoryHook: CollectionAfterDeleteHook = async ({ doc, req }) => {
   if (doc.parent) {
     const parentId = typeof doc.parent === 'string' ? doc.parent : doc.parent.id
     

@@ -166,10 +166,6 @@ export interface User {
    * Timestamp when user was deactivated
    */
   deactivatedAt?: string | null;
-  /**
-   * Original Sanity CMS document ID (for migration tracking)
-   */
-  sanityId?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -245,10 +241,6 @@ export interface Video {
    * Timestamp of last view event
    */
   lastViewedAt?: string | null;
-  /**
-   * Original Sanity CMS document ID (for migration tracking)
-   */
-  sanityId?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -321,10 +313,6 @@ export interface Category {
    * Internal notes (not displayed publicly)
    */
   notes?: string | null;
-  /**
-   * Original Sanity CMS document ID (for migration tracking)
-   */
-  sanityId?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -430,10 +418,6 @@ export interface ActivityLog {
    * Timestamp when action occurred (immutable)
    */
   createdAt: string;
-  /**
-   * Original Sanity CMS document ID (for migration tracking)
-   */
-  sanityId?: string | null;
   updatedAt: string;
 }
 /**
@@ -528,10 +512,6 @@ export interface AdPlacement {
    * Internal notes about this ad
    */
   notes?: string | null;
-  /**
-   * Original Sanity CMS document ID (for migration tracking)
-   */
-  sanityId?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -599,10 +579,6 @@ export interface AffiliatePartner {
    * Internal notes about this partner
    */
   notes?: string | null;
-  /**
-   * Original Sanity CMS document ID (for migration tracking)
-   */
-  sanityId?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -713,7 +689,6 @@ export interface UsersSelect<T extends boolean = true> {
   loginCount?: T;
   notes?: T;
   deactivatedAt?: T;
-  sanityId?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -752,7 +727,6 @@ export interface VideosSelect<T extends boolean = true> {
   notes?: T;
   viewCount?: T;
   lastViewedAt?: T;
-  sanityId?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -780,7 +754,6 @@ export interface CategoriesSelect<T extends boolean = true> {
   childCount?: T;
   videoCount?: T;
   notes?: T;
-  sanityId?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -798,7 +771,6 @@ export interface ActivityLogsSelect<T extends boolean = true> {
   resourceId?: T;
   metadata?: T;
   createdAt?: T;
-  sanityId?: T;
   updatedAt?: T;
 }
 /**
@@ -834,7 +806,6 @@ export interface AdPlacementsSelect<T extends boolean = true> {
   clickCount?: T;
   ctr?: T;
   notes?: T;
-  sanityId?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -857,7 +828,6 @@ export interface AffiliatePartnersSelect<T extends boolean = true> {
   onboardedAt?: T;
   lastPayoutAt?: T;
   notes?: T;
-  sanityId?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -959,4 +929,9 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
  */
 export interface Auth {
   [k: string]: unknown;
+}
+
+
+declare module 'payload' {
+  export interface GeneratedTypes extends Config {}
 }

@@ -38,3 +38,5 @@ bot/.env
 !bot/.env.example
 
 ~/.amplify/*
+
+.next

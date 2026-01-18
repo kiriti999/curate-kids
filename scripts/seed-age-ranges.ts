@@ -1,107 +1,114 @@
 /**
  * Seed script for creating age range root categories
+ * Updated to work with PayloadCMS instead of Sanity
  * 
  * Usage:
  *   npx tsx scripts/seed-age-ranges.ts
  * 
  * Prerequisites:
- *   - Install tsx: pnpm add -D tsx
- *   - Set SANITY_TOKEN in .env file
+ *   - PayloadCMS server must be configured
+ *   - MongoDB connection must be available
  */
 
+import { getPayload } from 'payload'
+import config from '../payload.config'
 import { logger } from '../utils/logger'
-import { env } from '../config/env'
-import { SANITY_CONFIG } from '../config/constants'
-import { CreateDocumentInput, SanityResponse } from '../types/sanity'
-
-const projectId = env.SANITY_PROJECT_ID
-const dataset = env.SANITY_DATASET
-const apiVersion = SANITY_CONFIG.API_VERSION
-const token = env.SANITY_TOKEN
+import type { Category } from '../types/payload'
 
 const ageRanges = [
-  { name: '0-2 years', ageRange: '0-2', slug: '0-2-years' },
-  { name: '2-4 years', ageRange: '2-4', slug: '2-4-years' },
-  { name: '5-7 years', ageRange: '5-7', slug: '5-7-years' },
-  { name: '8-9 years', ageRange: '8-9', slug: '8-9-years' },
-  { name: '10-15 years', ageRange: '10-15', slug: '10-15-years' },
-  { name: '16+ years', ageRange: '16+', slug: '16-plus-years' },
-  { name: '18+ years', ageRange: '18+', slug: '18-plus-years' },
+  { name: '0-2 years', ageRange: '0-2' as const, slug: '0-2-years' },
+  { name: '2-4 years', ageRange: '2-4' as const, slug: '2-4-years' },
+  { name: '5-7 years', ageRange: '5-7' as const, slug: '5-7-years' },
+  { name: '8-9 years', ageRange: '8-9' as const, slug: '8-9-years' },
+  { name: '10-15 years', ageRange: '10-15' as const, slug: '10-15-years' },
+  { name: '16+ years', ageRange: '16+' as const, slug: '16-plus-years' },
+  { name: '18+ years', ageRange: '18+' as const, slug: '18-plus-years' },
 ]
 
-async function createDocument(doc: CreateDocumentInput): Promise<SanityResponse<unknown>> {
-  const { withRetry } = await import('../utils/retry')
-  const url = `https://${projectId}.api.sanity.io/v${apiVersion}/data/mutate/${dataset}`
+async function createCategory(
+  ageRange: typeof ageRanges[number]
+): Promise<Category> {
+  const payload = await getPayload({ config })
   
-  logger.debug('Creating document', { type: doc._type, name: (doc as any).name })
+  logger.debug('Creating category', { name: ageRange.name })
   
-  const result = await withRetry<SanityResponse<unknown>>(
-    async () => {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          mutations: [
-            {
-              create: doc,
-            },
-          ],
-        }),
-      })
-
-      if (!response.ok) {
-        const error = await response.text()
-        throw new Error(`Failed to create document: ${error}`)
-      }
-
-      return response.json()
-    },
-    {
-      shouldRetry: (error) => {
-        // Retry on network errors, but not on validation or duplicate errors
-        const message = error.message.toLowerCase()
-        if (message.includes('validation') || message.includes('conflict') || message.includes('duplicate')) {
-          return false
-        }
-        return true
-      }
-    }
-  )
-
-  if (!result) {
-    throw new Error(`Failed to create document after all retry attempts: ${(doc as any).name}`)
-  }
-
-  return result
-}
-
-async function seedAgeRanges(): Promise<void> {
-  logger.info('Starting age range category seeding', { projectId, dataset })
-
   try {
-    for (const ageRange of ageRanges) {
-      logger.info('Creating age range category', { name: ageRange.name })
-
-      await createDocument({
-        _type: 'category',
+    const category = await payload.create({
+      collection: 'categories',
+      data: {
         name: ageRange.name,
-        slug: { current: ageRange.slug },
+        slug: ageRange.slug,
         ageRange: ageRange.ageRange,
         isAgeRangeRoot: true,
         depth: 0,
-        fullPath: [ageRange.name],
+        fullPath: [
+          {
+            categoryName: ageRange.name,
+          }
+        ],
         description: `Content curated for children aged ${ageRange.ageRange}`,
         isVisible: true,
-      })
+        childCount: 0,
+        videoCount: 0,
+      },
+    })
 
-      logger.info('Created age range category', { name: ageRange.name })
+    logger.info('Created age range category', { name: ageRange.name, id: category.id })
+    return category
+  } catch (error) {
+    // Check if it's a duplicate slug error
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    if (errorMessage.toLowerCase().includes('duplicate') || errorMessage.toLowerCase().includes('unique')) {
+      logger.warn('Category already exists, skipping', { name: ageRange.name })
+      // Fetch and return the existing category
+      const result = await payload.find({
+        collection: 'categories',
+        where: {
+          slug: { equals: ageRange.slug }
+        },
+        limit: 1,
+      })
+      
+      if (result.docs.length > 0) {
+        return result.docs[0]
+      }
+    }
+    
+    throw error
+  }
+}
+
+async function seedAgeRanges(): Promise<void> {
+  logger.info('Starting age range category seeding')
+  logger.info('Initializing PayloadCMS')
+
+  try {
+    const payload = await getPayload({ config })
+    
+    // Check if any age range categories already exist
+    const existingCategories = await payload.find({
+      collection: 'categories',
+      where: {
+        isAgeRangeRoot: { equals: true }
+      },
+      limit: 10,
+    })
+
+    if (existingCategories.docs.length > 0) {
+      logger.warn('Some age range categories already exist', { 
+        count: existingCategories.docs.length,
+        existing: existingCategories.docs.map(c => c.name)
+      })
+      logger.info('Will attempt to create missing categories only')
+    }
+
+    for (const ageRange of ageRanges) {
+      logger.info('Creating age range category', { name: ageRange.name })
+      await createCategory(ageRange)
     }
 
     logger.info('All age range categories created successfully')
-    logger.info('Note: These categories are immutable and cannot be deleted')
+    logger.info('Note: These categories are immutable and should not be deleted')
   } catch (error) {
     logger.error('Error creating age range categories', {
       error: error instanceof Error ? error.message : String(error),
@@ -112,3 +119,14 @@ async function seedAgeRanges(): Promise<void> {
 }
 
 seedAgeRanges()
+  .then(() => {
+    logger.info('Seeding completed successfully')
+    process.exit(0)
+  })
+  .catch((error) => {
+    logger.error('Seeding failed', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
+    process.exit(1)
+  })

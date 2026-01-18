@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getPublishedVideos } from "@/lib/sanity";
+import { getVideos } from "@/lib/payloadcms";
 import VideoGallery from "@/components/VideoGallery";
 import Header from "@/components/Header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -41,7 +41,8 @@ function VideoGallerySkeleton() {
 
 async function VideoContent() {
   try {
-    const videos = await getPublishedVideos();
+    const videos = await getVideos({ limit: 100 });
+    logger.debug('Videos loaded for homepage', { count: videos.length });
     return <VideoGallery videos={videos} />;
   } catch (error) {
     logger.error('Failed to load videos', {

@@ -1,32 +1,41 @@
 {
-  "name": "curatekids-sanity-cms",
+  "name": "curatekids-payloadcms",
   "private": true,
   "version": "1.0.0",
+  "type": "module",
   "main": "package.json",
   "license": "UNLICENSED",
   "scripts": {
-    "dev": "sanity dev",
-    "start": "sanity start",
-    "build": "sanity build",
-    "deploy": "sanity deploy",
-    "deploy-graphql": "sanity graphql deploy"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "payload:generate:types": "payload generate:types",
+    "seed:admin": "tsx scripts/seed-admin.ts",
+    "migrate:export": "tsx migration/export-from-sanity.ts",
+    "migrate:transform": "tsx migration/transform-data.ts",
+    "migrate:import": "tsx migration/import-to-payloadcms.ts",
+    "migrate:import:dry-run": "tsx migration/import-to-payloadcms.ts --dry-run",
+    "migrate:verify": "tsx migration/verify-migration.ts",
+    "migrate:all": "npm run migrate:export && npm run migrate:transform && npm run migrate:import && npm run migrate:verify"
   },
   "keywords": [
-    "sanity"
+    "payloadcms"
   ],
   "dependencies": {
-    "@sanity/icons": "^3.7.4",
-    "@sanity/vision": "^5.4.0",
+    "@payloadcms/db-mongodb": "3.72.0",
+    "@payloadcms/next": "3.72.0",
+    "@payloadcms/richtext-lexical": "3.72.0",
+    "@payloadcms/ui": "3.72.0",
+    "next": "15.5.9",
+    "payload": "3.72.0",
     "react": "^19.1",
-    "react-dom": "^19.1",
-    "react-icons": "^3.11.0",
-    "sanity": "^5.4.0",
-    "styled-components": "^6.1.18"
+    "react-dom": "^19.1"
   },
   "devDependencies": {
-    "@sanity/eslint-config-studio": "^6.0.0",
     "@types/react": "^19.1",
+    "dotenv": "^17.2.3",
     "eslint": "^9.28",
+    "mongodb": "^7.0.0",
     "prettier": "^3.5",
     "tsx": "^4.21.0",
     "typescript": "^5.8"

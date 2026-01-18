@@ -70,3 +70,94 @@ export const CATEGORY_AGE_RANGE_OPTIONS = [
   { title: '16+ years', value: '16+' },
   { title: '18+ years', value: '18+' },
 ]
+
+/**
+ * PayloadCMS Configuration
+ */
+export const PAYLOAD_CONFIG = {
+  CACHE_REVALIDATE_SECONDS: 300,
+  MAX_DEPTH: 10, // Maximum category hierarchy depth
+  MAX_TAGS: 20, // Maximum tags per video
+} as const
+
+/**
+ * Ad placement types for AdPlacement collection
+ */
+export const AD_PLACEMENT_TYPES = [
+  { label: 'Banner', value: 'banner' },
+  { label: 'Affiliate Link', value: 'affiliate' },
+  { label: 'Native Ad', value: 'native' },
+] as const
+
+/**
+ * Ad placement positions for AdPlacement collection
+ */
+export const AD_PLACEMENT_POSITIONS = [
+  { label: 'Header', value: 'header' },
+  { label: 'Footer', value: 'footer' },
+  { label: 'Sidebar', value: 'sidebar' },
+  { label: 'Inline (between videos)', value: 'inline' },
+  { label: 'Floating', value: 'floating' },
+] as const
+
+/**
+ * Ad placement statuses for AdPlacement collection
+ */
+export const AD_PLACEMENT_STATUSES = [
+  { label: 'Active', value: 'active' },
+  { label: 'Inactive', value: 'inactive' },
+  { label: 'Scheduled', value: 'scheduled' },
+] as const
+
+/**
+ * User roles for User collection
+ */
+export const USER_ROLES = [
+  { label: 'Admin', value: 'admin' },
+  { label: 'Editor', value: 'editor' },
+] as const
+
+/**
+ * User statuses for User collection
+ */
+export const USER_STATUSES = [
+  { label: 'Active', value: 'active' },
+  { label: 'Inactive', value: 'inactive' },
+] as const
+
+/**
+ * Activity log resource types for ActivityLog collection
+ */
+export const ACTIVITY_LOG_RESOURCE_TYPES = [
+  { label: 'Video', value: 'video' },
+  { label: 'Category', value: 'category' },
+  { label: 'Ad', value: 'ad' },
+  { label: 'User', value: 'user' },
+  { label: 'System', value: 'system' },
+] as const
+
+/**
+ * Commission types for AffiliatePartner collection
+ */
+export const COMMISSION_TYPES = [
+  { label: 'Cost Per Click (CPC)', value: 'cpc' },
+  { label: 'Cost Per Action (CPA)', value: 'cpa' },
+  { label: 'Cost Per Mille (CPM)', value: 'cpm' },
+] as const
+
+/**
+ * Affiliate partner statuses for AffiliatePartner collection
+ */
+export const AFFILIATE_PARTNER_STATUSES = [
+  { label: 'Active', value: 'active' },
+  { label: 'Inactive', value: 'inactive' },
+  { label: 'Pending', value: 'pending' },
+] as const
+
+/**
+ * Ad content types for AdPlacement collection
+ */
+export const AD_CONTENT_TYPES = [
+  { label: 'HTML Code', value: 'html' },
+  { label: 'Image', value: 'image' },
+] as const

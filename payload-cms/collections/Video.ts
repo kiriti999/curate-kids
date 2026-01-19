@@ -7,7 +7,7 @@
 
 import { CollectionConfig } from 'payload'
 import { VIDEO_CATEGORY_OPTIONS, VIDEO_AGE_RANGE_OPTIONS, PAYLOAD_CONFIG } from '../../config/constants'
-import { beforeValidateVideoHook, afterReadVideoHook } from '../hooks/videoHooks'
+import { beforeValidateVideoHook, beforeChangeVideoHook, afterReadVideoHook } from '../hooks/videoHooks'
 
 export const Video: CollectionConfig = {
   slug: 'videos',
@@ -176,6 +176,9 @@ export const Video: CollectionConfig = {
   hooks: {
     // T019: Extract YouTube ID and generate slug before validation
     beforeValidate: [beforeValidateVideoHook],
+    
+    // Prevent duplicate videos per category + ageRange
+    beforeChange: [beforeChangeVideoHook],
     
     // T020: Calculate viewCount from ActivityLog (implemented for future use)
     afterRead: [afterReadVideoHook],

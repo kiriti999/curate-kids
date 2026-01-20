@@ -44,6 +44,27 @@ async function getPayloadClient() {
 }
 
 /**
+ * Build where clause for video queries
+ */
+function buildVideoWhereClause(params: GetVideosParams): Record<string, any> {
+  const where: Record<string, any> = {}
+  
+  if (params.category) {
+    where.category = { equals: params.category }
+  }
+  
+  if (params.ageRange) {
+    where.ageRange = { equals: params.ageRange }
+  }
+  
+  if (params.search) {
+    where.title = { contains: params.search }
+  }
+
+  return where
+}
+
+/**
  * Get videos with filtering and pagination using local API
  */
 export async function getVideos(params: GetVideosParams = {}): Promise<Video[]> {
@@ -51,20 +72,7 @@ export async function getVideos(params: GetVideosParams = {}): Promise<Video[]> 
 
   try {
     const payload = await getPayloadClient()
-    
-    const where: Record<string, any> = {}
-    
-    if (params.category) {
-      where.category = { equals: params.category }
-    }
-    
-    if (params.ageRange) {
-      where.ageRange = { equals: params.ageRange }
-    }
-    
-    if (params.search) {
-      where.title = { contains: params.search }
-    }
+    const where = buildVideoWhereClause(params)
 
     const result = await payload.find({
       collection: 'videos',
@@ -129,6 +137,38 @@ export async function getVideoById(id: string): Promise<Video | null> {
 }
 
 /**
+ * Add parent filter to where clause
+ */
+function addParentFilter(where: Record<string, any>, parent: string | null | undefined) {
+  if (parent !== undefined) {
+    where.parent = parent === null ? { exists: false } : { equals: parent }
+  }
+}
+
+/**
+ * Build where clause for category queries
+ */
+function buildCategoryWhereClause(params: GetCategoriesParams): Record<string, any> {
+  const where: Record<string, any> = {}
+  
+  addParentFilter(where, params.parent)
+  
+  if (params.isAgeRangeRoot !== undefined) {
+    where.isAgeRangeRoot = { equals: params.isAgeRangeRoot }
+  }
+  
+  if (params.isVisible !== undefined) {
+    where.isVisible = { equals: params.isVisible }
+  }
+  
+  if (params.ageRange) {
+    where.ageRange = { equals: params.ageRange }
+  }
+
+  return where
+}
+
+/**
  * Get categories with filtering and hierarchy support
  */
 export async function getCategories(params: GetCategoriesParams = {}): Promise<Category[]> {
@@ -136,24 +176,7 @@ export async function getCategories(params: GetCategoriesParams = {}): Promise<C
 
   try {
     const payload = await getPayloadClient()
-    
-    const where: Record<string, any> = {}
-    
-    if (params.parent !== undefined) {
-      where.parent = params.parent === null ? { exists: false } : { equals: params.parent }
-    }
-    
-    if (params.isAgeRangeRoot !== undefined) {
-      where.isAgeRangeRoot = { equals: params.isAgeRangeRoot }
-    }
-    
-    if (params.isVisible !== undefined) {
-      where.isVisible = { equals: params.isVisible }
-    }
-    
-    if (params.ageRange) {
-      where.ageRange = { equals: params.ageRange }
-    }
+    const where = buildCategoryWhereClause(params)
 
     const result = await payload.find({
       collection: 'categories',
@@ -209,37 +232,51 @@ export async function getCategoryChildren(parentId: string): Promise<Category[]>
 }
 
 /**
+ * Extract ancestor IDs from category full path
+ */
+function extractAncestorIds(category: Category): string[] {
+  if (!category.fullPath || category.fullPath.length === 0) {
+    return []
+  }
+
+  return category.fullPath
+    .slice(0, -1)
+    .map(item => item.id)
+    .filter((id): id is string => Boolean(id))
+}
+
+/**
+ * Fetch categories by IDs
+ */
+async function fetchCategoriesByIds(payload: any, ids: string[]): Promise<Category[]> {
+  const categories: Category[] = []
+  
+  for (const id of ids) {
+    const cat = await payload.findByID({
+      collection: 'categories',
+      id,
+    })
+    categories.push(cat as Category)
+  }
+  
+  return categories
+}
+
+/**
  * Get ancestors of a category for breadcrumb navigation
  */
 export async function getCategoryAncestors(category: Category): Promise<Category[]> {
   logger.debug('Getting category ancestors', { categoryId: category.id })
 
-  if (!category.fullPath || category.fullPath.length === 0) {
-    return []
-  }
-
-  const ancestorIds = category.fullPath
-    .slice(0, -1)
-    .map(item => item.id)
-    .filter((id): id is string => Boolean(id))
-
+  const ancestorIds = extractAncestorIds(category)
+  
   if (ancestorIds.length === 0) {
     return []
   }
 
   try {
     const payload = await getPayloadClient()
-    const ancestors: Category[] = []
-    
-    for (const id of ancestorIds) {
-      const cat = await payload.findByID({
-        collection: 'categories',
-        id,
-      })
-      ancestors.push(cat as Category)
-    }
-    
-    return ancestors
+    return await fetchCategoriesByIds(payload, ancestorIds)
   } catch (error) {
     logger.error('Error fetching category ancestors', { categoryId: category.id, error })
     return []

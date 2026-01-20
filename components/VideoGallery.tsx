@@ -16,6 +16,50 @@ function isValidYoutubeId(id: string | undefined | null): boolean {
     return /^[a-zA-Z0-9_-]{11}$/.test(id)
 }
 
+/**
+ * Check if video matches category filter
+ */
+function matchesCategoryFilter(video: NormalizedVideo, selectedCategories: string[]): boolean {
+    if (selectedCategories.length === 0) return true
+    return selectedCategories.includes(video.category)
+}
+
+/**
+ * Check if video matches age range filter
+ */
+function matchesAgeRangeFilter(video: NormalizedVideo, selectedAgeRanges: string[]): boolean {
+    if (selectedAgeRanges.length === 0) return true
+    return selectedAgeRanges.includes(video.ageRange)
+}
+
+/**
+ * Check if video matches search query
+ */
+function matchesSearchQuery(video: NormalizedVideo, searchQuery: string): boolean {
+    if (!searchQuery) return true
+    
+    const query = searchQuery.toLowerCase()
+    const matchesTitle = video.title.toLowerCase().includes(query)
+    const matchesTags = video.tags?.some((tag) => tag.toLowerCase().includes(query))
+    
+    return matchesTitle || matchesTags
+}
+
+/**
+ * Create video filter function
+ */
+function createVideoFilter(filters: {
+    selectedCategories: string[]
+    selectedAgeRanges: string[]
+    searchQuery: string
+}): (video: NormalizedVideo) => boolean {
+    return (video) => {
+        return matchesCategoryFilter(video, filters.selectedCategories) &&
+               matchesAgeRangeFilter(video, filters.selectedAgeRanges) &&
+               matchesSearchQuery(video, filters.searchQuery)
+    }
+}
+
 // PayloadCMS Video interface
 interface Video {
     id: string
@@ -134,7 +178,10 @@ function VideoThumbnail({ video }: { video: NormalizedVideo }) {
     )
 }
 
-export default function VideoGallery({ videos }: VideoGalleryProps) {
+/**
+ * Custom hook for video filtering logic
+ */
+function useVideoFilters(videos: Video[]) {
     const [selectedCategories, setSelectedCategories] = useState<string[]>([])
     const [selectedAgeRanges, setSelectedAgeRanges] = useState<string[]>([])
     const [searchQuery, setSearchQuery] = useState('')
@@ -162,38 +209,43 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
     }
 
     const filteredVideos = useMemo(() => {
-        return videos.map(normalizeVideo).filter((video) => {
-            if (
-                selectedCategories.length > 0 &&
-                !selectedCategories.includes(video.category)
-            ) {
-                return false
-            }
-
-            if (
-                selectedAgeRanges.length > 0 &&
-                !selectedAgeRanges.includes(video.ageRange)
-            ) {
-                return false
-            }
-
-            if (searchQuery) {
-                const query = searchQuery.toLowerCase()
-                const matchesTitle = video.title.toLowerCase().includes(query)
-                const matchesTags = video.tags?.some((tag) =>
-                    tag.toLowerCase().includes(query)
-                )
-                return matchesTitle || matchesTags
-            }
-
-            return true
-        })
+        return videos.map(normalizeVideo).filter(createVideoFilter({
+            selectedCategories,
+            selectedAgeRanges,
+            searchQuery,
+        }))
     }, [videos, selectedCategories, selectedAgeRanges, searchQuery])
 
     const hasActiveFilters =
         selectedCategories.length > 0 ||
         selectedAgeRanges.length > 0 ||
         searchQuery.length > 0
+
+    return {
+        selectedCategories,
+        selectedAgeRanges,
+        searchQuery,
+        setSearchQuery,
+        toggleCategory,
+        toggleAgeRange,
+        clearAllFilters,
+        filteredVideos,
+        hasActiveFilters,
+    }
+}
+
+export default function VideoGallery({ videos }: VideoGalleryProps) {
+    const {
+        selectedCategories,
+        selectedAgeRanges,
+        searchQuery,
+        setSearchQuery,
+        toggleCategory,
+        toggleAgeRange,
+        clearAllFilters,
+        filteredVideos,
+        hasActiveFilters,
+    } = useVideoFilters(videos)
 
     return (
         <div className="space-y-6">

@@ -1,0 +1,226 @@
+/**
+ * Deployment Orchestrator
+ * 
+ * Coordinates deployment to all customer infrastructure:
+ * - Vercel (Frontend + CMS)
+ * - Deno Deploy (Bot)
+ * - MongoDB Atlas (Database)
+ */
+
+import ora from 'ora'
+import chalk from 'chalk'
+import type { DeploymentCredentials } from './utils/credentials.js'
+import { VercelClient } from './clients/vercel.js'
+import { DenoClient } from './clients/deno.js'
+import { setupMongoDB } from './services/mongodb.js'
+import { registerDeployment } from './services/license.js'
+import { getBundlesDir } from './services/bundles.js'
+
+export class DeploymentOrchestrator {
+    private vercel: VercelClient
+    private deno: DenoClient
+
+    public frontendUrl: string = ''
+    public cmsUrl: string = ''
+    public botUrl: string = ''
+
+    constructor(
+        private credentials: DeploymentCredentials,
+        private licenseKey: string
+    ) {
+        this.vercel = new VercelClient(credentials.vercelToken, credentials.vercelTeamId)
+        this.deno = new DenoClient(credentials.denoToken, credentials.denoOrg)
+    }
+
+    /**
+     * Main deployment flow
+     */
+    async deploy(): Promise<void> {
+        const startTime = Date.now()
+
+        try {
+            // Step 1: Setup MongoDB
+            await this.deployMongoDB()
+
+            // Step 2: Deploy CMS (needs to be first so frontend can reference its URL)
+            await this.deployCMS()
+
+            // Step 3: Deploy Frontend
+            await this.deployFrontend()
+
+            // Step 4: Deploy Bot
+            await this.deployBot()
+
+            // Step 5: Register deployment with license server
+            await this.registerDeployment()
+
+            // Success metrics
+            const duration = Math.round((Date.now() - startTime) / 1000)
+            console.log(chalk.gray(`\n⏱️  Total deployment time: ${duration}s\n`))
+
+        } catch (error) {
+            console.error(chalk.red('\n❌ Deployment failed\n'))
+            throw error
+        }
+    }
+
+    /**
+     * Deploy and configure MongoDB
+     */
+    private async deployMongoDB(): Promise<void> {
+        const spinner = ora('Setting up MongoDB...').start()
+
+        try {
+            await setupMongoDB(this.credentials.mongodbUri)
+            spinner.succeed('MongoDB configured')
+        } catch (error) {
+            spinner.fail('MongoDB setup failed')
+            throw new Error(`MongoDB: ${error instanceof Error ? error.message : String(error)}`)
+        }
+    }
+
+    /**
+     * Deploy CMS to Vercel
+     */
+    private async deployCMS(): Promise<void> {
+        const spinner = ora('Deploying CMS to Vercel...').start()
+
+        try {
+            const projectName = `${this.credentials.projectName}-cms`
+            const bundlePath = `${getBundlesDir()}/cms`
+
+            const envVars = {
+                MONGODB_URI: this.credentials.mongodbUri,
+                TELEGRAM_BOT_TOKEN: this.credentials.telegramBotToken,
+                ...(this.credentials.telegramGroupId && {
+                    TELEGRAM_GROUP: this.credentials.telegramGroupId
+                }),
+                ...(this.credentials.cloudinaryCloudName && {
+                    CLOUDINARY_CLOUD_NAME: this.credentials.cloudinaryCloudName,
+                    CLOUDINARY_API_KEY: this.credentials.cloudinaryApiKey!,
+                    CLOUDINARY_API_SECRET: this.credentials.cloudinaryApiSecret!,
+                }),
+                ...(this.credentials.youtubeApiKey && {
+                    YOUTUBE_API_KEY: this.credentials.youtubeApiKey
+                }),
+                NODE_ENV: 'production',
+            }
+
+            this.cmsUrl = await this.vercel.deploy({
+                projectName,
+                bundlePath,
+                envVars,
+                framework: 'nextjs'
+            })
+
+            spinner.succeed(`CMS deployed: ${chalk.cyan(this.cmsUrl)}`)
+        } catch (error) {
+            spinner.fail('CMS deployment failed')
+            throw new Error(`Vercel CMS: ${error instanceof Error ? error.message : String(error)}`)
+        }
+    }
+
+    /**
+     * Deploy Frontend to Vercel
+     */
+    private async deployFrontend(): Promise<void> {
+        const spinner = ora('Deploying Frontend to Vercel...').start()
+
+        try {
+            const projectName = `${this.credentials.projectName}-frontend`
+            const bundlePath = `${getBundlesDir()}/frontend`
+
+            const envVars = {
+                NEXT_PUBLIC_PAYLOAD_API_URL: `${this.cmsUrl}/api`,
+            }
+
+            this.frontendUrl = await this.vercel.deploy({
+                projectName,
+                bundlePath,
+                envVars,
+                framework: 'nextjs'
+            })
+
+            // Update CMS with frontend URL
+            spinner.text = 'Linking frontend to CMS...'
+            await this.vercel.updateEnvironmentVariables(
+                `${this.credentials.projectName}-cms`,
+                { NEXT_PUBLIC_FRONTEND_URL: this.frontendUrl }
+            )
+
+            // Add custom domain if specified
+            if (this.credentials.customDomain) {
+                spinner.text = 'Adding custom domain...'
+                await this.vercel.addDomain(projectName, this.credentials.customDomain)
+                this.frontendUrl = `https://${this.credentials.customDomain}`
+            }
+
+            spinner.succeed(`Frontend deployed: ${chalk.cyan(this.frontendUrl)}`)
+        } catch (error) {
+            spinner.fail('Frontend deployment failed')
+            throw new Error(`Vercel Frontend: ${error instanceof Error ? error.message : String(error)}`)
+        }
+    }
+
+    /**
+     * Deploy Bot to Deno Deploy
+     */
+    private async deployBot(): Promise<void> {
+        const spinner = ora('Deploying Bot to Deno Deploy...').start()
+
+        try {
+            const projectName = `${this.credentials.projectName}-bot`
+            const entrypoint = `${getBundlesDir()}/bot.js`
+
+            const envVars = {
+                TELEGRAM_BOT_TOKEN: this.credentials.telegramBotToken,
+                MONGODB_URI: this.credentials.mongodbUri,
+                PAYLOAD_API_URL: `${this.cmsUrl}/api`,
+                FRONTEND_URL: this.frontendUrl,
+                ...(this.credentials.telegramGroupId && {
+                    TELEGRAM_GROUP: this.credentials.telegramGroupId
+                }),
+                ...(this.credentials.cloudinaryCloudName && {
+                    CLOUDINARY_CLOUD_NAME: this.credentials.cloudinaryCloudName,
+                    CLOUDINARY_API_KEY: this.credentials.cloudinaryApiKey!,
+                    CLOUDINARY_API_SECRET: this.credentials.cloudinaryApiSecret!,
+                }),
+                ...(this.credentials.youtubeApiKey && {
+                    YOUTUBE_API_KEY: this.credentials.youtubeApiKey
+                }),
+            }
+
+            this.botUrl = await this.deno.deploy({
+                projectName,
+                entrypoint,
+                envVars
+            })
+
+            spinner.succeed(`Bot deployed: ${chalk.cyan(this.botUrl)}`)
+        } catch (error) {
+            spinner.fail('Bot deployment failed')
+            throw new Error(`Deno Deploy: ${error instanceof Error ? error.message : String(error)}`)
+        }
+    }
+
+    /**
+     * Register deployment with license server
+     */
+    private async registerDeployment(): Promise<void> {
+        const spinner = ora('Registering deployment...').start()
+
+        try {
+            await registerDeployment(this.licenseKey, {
+                projectName: this.credentials.projectName,
+                frontendUrl: this.frontendUrl,
+                cmsUrl: this.cmsUrl,
+                botUrl: this.botUrl
+            })
+
+            spinner.succeed('Deployment registered')
+        } catch (error) {
+            spinner.warn('Failed to register deployment (non-critical)')
+            // Don't fail deployment if registration fails
+        }
+    }
+}

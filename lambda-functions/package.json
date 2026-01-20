@@ -1,0 +1,15 @@
+{
+  "name": "curatekids-license-lambdas",
+  "version": "1.0.0",
+  "description": "AWS Lambda functions for CurateKids license server",
+  "private": true,
+  "dependencies": {
+    "mongodb": "^6.3.0"
+  },
+  "scripts": {
+    "deploy": "bash ./deploy.sh",
+    "test-verify": "node test/test-verify.js",
+    "test-register": "node test/test-register.js",
+    "test-webhook": "node test/test-webhook.js"
+  }
+}

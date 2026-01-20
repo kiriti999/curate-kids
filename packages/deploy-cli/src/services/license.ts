@@ -1,12 +1,14 @@
 /**
  * License Verification Service
  * 
- * Verifies customer license keys with CurateKids license server
+ * Verifies customer license keys with Lambda Function URLs
  */
 
 import fetch from 'node-fetch'
 
-const LICENSE_API_URL = process.env.LICENSE_API_URL || 'https://api.curatekids.com/v1/licenses'
+// Lambda Function URLs (set after deployment)
+const VERIFY_URL = process.env.VERIFY_LICENSE_URL || 'https://qr4uign67ucohx2dogu2xq7neq0rjonz.lambda-url.ap-south-1.on.aws'
+const REGISTER_URL = process.env.REGISTER_DEPLOYMENT_URL || 'https://e3ukc7oeybqvsf27dhrsug25my0psezs.lambda-url.ap-south-1.on.aws'
 
 export interface License {
     key: string
@@ -21,11 +23,11 @@ export interface License {
 }
 
 /**
- * Verify license key with license server
+ * Verify license key with Lambda
  */
 export async function verifyLicense(licenseKey: string): Promise<boolean> {
     try {
-        const response = await fetch(`${LICENSE_API_URL}/verify`, {
+        const response = await fetch(VERIFY_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -41,21 +43,10 @@ export async function verifyLicense(licenseKey: string): Promise<boolean> {
             throw new Error(`License verification failed: ${response.statusText}`)
         }
 
-        const license: License = await response.json() as License
+        const result: any = await response.json()
 
-        // Check if license is active
-        if (license.status !== 'active') {
-            throw new Error(`License is ${license.status}`)
-        }
-
-        // Check if license is expired
-        if (new Date(license.expiresAt) < new Date()) {
-            throw new Error('License has expired')
-        }
-
-        // Check deployment limits
-        if (license.currentDeployments >= license.maxDeployments) {
-            throw new Error(`Deployment limit reached (${license.maxDeployments} max)`)
+        if (!result.valid) {
+            throw new Error(result.error || 'Invalid license')
         }
 
         return true
@@ -71,19 +62,36 @@ export async function verifyLicense(licenseKey: string): Promise<boolean> {
  * Get license details
  */
 export async function getLicenseDetails(licenseKey: string): Promise<License> {
-    const response = await fetch(`${LICENSE_API_URL}/details`, {
-        method: 'GET',
+    const response = await fetch(VERIFY_URL, {
+        method: 'POST',
         headers: {
-            'Authorization': `License ${licenseKey}`,
+            'Content-Type': 'application/json',
             'User-Agent': 'curatekids-deploy/1.0.0'
-        }
+        },
+        body: JSON.stringify({ key: licenseKey })
     })
 
     if (!response.ok) {
         throw new Error(`Failed to get license details: ${response.statusText}`)
     }
 
-    return await response.json() as License
+    const result: any = await response.json()
+
+    if (!result.valid) {
+        throw new Error(result.error || 'Invalid license')
+    }
+
+    return {
+        key: licenseKey,
+        customerId: result.customerId,
+        customerEmail: result.email,
+        tier: result.tier,
+        status: 'active',
+        expiresAt: result.expiresAt,
+        maxDeployments: result.maxDeployments,
+        currentDeployments: result.currentDeployments,
+        features: []
+    }
 }
 
 /**
@@ -98,7 +106,7 @@ export async function registerDeployment(
         botUrl: string
     }
 ): Promise<void> {
-    const response = await fetch(`${LICENSE_API_URL}/deployments`, {
+    const response = await fetch(REGISTER_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -109,7 +117,8 @@ export async function registerDeployment(
     })
 
     if (!response.ok) {
-        throw new Error(`Failed to register deployment: ${response.statusText}`)
+        const error = await response.text()
+        throw new Error(`Failed to register deployment: ${error}`)
     }
 }
 
@@ -121,7 +130,7 @@ export async function mockVerifyLicense(licenseKey: string): Promise<boolean> {
     // Development bypass for testing
     if (process.env.NODE_ENV === 'development') {
         console.warn('⚠️  Using mock license verification (development mode)')
-        return licenseKey.startsWith('test_') || licenseKey.startsWith('dev_')
+        return licenseKey.startsWith('test_') || licenseKey.startsWith('dev_') || licenseKey.startsWith('ck_')
     }
 
     return verifyLicense(licenseKey)

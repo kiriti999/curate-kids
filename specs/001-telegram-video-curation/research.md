@@ -158,7 +158,7 @@
 
 **Configuration Requirements**:
 - Environment variables: `TELEGRAM_BOT_TOKEN`, `SANITY_PROJECT_ID`, `SANITY_DATASET`, `SANITY_TOKEN`, `YOUTUBE_API_KEY`
-- Age range group mapping: `GROUP_0_2`, `GROUP_3_5`, `GROUP_6_8`, `GROUP_9_12`, `GROUP_13_PLUS` (Telegram chat IDs)
+- Age range group mapping: `GROUP_0_2`, `GROUP_3_5`, `GROUP_6_8`, `TELEGRAM_GROUP`, `GROUP_13_PLUS` (Telegram chat IDs)
 - Node.js version: 18+ (specified in package.json engines field)
 - Build command: `npm run build` (TypeScript compilation)
 - Start command: `npm start` (runs compiled bot)

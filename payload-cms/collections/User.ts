@@ -3,7 +3,6 @@
  * 
  * Admin and editor user accounts with role-based access control.
  * Used for PayloadCMS admin authentication.
- * Migrated from Sanity CMS user document type.
  */
 
 import { CollectionConfig } from 'payload'
@@ -12,15 +11,34 @@ import { beforeChangeUserHook, afterLoginUserHook } from '../hooks/userHooks'
 
 export const User: CollectionConfig = {
   slug: 'users',
-  
-  auth: true, // Enable authentication for this collection
-  
+
+  auth: {
+    // Forgot password
+    forgotPassword: {
+      generateEmailHTML: ({ token, user }) => {
+        const resetURL = `${process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${token}`
+        return `
+          <h1>Reset Your Password</h1>
+          <p>Hi ${user.name || 'there'},</p>
+          <p>Click the link below to reset your password:</p>
+          <a href="${resetURL}" style="display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 6px;">Reset Password</a>
+          <p>Or copy and paste this URL into your browser:</p>
+          <p>${resetURL}</p>
+          <p>This link will expire in 1 hour.</p>
+          <p>If you didn't request this, you can safely ignore this email.</p>
+        `
+      },
+      generateEmailSubject: () => 'Reset your CurateKids password',
+    },
+    tokenExpiration: 86400, // 24 hours
+  },
+
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'email', 'role', 'status', 'lastLoginAt'],
-    description: 'Admin and editor user accounts',
+    defaultColumns: ['name', 'email', 'role', 'status', 'emailVerified', 'lastLoginAt'],
+    description: 'Admin, editor, and viewer user accounts',
   },
-  
+
   // Access control
   access: {
     // Users can read their own data and admins can read all
@@ -37,7 +55,7 @@ export const User: CollectionConfig = {
       }
       return false
     },
-    // Only admins can create users
+    // Only admins can create users (no public signup)
     create: ({ req }) => req.user?.role === 'admin',
     // Users can update their own data, admins can update all
     update: ({ req }) => {
@@ -56,7 +74,7 @@ export const User: CollectionConfig = {
     // Only admins can delete users
     delete: ({ req }) => req.user?.role === 'admin',
   },
-  
+
   fields: [
     // Full name
     {
@@ -68,20 +86,77 @@ export const User: CollectionConfig = {
         description: 'User\'s full name',
       },
     },
-    
-    // Role
+
+    // Role (now includes organization-specific roles)
     {
       name: 'role',
       type: 'select',
       required: true,
-      defaultValue: 'editor',
-      options: [...USER_ROLES],
+      defaultValue: 'contributor',
+      options: [
+        { label: 'Super Admin', value: 'superadmin' },
+        { label: 'Admin (Org Owner)', value: 'admin' },
+        { label: 'Contributor', value: 'contributor' },
+        { label: 'Viewer', value: 'viewer' },
+      ],
       admin: {
-        description: 'User role (admin or editor) - cannot be changed after creation',
+        description: 'User role - admin can manage org, contributors can post videos',
       },
-      // Role immutability will be enforced by beforeChange hook
     },
-    
+
+    // Organization (multi-tenant)
+    {
+      name: 'organization',
+      type: 'relationship',
+      relationTo: 'organizations',
+      admin: {
+        description: 'Organization this user belongs to',
+        position: 'sidebar',
+      },
+    },
+
+    // Telegram ID (for linking)
+    {
+      name: 'telegramId',
+      type: 'text',
+      unique: true,
+      admin: {
+        description: 'Linked Telegram user ID',
+        position: 'sidebar',
+      },
+    },
+
+    // Telegram username
+    {
+      name: 'telegramUsername',
+      type: 'text',
+      admin: {
+        description: 'Linked Telegram username (@handle)',
+        position: 'sidebar',
+      },
+    },
+
+    // Telegram first name
+    {
+      name: 'telegramFirstName',
+      type: 'text',
+      admin: {
+        description: 'Telegram first name',
+        position: 'sidebar',
+      },
+    },
+
+    // When Telegram was linked
+    {
+      name: 'telegramLinkedAt',
+      type: 'date',
+      admin: {
+        readOnly: true,
+        description: 'When Telegram account was linked',
+        position: 'sidebar',
+      },
+    },
+
     // Status
     {
       name: 'status',
@@ -93,7 +168,7 @@ export const User: CollectionConfig = {
         description: 'Account status',
       },
     },
-    
+
     // Added by (admin who created this user)
     {
       name: 'addedBy',
@@ -104,9 +179,8 @@ export const User: CollectionConfig = {
         position: 'sidebar',
         description: 'Admin who created this user account',
       },
-      // Will be auto-set by beforeChange hook
     },
-    
+
     // Last login timestamp
     {
       name: 'lastLoginAt',
@@ -117,7 +191,7 @@ export const User: CollectionConfig = {
         description: 'Timestamp of last successful login',
       },
     },
-    
+
     // Login count
     {
       name: 'loginCount',
@@ -129,7 +203,19 @@ export const User: CollectionConfig = {
         description: 'Total number of successful logins',
       },
     },
-    
+
+    // Video submission count
+    {
+      name: 'videoCount',
+      type: 'number',
+      defaultValue: 0,
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        description: 'Total videos submitted by this user',
+      },
+    },
+
     // Admin notes
     {
       name: 'notes',
@@ -139,7 +225,7 @@ export const User: CollectionConfig = {
         position: 'sidebar',
       },
     },
-    
+
     // Deactivated timestamp
     {
       name: 'deactivatedAt',
@@ -152,14 +238,14 @@ export const User: CollectionConfig = {
       },
     },
   ],
-  
+
   // Hooks
   hooks: {
     // T024: Set addedBy, prevent role changes, set deactivatedAt timestamp
     beforeChange: [beforeChangeUserHook],
-    
+
     // T025: Update lastLoginAt and loginCount on successful login
     afterLogin: [afterLoginUserHook],
   },
-  
+
 }

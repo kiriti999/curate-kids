@@ -31,7 +31,7 @@ This feature uses a monorepo structure with `bot/` directory at repository root:
 - [X] T003 [P] Install grammY, @googleapis/youtube, @sanity/client, dotenv dependencies in bot/
 - [X] T004 [P] Install TypeScript dev dependencies in bot/: typescript, @types/node, tsx, jest, @types/jest, ts-jest
 - [X] T005 [P] Create bot/tsconfig.json with strict mode and ES2022 target
-- [X] T006 [P] Create bot/.env.example with all required environment variables (TELEGRAM_BOT_TOKEN, YOUTUBE_API_KEY, SANITY_PROJECT_ID, SANITY_DATASET, SANITY_TOKEN, GROUP_0_2, GROUP_3_5, GROUP_6_8, GROUP_9_12, GROUP_13_PLUS)
+- [X] T006 [P] Create bot/.env.example with all required environment variables (TELEGRAM_BOT_TOKEN, YOUTUBE_API_KEY, SANITY_PROJECT_ID, SANITY_DATASET, SANITY_TOKEN, GROUP_0_2, GROUP_3_5, GROUP_6_8, TELEGRAM_GROUP, GROUP_13_PLUS)
 - [X] T007 [P] Add bot/.gitignore to exclude node_modules, dist, .env
 - [X] T008 [P] Add npm scripts to bot/package.json: dev, build, start, test, lint
 - [X] T009 [P] Create bot/README.md with setup instructions

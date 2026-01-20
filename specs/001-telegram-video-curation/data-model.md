@@ -170,7 +170,7 @@ const ageRangeGroups: AgeRangeGroupMapping = {
 GROUP_0_2=-1001234567890
 GROUP_3_5=-1001234567891
 GROUP_6_8=-1001234567892
-GROUP_9_12=-1001234567893
+TELEGRAM_GROUP=-1001234567893
 GROUP_13_PLUS=-1001234567894
 ```
 
@@ -182,7 +182,7 @@ export const ageRangeGroups: AgeRangeGroupMapping = {
   [parseInt(process.env.GROUP_0_2 || '')]: '0-2',
   [parseInt(process.env.GROUP_3_5 || '')]: '3-5',
   [parseInt(process.env.GROUP_6_8 || '')]: '6-8',
-  [parseInt(process.env.GROUP_9_12 || '')]: '9-12',
+  [parseInt(process.env.TELEGRAM_GROUP || '')]: '9-12',
   [parseInt(process.env.GROUP_13_PLUS || '')]: '13+',
 };
 ```

@@ -6,6 +6,20 @@
  */
 
 import 'dotenv/config'
+import fs from 'fs'
+import path from 'path'
+import dotenv from 'dotenv'
+
+// Load .env.local to override .env for local development (only if not in production)
+if (process.env.NODE_ENV !== 'production') {
+  const envLocalPath = path.resolve(process.cwd(), '.env.local')
+  if (fs.existsSync(envLocalPath)) {
+    const envConfig = dotenv.parse(fs.readFileSync(envLocalPath))
+    for (const k in envConfig) {
+      process.env[k] = envConfig[k]
+    }
+  }
+}
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@curatekids.com'
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Admin123!'
@@ -16,20 +30,20 @@ async function seedAdmin() {
   console.log('🌱 Seeding admin user...')
   console.log(`   API URL: ${API_URL}`)
   console.log(`   Admin Email: ${ADMIN_EMAIL}`)
-  
+
   try {
     // Check if already initialized
     const initResponse = await fetch(`${API_URL}/api/users/init`)
     const initData = await initResponse.json()
-    
+
     if (initData.initialized) {
       console.log('✅ Database already has users. Skipping seed.')
       console.log('   To reset, drop the users collection and run again.')
       return
     }
-    
+
     console.log('📝 Creating first admin user...')
-    
+
     // Create first user via first-register endpoint
     const registerResponse = await fetch(`${API_URL}/api/users/first-register`, {
       method: 'POST',
@@ -42,9 +56,9 @@ async function seedAdmin() {
         name: ADMIN_NAME,
       }),
     })
-    
+
     const registerData = await registerResponse.json()
-    
+
     if (registerResponse.ok) {
       console.log('✅ Admin user created successfully!')
       console.log(`   Email: ${registerData.user.email}`)

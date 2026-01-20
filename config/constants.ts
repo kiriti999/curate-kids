@@ -115,6 +115,7 @@ export const AD_PLACEMENT_STATUSES = [
 export const USER_ROLES = [
   { label: 'Admin', value: 'admin' },
   { label: 'Editor', value: 'editor' },
+  { label: 'Viewer', value: 'viewer' },
 ] as const
 
 /**

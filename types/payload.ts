@@ -68,6 +68,7 @@ export interface Config {
   blocks: {};
   collections: {
     users: User;
+    organizations: Organization;
     videos: Video;
     categories: Category;
     'activity-logs': ActivityLog;
@@ -82,6 +83,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
+    organizations: OrganizationsSelect<false> | OrganizationsSelect<true>;
     videos: VideosSelect<false> | VideosSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     'activity-logs': ActivityLogsSelect<false> | ActivityLogsSelect<true>;
@@ -127,7 +129,7 @@ export interface UserAuthOperations {
   };
 }
 /**
- * Admin and editor user accounts
+ * Admin, editor, and viewer user accounts
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
@@ -139,9 +141,29 @@ export interface User {
    */
   name: string;
   /**
-   * User role (admin or editor) - cannot be changed after creation
+   * User role - admin can manage org, contributors can post videos
    */
-  role: 'admin' | 'editor';
+  role: 'superadmin' | 'admin' | 'contributor' | 'viewer';
+  /**
+   * Organization this user belongs to
+   */
+  organization?: (string | null) | Organization;
+  /**
+   * Linked Telegram user ID
+   */
+  telegramId?: string | null;
+  /**
+   * Linked Telegram username (@handle)
+   */
+  telegramUsername?: string | null;
+  /**
+   * Telegram first name
+   */
+  telegramFirstName?: string | null;
+  /**
+   * When Telegram account was linked
+   */
+  telegramLinkedAt?: string | null;
   /**
    * Account status
    */
@@ -158,6 +180,10 @@ export interface User {
    * Total number of successful logins
    */
   loginCount?: number | null;
+  /**
+   * Total videos submitted by this user
+   */
+  videoCount?: number | null;
   /**
    * Internal notes about this user
    */
@@ -183,6 +209,66 @@ export interface User {
       }[]
     | null;
   password?: string | null;
+}
+/**
+ * Telegram groups as organizations
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "organizations".
+ */
+export interface Organization {
+  id: string;
+  /**
+   * Organization name (from Telegram group title)
+   */
+  name: string;
+  /**
+   * Telegram group/chat ID
+   */
+  telegramGroupId: string;
+  /**
+   * [Deprecated] Age ranges are now selected per video. This field is optional.
+   */
+  ageRange?:
+    | ('' | '0-2' | '3-5' | '6-8' | '9-12' | '13+' | '1-2' | '2-3' | '3-4' | '4-5' | '5-8' | '12-15' | '16-18' | '18+')
+    | null;
+  /**
+   * Organization owner (Telegram group creator)
+   */
+  owner?: (string | null) | User;
+  /**
+   * Owner Telegram ID (before account linking)
+   */
+  ownerTelegramId?: string | null;
+  settings?: {
+    /**
+     * Require members to link accounts before submitting
+     */
+    requireLinking?: boolean | null;
+    /**
+     * Auto-approve videos from linked members
+     */
+    autoApproveVideos?: boolean | null;
+    /**
+     * Allow direct video file uploads (via Cloudinary)
+     */
+    allowDirectUploads?: boolean | null;
+  };
+  /**
+   * Number of linked members
+   */
+  memberCount?: number | null;
+  /**
+   * Number of videos submitted
+   */
+  videoCount?: number | null;
+  /**
+   * One-time token for owner registration
+   */
+  registrationToken?: string | null;
+  registrationTokenExpiry?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * YouTube videos with metadata and engagement tracking
@@ -241,6 +327,38 @@ export interface Video {
    * Timestamp of last view event
    */
   lastViewedAt?: string | null;
+  /**
+   * Organization this video belongs to
+   */
+  organization: string | Organization;
+  /**
+   * User who submitted this video
+   */
+  submittedBy?: (string | null) | User;
+  /**
+   * Telegram ID of submitter (before account linking)
+   */
+  submitterTelegramId?: string | null;
+  /**
+   * Telegram username of submitter
+   */
+  submitterTelegramUsername?: string | null;
+  /**
+   * Approval status of the video
+   */
+  status: 'pending' | 'approved' | 'rejected';
+  /**
+   * Admin who approved this video
+   */
+  approvedBy?: (string | null) | User;
+  /**
+   * When the video was approved
+   */
+  approvedAt?: string | null;
+  /**
+   * Reason for rejection
+   */
+  rejectionReason?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -611,6 +729,10 @@ export interface PayloadLockedDocument {
         value: string | User;
       } | null)
     | ({
+        relationTo: 'organizations';
+        value: string | Organization;
+      } | null)
+    | ({
         relationTo: 'videos';
         value: string | Video;
       } | null)
@@ -683,10 +805,16 @@ export interface PayloadMigration {
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
   role?: T;
+  organization?: T;
+  telegramId?: T;
+  telegramUsername?: T;
+  telegramFirstName?: T;
+  telegramLinkedAt?: T;
   status?: T;
   addedBy?: T;
   lastLoginAt?: T;
   loginCount?: T;
+  videoCount?: T;
   notes?: T;
   deactivatedAt?: T;
   updatedAt?: T;
@@ -705,6 +833,30 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "organizations_select".
+ */
+export interface OrganizationsSelect<T extends boolean = true> {
+  name?: T;
+  telegramGroupId?: T;
+  ageRange?: T;
+  owner?: T;
+  ownerTelegramId?: T;
+  settings?:
+    | T
+    | {
+        requireLinking?: T;
+        autoApproveVideos?: T;
+        allowDirectUploads?: T;
+      };
+  memberCount?: T;
+  videoCount?: T;
+  registrationToken?: T;
+  registrationTokenExpiry?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -727,6 +879,14 @@ export interface VideosSelect<T extends boolean = true> {
   notes?: T;
   viewCount?: T;
   lastViewedAt?: T;
+  organization?: T;
+  submittedBy?: T;
+  submitterTelegramId?: T;
+  submitterTelegramUsername?: T;
+  status?: T;
+  approvedBy?: T;
+  approvedAt?: T;
+  rejectionReason?: T;
   updatedAt?: T;
   createdAt?: T;
 }

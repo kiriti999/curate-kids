@@ -170,7 +170,7 @@ SANITY_TOKEN=skxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 GROUP_0_2=-1001234567890
 GROUP_3_5=-1001234567891
 GROUP_6_8=-1001234567892
-GROUP_9_12=-1001234567893
+TELEGRAM_GROUP=-1001234567893
 GROUP_13_PLUS=-1001234567894
 
 # Optional: Logging
@@ -189,7 +189,7 @@ SANITY_TOKEN=your_sanity_token_here
 GROUP_0_2=your_group_chat_id_here
 GROUP_3_5=your_group_chat_id_here
 GROUP_6_8=your_group_chat_id_here
-GROUP_9_12=your_group_chat_id_here
+TELEGRAM_GROUP=your_group_chat_id_here
 GROUP_13_PLUS=your_group_chat_id_here
 LOG_LEVEL=info
 NODE_ENV=development
@@ -277,7 +277,7 @@ In Railway dashboard:
    GROUP_0_2=...
    GROUP_3_5=...
    GROUP_6_8=...
-   GROUP_9_12=...
+   TELEGRAM_GROUP=...
    GROUP_13_PLUS=...
    NODE_ENV=production
    LOG_LEVEL=info
@@ -325,7 +325,7 @@ export const ageRangeGroups: Record<number, AgeRange> = {
   [parseInt(process.env.GROUP_0_2 || '')]: '0-2',
   [parseInt(process.env.GROUP_3_5 || '')]: '3-5',
   [parseInt(process.env.GROUP_6_8 || '')]: '6-8',
-  [parseInt(process.env.GROUP_9_12 || '')]: '9-12',
+  [parseInt(process.env.TELEGRAM_GROUP || '')]: '9-12',
   [parseInt(process.env.GROUP_13_PLUS || '')]: '13+',
 };
 

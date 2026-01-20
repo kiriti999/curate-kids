@@ -7,16 +7,24 @@
 
 import { logger } from '../../../utils/logger'
 import { withRetry } from '../../../utils/retry'
-import type { 
-  Video, 
-  Category, 
-  ActivityLog 
+import type {
+  Video,
+  Category,
+  ActivityLog
 } from '../../../types/payload'
 
 /**
  * PayloadCMS API configuration
  */
-const PAYLOAD_API_URL = process.env.NEXT_PUBLIC_PAYLOAD_API_URL || 'http://localhost:3000'
+const getPayloadApiUrl = () => {
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:3000'
+  }
+  return process.env.NEXT_PUBLIC_PAYLOAD_API_URL || 'http://localhost:3000'
+}
+
+// Ensure URL doesn't end with /api since we append it later
+const PAYLOAD_API_URL = getPayloadApiUrl().replace(/\/api\/?$/, '')
 const CACHE_REVALIDATE_SECONDS = 300 // 5 minutes
 
 /**
@@ -76,7 +84,7 @@ async function fetchPayload<T>(
           'Content-Type': 'application/json',
           ...options.headers,
         },
-        next: { 
+        next: {
           revalidate: CACHE_REVALIDATE_SECONDS,
           ...((options as { next?: Record<string, unknown> }).next || {})
         },
@@ -121,7 +129,7 @@ async function fetchPayload<T>(
  */
 function buildQueryString(params: Record<string, unknown>): string {
   const query = new URLSearchParams()
-  
+
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {
       if (typeof value === 'object') {
@@ -131,7 +139,7 @@ function buildQueryString(params: Record<string, unknown>): string {
       }
     }
   })
-  
+
   const queryString = query.toString()
   return queryString ? `?${queryString}` : ''
 }
@@ -146,15 +154,15 @@ export async function getVideos(params: GetVideosParams = {}): Promise<Video[]> 
   logger.debug('Getting videos', { params })
 
   const where: Record<string, unknown> = {}
-  
+
   if (params.category) {
     where.category = { equals: params.category }
   }
-  
+
   if (params.ageRange) {
     where.ageRange = { equals: params.ageRange }
   }
-  
+
   if (params.search) {
     where.title = { contains: params.search }
   }
@@ -168,7 +176,7 @@ export async function getVideos(params: GetVideosParams = {}): Promise<Video[]> 
 
   const queryString = buildQueryString(queryParams)
   const response = await fetchPayload<PayloadResponse<Video>>(`/videos${queryString}`)
-  
+
   logger.debug('Videos fetched', { count: response.docs.length, total: response.totalDocs })
   return response.docs
 }
@@ -233,19 +241,19 @@ export async function getCategories(params: GetCategoriesParams = {}): Promise<C
   logger.debug('Getting categories', { params })
 
   const where: Record<string, unknown> = {}
-  
+
   if (params.parent !== undefined) {
     where.parent = params.parent === null ? { exists: false } : { equals: params.parent }
   }
-  
+
   if (params.isAgeRangeRoot !== undefined) {
     where.isAgeRangeRoot = { equals: params.isAgeRangeRoot }
   }
-  
+
   if (params.isVisible !== undefined) {
     where.isVisible = { equals: params.isVisible }
   }
-  
+
   if (params.ageRange) {
     where.ageRange = { equals: params.ageRange }
   }
@@ -259,7 +267,7 @@ export async function getCategories(params: GetCategoriesParams = {}): Promise<C
 
   const queryString = buildQueryString(queryParams)
   const response = await fetchPayload<PayloadResponse<Category>>(`/categories${queryString}`)
-  
+
   logger.debug('Categories fetched', { count: response.docs.length, total: response.totalDocs })
   return response.docs
 }
@@ -304,9 +312,9 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
 export async function getCategoryChildren(parentId: string): Promise<Category[]> {
   logger.debug('Getting category children', { parentId })
 
-  return getCategories({ 
-    parent: parentId, 
-    isVisible: true 
+  return getCategories({
+    parent: parentId,
+    isVisible: true
   })
 }
 
@@ -335,10 +343,10 @@ export async function getCategoryAncestors(category: Category): Promise<Category
 
   try {
     // Fetch all ancestors in parallel
-    const ancestorPromises = ancestorIds.map(id => 
+    const ancestorPromises = ancestorIds.map(id =>
       fetchPayload<Category>(`/categories/${id}`)
     )
-    
+
     const ancestors = await Promise.all(ancestorPromises)
     logger.debug('Category ancestors fetched', { count: ancestors.length })
     return ancestors
@@ -366,16 +374,16 @@ export async function createActivityLog(
       next: { revalidate: 0 }, // Don't cache POST requests
     })
 
-    logger.debug('Activity log created', { 
-      id: response.id, 
-      actionType: logData.actionType 
+    logger.debug('Activity log created', {
+      id: response.id,
+      actionType: logData.actionType
     })
     return response
   } catch (error) {
     // T098: Fail gracefully - don't disrupt user experience
-    logger.warn('Failed to create activity log (non-critical)', { 
-      actionType: logData.actionType, 
-      error 
+    logger.warn('Failed to create activity log (non-critical)', {
+      actionType: logData.actionType,
+      error
     })
     return null
   }
@@ -392,12 +400,12 @@ export function getSessionId(): string {
 
   try {
     let sessionId = sessionStorage.getItem('payload_session_id')
-    
+
     if (!sessionId) {
       sessionId = crypto.randomUUID()
       sessionStorage.setItem('payload_session_id', sessionId)
     }
-    
+
     return sessionId
   } catch (error) {
     // If sessionStorage is not available, generate a new UUID

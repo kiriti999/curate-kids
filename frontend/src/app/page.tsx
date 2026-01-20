@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { getVideos } from "@/lib/payloadcms";
 import VideoGallery from "@/components/VideoGallery";
 import Header from "@/components/Header";
+import AuthGate from "@/components/AuthGate";
 import { Card, CardContent } from "@/components/ui/card";
 import { logger } from "../../../utils/logger";
 
@@ -66,13 +67,15 @@ async function VideoContent() {
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <Suspense fallback={<VideoGallerySkeleton />}>
-          <VideoContent />
-        </Suspense>
-      </main>
-    </div>
+    <AuthGate>
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="max-w-7xl mx-auto px-4 py-8">
+          <Suspense fallback={<VideoGallerySkeleton />}>
+            <VideoContent />
+          </Suspense>
+        </main>
+      </div>
+    </AuthGate>
   );
 }

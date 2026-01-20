@@ -11,13 +11,13 @@ import { beforeValidateVideoHook, beforeChangeVideoHook, afterReadVideoHook } fr
 
 export const Video: CollectionConfig = {
   slug: 'videos',
-  
+
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'category', 'ageRange', 'viewCount', 'createdAt'],
     description: 'YouTube videos with metadata and engagement tracking',
   },
-  
+
   // Access control
   access: {
     read: () => true, // Public read access for frontend
@@ -25,7 +25,7 @@ export const Video: CollectionConfig = {
     update: ({ req }) => !!req.user,
     delete: ({ req }) => !!req.user,
   },
-  
+
   fields: [
     // Title
     {
@@ -37,7 +37,7 @@ export const Video: CollectionConfig = {
         description: 'Video title displayed to users',
       },
     },
-    
+
     // Slug (URL-safe identifier)
     {
       name: 'slug',
@@ -51,7 +51,7 @@ export const Video: CollectionConfig = {
       },
       // Note: Auto-generation will be handled by beforeValidate hook
     },
-    
+
     // YouTube URL
     {
       name: 'youtubeUrl',
@@ -69,7 +69,7 @@ export const Video: CollectionConfig = {
         return true
       },
     },
-    
+
     // YouTube ID (auto-extracted from URL)
     {
       name: 'youtubeId',
@@ -82,7 +82,7 @@ export const Video: CollectionConfig = {
         description: 'Auto-extracted YouTube video ID (11 characters)',
       },
     },
-    
+
     // Video duration (in seconds)
     {
       name: 'duration',
@@ -92,7 +92,7 @@ export const Video: CollectionConfig = {
         position: 'sidebar',
       },
     },
-    
+
     // Category
     {
       name: 'category',
@@ -106,7 +106,7 @@ export const Video: CollectionConfig = {
         description: 'Video category for organization',
       },
     },
-    
+
     // Age Range
     {
       name: 'ageRange',
@@ -120,7 +120,7 @@ export const Video: CollectionConfig = {
         description: 'Target age range for this video',
       },
     },
-    
+
     // Tags
     {
       name: 'tags',
@@ -137,7 +137,7 @@ export const Video: CollectionConfig = {
         },
       ],
     },
-    
+
     // Admin notes
     {
       name: 'notes',
@@ -147,7 +147,7 @@ export const Video: CollectionConfig = {
         position: 'sidebar',
       },
     },
-    
+
     // View count (calculated from ActivityLog)
     {
       name: 'viewCount',
@@ -159,7 +159,7 @@ export const Video: CollectionConfig = {
         description: 'Total views (aggregated from activity logs)',
       },
     },
-    
+
     // Last viewed timestamp
     {
       name: 'lastViewedAt',
@@ -170,18 +170,112 @@ export const Video: CollectionConfig = {
         description: 'Timestamp of last view event',
       },
     },
+
+    // Organization (multi-tenant)
+    {
+      name: 'organization',
+      type: 'relationship',
+      relationTo: 'organizations',
+      required: true,
+      admin: {
+        description: 'Organization this video belongs to',
+        position: 'sidebar',
+      },
+    },
+
+    // Submitted by (user who posted via Telegram)
+    {
+      name: 'submittedBy',
+      type: 'relationship',
+      relationTo: 'users',
+      admin: {
+        description: 'User who submitted this video',
+        position: 'sidebar',
+      },
+    },
+
+    // Submitter Telegram ID (before user links account)
+    {
+      name: 'submitterTelegramId',
+      type: 'text',
+      admin: {
+        description: 'Telegram ID of submitter (before account linking)',
+        position: 'sidebar',
+      },
+    },
+
+    // Submitter Telegram username
+    {
+      name: 'submitterTelegramUsername',
+      type: 'text',
+      admin: {
+        description: 'Telegram username of submitter',
+        position: 'sidebar',
+      },
+    },
+
+    // Approval status
+    {
+      name: 'status',
+      type: 'select',
+      required: true,
+      defaultValue: 'pending',
+      options: [
+        { label: 'Pending', value: 'pending' },
+        { label: 'Approved', value: 'approved' },
+        { label: 'Rejected', value: 'rejected' },
+      ],
+      admin: {
+        description: 'Approval status of the video',
+      },
+    },
+
+    // Approved by
+    {
+      name: 'approvedBy',
+      type: 'relationship',
+      relationTo: 'users',
+      admin: {
+        description: 'Admin who approved this video',
+        position: 'sidebar',
+        condition: (data) => data.status === 'approved',
+      },
+    },
+
+    // Approved at timestamp
+    {
+      name: 'approvedAt',
+      type: 'date',
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        description: 'When the video was approved',
+        condition: (data) => data.status === 'approved',
+      },
+    },
+
+    // Rejection reason
+    {
+      name: 'rejectionReason',
+      type: 'textarea',
+      admin: {
+        description: 'Reason for rejection',
+        position: 'sidebar',
+        condition: (data) => data.status === 'rejected',
+      },
+    },
   ],
-  
+
   // Hooks
   hooks: {
     // T019: Extract YouTube ID and generate slug before validation
     beforeValidate: [beforeValidateVideoHook],
-    
+
     // Prevent duplicate videos per category + ageRange
     beforeChange: [beforeChangeVideoHook],
-    
+
     // T020: Calculate viewCount from ActivityLog (implemented for future use)
     afterRead: [afterReadVideoHook],
   },
-  
+
 }

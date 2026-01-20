@@ -37,3 +37,6 @@ bot/.env
 ~/.amplify/*
 
 .next
+
+node_modules
+*.map

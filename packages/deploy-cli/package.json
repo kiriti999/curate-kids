@@ -1,0 +1,41 @@
+{
+  "name": "@curatekids/deploy",
+  "version": "1.0.0",
+  "description": "White-label deployment CLI for CurateKids",
+  "type": "module",
+  "bin": {
+    "curatekids-deploy": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "curatekids",
+    "deployment",
+    "white-label",
+    "saas"
+  ],
+  "author": "CurateKids",
+  "license": "PROPRIETARY",
+  "dependencies": {
+    "prompts": "^2.4.2",
+    "chalk": "^5.3.0",
+    "ora": "^8.0.1",
+    "node-fetch": "^3.3.2",
+    "tar": "^7.0.1",
+    "mongodb": "^6.3.0",
+    "dotenv": "^16.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5",
+    "@types/prompts": "^2.4.9",
+    "@types/tar": "^6.1.11",
+    "typescript": "^5.3.3",
+    "tsx": "^4.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

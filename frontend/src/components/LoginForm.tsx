@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "./AuthProvider";
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
@@ -9,6 +10,7 @@ import { Input } from "./ui/input";
 type AuthMode = "login" | "forgot-password";
 
 export default function LoginForm() {
+  const router = useRouter();
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,6 +30,8 @@ export default function LoginForm() {
         const result = await login({ email, password });
         if (!result.success) {
           setError(result.message || "Login failed");
+        } else {
+          router.push('/');
         }
       } else if (mode === "forgot-password") {
         const { forgotPassword } = await import("@/lib/auth");

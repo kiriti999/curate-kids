@@ -27,8 +27,7 @@ export default function LandingPage() {
                     </div>
                     <div className="flex items-center gap-4">
                         <Link
-                            href="https://whatsnxt.in/curatekids/pricing"
-                            target="_blank"
+                            href="/pricing"
                             className="text-sm font-medium text-gray-600 hover:text-gray-900 hidden sm:block"
                         >
                             Pricing
@@ -54,14 +53,12 @@ export default function LandingPage() {
                             CurateKids provides a dedicated platform for schools, parents, and businesses to curate, manage, and share educational video content safely and efficiently.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <a
-                                href="https://whatsnxt.in/curatekids/pricing"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <Link
+                                href="/pricing"
                                 className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-medium rounded-xl text-white bg-blue-600 hover:bg-blue-700 md:text-xl transition-colors shadow-lg hover:shadow-xl"
                             >
                                 View Pricing <ArrowRight className="ml-2 h-5 w-5" />
-                            </a>
+                            </Link>
                             <Link
                                 href="#use-cases"
                                 className="inline-flex items-center justify-center px-8 py-4 border border-gray-300 text-lg font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 md:text-xl transition-colors"
@@ -284,14 +281,12 @@ export default function LandingPage() {
                         Join hundreds of schools and organizations creating better digital learning experiences.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <a
-                            href="https://whatsnxt.in/curatekids/pricing"
-                            target="_blank"
-                            rel="noopener noreferrer"
+                        <Link
+                            href="/pricing"
                             className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-bold rounded-xl text-blue-700 bg-white hover:bg-blue-50 transition-colors shadow-lg"
                         >
                             Get Your License
-                        </a>
+                        </Link>
                         <Link
                             href="/login"
                             className="inline-flex items-center justify-center px-8 py-4 border border-blue-400 text-lg font-medium rounded-xl text-white hover:bg-blue-700 transition-colors"

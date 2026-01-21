@@ -3,8 +3,9 @@
  * Determines which view to show based on authentication state
  */
 
-import { LoginPrompt } from '../components/link-account/LoginPrompt'
-import { AuthenticatedView } from '../components/link-account/AuthenticatedView'
+import { AuthenticatedView } from './AuthenticatedView'
+import { LoginPrompt } from './LoginPrompt'
+
 
 interface ViewSelectorProps {
   isLoggedIn: boolean

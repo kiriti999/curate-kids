@@ -68,6 +68,15 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+
+  async rewrites() {
+    return [
+      {
+        source: '/api/v1/:path*',
+        destination: 'http://localhost:4444/api/v1/:path*', // Proxy to Backend BFF
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -102,7 +102,7 @@ export class VercelClient {
             throw new Error(`Failed to create project: ${error}`)
         }
 
-        const project = await response.json()
+        const project: any = await response.json()
         return project.id
     }
 
@@ -170,7 +170,7 @@ export class VercelClient {
             throw new Error(`Deployment failed: ${error}`)
         }
 
-        const deployment = await response.json()
+        const deployment: any = await response.json()
 
         // Wait for deployment to be ready
         await this.waitForDeployment(deployment.id)
@@ -196,7 +196,7 @@ export class VercelClient {
                 throw new Error('Failed to check deployment status')
             }
 
-            const deployment = await response.json()
+            const deployment: any = await response.json()
 
             if (deployment.readyState === 'READY') {
                 return
@@ -277,7 +277,7 @@ export class VercelClient {
             headers: this.getHeaders()
         })
 
-        const deployments = await deploymentsResponse.json()
+        const deployments: any = await deploymentsResponse.json()
         if (deployments.deployments && deployments.deployments[0]) {
             const latestDeployment = deployments.deployments[0]
 

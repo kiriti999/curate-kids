@@ -44,7 +44,7 @@ export async function collectCredentials(): Promise<DeploymentCredentials> {
     console.log(chalk.gray('  • MongoDB Atlas (database)'))
     console.log(chalk.gray('  • Telegram Bot API\n'))
 
-    const credentials = await prompts([
+    const credentials: any = await prompts([
         // Project Configuration
         {
             type: 'text',
@@ -97,7 +97,7 @@ export async function collectCredentials(): Promise<DeploymentCredentials> {
         // MongoDB
         {
             type: 'text',
-            name: ' mongodbUri',
+            name: 'mongodbUri',
             message: 'MongoDB Atlas Connection URI:',
             validate: (value) => {
                 if (!value.startsWith('mongodb+srv://') && !value.startsWith('mongodb://')) {

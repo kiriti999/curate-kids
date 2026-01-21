@@ -88,7 +88,7 @@ export class DenoClient {
             throw new Error(`Failed to create project: ${error}`)
         }
 
-        const project = await response.json()
+        const project: any = await response.json()
         return project.id
     }
 
@@ -117,7 +117,7 @@ export class DenoClient {
                     }
                 },
                 envVars: {}, // Will be set separately
-                production Deployment: true
+                productionDeployment: true
             })
         })
 
@@ -126,7 +126,7 @@ export class DenoClient {
             throw new Error(`Deployment failed: ${error}`)
         }
 
-        const deployment = await response.json()
+        const deployment: any = await response.json()
 
         // Wait for deployment to be ready
         await this.waitForDeployment(projectId, deployment.id)
@@ -155,7 +155,7 @@ export class DenoClient {
                 throw new Error('Failed to check deployment status')
             }
 
-            const deployment = await response.json()
+            const deployment: any = await response.json()
 
             if (deployment.status === 'success') {
                 return
@@ -232,7 +232,7 @@ export class DenoClient {
             throw new Error('Failed to list deployments')
         }
 
-        const data = await response.json()
+        const data: any = await response.json()
         return data.deployments || []
     }
 

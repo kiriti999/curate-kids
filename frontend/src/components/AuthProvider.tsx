@@ -21,6 +21,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Check if login is required based on env var
   const requireLogin = process.env.NEXT_PUBLIC_REQUIRE_LOGIN === "true";
+  
+  // Debug logging
+  console.log("NEXT_PUBLIC_REQUIRE_LOGIN:", process.env.NEXT_PUBLIC_REQUIRE_LOGIN);
+  console.log("requireLogin:", requireLogin);
 
   const refreshUser = useCallback(async () => {
     try {

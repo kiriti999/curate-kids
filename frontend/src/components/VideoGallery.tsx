@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -348,7 +349,7 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
                     </p>
                 </div>
 
-                {/* Videos Grid */}
+                {/* Videos Grid with Virtual Scrolling */}
                 {filteredVideos.length === 0 ? (
                     <Card>
                         <CardContent className="p-16 text-center">
@@ -360,26 +361,105 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
                         </CardContent>
                     </Card>
                 ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                        {filteredVideos.map((video) => (
-                            <Card key={video.id} className="overflow-hidden p-0">
-                                <div className="aspect-video bg-black">
-                                    <VideoThumbnail video={video} />
-                                </div>
-                                <CardContent className="p-3 space-y-2">
-                                    <h2 className="font-medium text-sm line-clamp-2">
-                                        {video.title}
-                                    </h2>
-                                    <div className="flex flex-wrap gap-1.5">
-                                        <Badge variant="outline" className="text-xs">{video.category}</Badge>
-                                        <Badge variant="secondary" className="text-xs">{video.ageRange}</Badge>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
+                    <VirtualizedVideoGrid videos={filteredVideos} />
                 )}
             </main>
         </div>
+    )
+}
+
+// Separate component for virtualized grid
+function VirtualizedVideoGrid({ videos }: { videos: NormalizedVideo[] }) {
+    const parentRef = useRef<HTMLDivElement>(null)
+    
+    // Calculate columns based on container width
+    const getColumnCount = () => {
+        if (typeof window === 'undefined') return 3
+        const width = window.innerWidth
+        if (width < 1024) return 1  // mobile
+        if (width < 1280) return 2  // tablet
+        return 3                     // desktop
+    }
+    
+    const [columnCount, setColumnCount] = useState(getColumnCount)
+    
+    // Update columns on resize
+    useMemo(() => {
+        if (typeof window === 'undefined') return
+        const handleResize = () => setColumnCount(getColumnCount())
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
+    
+    // Group videos into rows
+    const rows = useMemo(() => {
+        const result: NormalizedVideo[][] = []
+        for (let i = 0; i < videos.length; i += columnCount) {
+            result.push(videos.slice(i, i + columnCount))
+        }
+        return result
+    }, [videos, columnCount])
+    
+    const rowVirtualizer = useVirtualizer({
+        count: rows.length,
+        getScrollElement: () => parentRef.current,
+        estimateSize: () => 280, // Estimated row height (video card)
+        overscan: 3,
+    })
+
+    return (
+        <div 
+            ref={parentRef} 
+            className="h-[calc(100vh-200px)] overflow-auto"
+            style={{ contain: 'strict' }}
+        >
+            <div
+                style={{
+                    height: `${rowVirtualizer.getTotalSize()}px`,
+                    width: '100%',
+                    position: 'relative',
+                }}
+            >
+                {rowVirtualizer.getVirtualItems().map((virtualRow) => (
+                    <div
+                        key={virtualRow.key}
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: `${virtualRow.size}px`,
+                            transform: `translateY(${virtualRow.start}px)`,
+                        }}
+                    >
+                        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 pb-4">
+                            {rows[virtualRow.index].map((video) => (
+                                <VideoCard key={video.id} video={video} />
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+// Extracted video card component for cleaner code
+function VideoCard({ video }: { video: NormalizedVideo }) {
+    return (
+        <Card className="overflow-hidden p-0">
+            <div className="aspect-video bg-black">
+                <VideoThumbnail video={video} />
+            </div>
+            <CardContent className="p-3 space-y-2">
+                <h2 className="font-medium text-sm line-clamp-2">
+                    {video.title}
+                </h2>
+                <div className="flex flex-wrap gap-1.5">
+                    <Badge variant="outline" className="text-xs">{video.category}</Badge>
+                    <Badge variant="secondary" className="text-xs">{video.ageRange}</Badge>
+                </div>
+            </CardContent>
+        </Card>
     )
 }

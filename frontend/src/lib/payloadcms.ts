@@ -17,10 +17,7 @@ import type {
  * PayloadCMS API configuration
  */
 const getPayloadApiUrl = () => {
-  if (process.env.NODE_ENV === 'development') {
-    return 'http://localhost:3000'
-  }
-  return process.env.NEXT_PUBLIC_PAYLOAD_API_URL || 'http://localhost:3000'
+  return process.env.NEXT_PUBLIC_PAYLOAD_API_URL || 'http://localhost:3001'
 }
 
 // Ensure URL doesn't end with /api since we append it later

@@ -48,19 +48,21 @@ export default buildConfig({
   editor: lexicalEditor(),
 
   // Email configuration for verification and password reset
-  email: nodemailerAdapter({
-    defaultFromAddress: process.env.SMTP_FROM_EMAIL || 'noreply@curatekids.com',
-    defaultFromName: process.env.SMTP_FROM_NAME || 'CurateKids',
-    transportOptions: {
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+  ...(process.env.SMTP_USER && process.env.SMTP_PASS ? {
+    email: nodemailerAdapter({
+      defaultFromAddress: process.env.SMTP_FROM_EMAIL || 'noreply@curatekids.com',
+      defaultFromName: process.env.SMTP_FROM_NAME || 'CurateKids',
+      transportOptions: {
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
       },
-    },
-  }),
+    }),
+  } : {}),
 
   // Collections
   collections: [

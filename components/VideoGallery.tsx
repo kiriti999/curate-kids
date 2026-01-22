@@ -167,6 +167,171 @@ function filterVideos(
     )
 }
 
+// Sidebar filter button component
+function FilterButton({ 
+    label, 
+    count, 
+    isSelected, 
+    onClick, 
+    colorClass 
+}: { 
+    label: string
+    count: number
+    isSelected: boolean
+    onClick: () => void
+    colorClass: string
+}) {
+    if (count === 0) return null
+    const bgClass = isSelected ? colorClass : "hover:bg-muted text-foreground"
+    const badgeClass = isSelected ? `${colorClass.replace('600', '500')} text-white` : "bg-muted text-muted-foreground"
+    
+    return (
+        <button
+            onClick={onClick}
+            className={cn(
+                "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all",
+                isSelected ? `${colorClass} text-white` : bgClass
+            )}
+        >
+            <span>{label}</span>
+            <span className={cn("text-xs px-1.5 py-0.5 rounded-full", badgeClass)}>
+                {count}
+            </span>
+        </button>
+    )
+}
+
+// Sidebar component
+function Sidebar({
+    searchQuery,
+    setSearchQuery,
+    categoryCounts,
+    ageRangeCounts,
+    selectedCategories,
+    selectedAgeRanges,
+    toggleCategory,
+    toggleAgeRange,
+    hasActiveFilters,
+    clearAllFilters,
+}: {
+    searchQuery: string
+    setSearchQuery: (q: string) => void
+    categoryCounts: Record<string, number>
+    ageRangeCounts: Record<string, number>
+    selectedCategories: string[]
+    selectedAgeRanges: string[]
+    toggleCategory: (c: string) => void
+    toggleAgeRange: (a: string) => void
+    hasActiveFilters: boolean
+    clearAllFilters: () => void
+}) {
+    return (
+        <aside className="hidden md:block w-56 flex-shrink-0">
+            <div className="sticky top-4 space-y-6">
+                <Input
+                    type="text"
+                    placeholder="Search videos..."
+                    value={searchQuery}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                    className="w-full"
+                />
+
+                <div>
+                    <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
+                        Categories
+                    </h3>
+                    <div className="space-y-1">
+                        {CATEGORIES.map((category) => (
+                            <FilterButton
+                                key={category.value}
+                                label={category.label}
+                                count={categoryCounts[category.value] || 0}
+                                isSelected={selectedCategories.includes(category.value)}
+                                onClick={() => toggleCategory(category.value)}
+                                colorClass="bg-violet-600"
+                            />
+                        ))}
+                    </div>
+                </div>
+
+                <div>
+                    <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
+                        Age Range
+                    </h3>
+                    <div className="space-y-1">
+                        {AGE_RANGES.map((ageRange) => (
+                            <FilterButton
+                                key={ageRange.value}
+                                label={ageRange.label}
+                                count={ageRangeCounts[ageRange.value] || 0}
+                                isSelected={selectedAgeRanges.includes(ageRange.value)}
+                                onClick={() => toggleAgeRange(ageRange.value)}
+                                colorClass="bg-blue-600"
+                            />
+                        ))}
+                    </div>
+                </div>
+
+                {hasActiveFilters && (
+                    <Button variant="outline" size="sm" onClick={clearAllFilters} className="w-full">
+                        Clear all filters
+                    </Button>
+                )}
+            </div>
+        </aside>
+    )
+}
+
+// Mobile filters component
+function MobileFilters({
+    searchQuery,
+    setSearchQuery,
+    selectedCategories,
+    toggleCategory,
+}: {
+    searchQuery: string
+    setSearchQuery: (q: string) => void
+    selectedCategories: string[]
+    toggleCategory: (c: string) => void
+}) {
+    return (
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t p-3 z-50">
+            <div className="flex gap-2 overflow-x-auto pb-1">
+                <Input
+                    type="text"
+                    placeholder="Search..."
+                    value={searchQuery}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                    className="w-32 flex-shrink-0"
+                />
+                {CATEGORIES.slice(0, 4).map((category) => (
+                    <button
+                        key={category.value}
+                        onClick={() => toggleCategory(category.value)}
+                        className={cn(
+                            "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0",
+                            selectedCategories.includes(category.value)
+                                ? "bg-violet-600 text-white"
+                                : "bg-muted text-muted-foreground"
+                        )}
+                    >
+                        {category.label}
+                    </button>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+// Calculate counts helper
+function calculateCounts(videos: NormalizedVideo[], key: 'category' | 'ageRange'): Record<string, number> {
+    const counts: Record<string, number> = {}
+    videos.forEach(v => {
+        counts[v[key]] = (counts[v[key]] || 0) + 1
+    })
+    return counts
+}
+
 export default function VideoGallery({ videos }: VideoGalleryProps) {
     const [selectedCategories, setSelectedCategories] = useState<string[]>([])
     const [selectedAgeRanges, setSelectedAgeRanges] = useState<string[]>([])
@@ -174,17 +339,13 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
 
     const toggleCategory = (category: string) => {
         setSelectedCategories((prev) =>
-            prev.includes(category)
-                ? prev.filter((c) => c !== category)
-                : [...prev, category]
+            prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
         )
     }
 
     const toggleAgeRange = (ageRange: string) => {
         setSelectedAgeRanges((prev) =>
-            prev.includes(ageRange)
-                ? prev.filter((a) => a !== ageRange)
-                : [...prev, ageRange]
+            prev.includes(ageRange) ? prev.filter((a) => a !== ageRange) : [...prev, ageRange]
         )
     }
 
@@ -194,162 +355,38 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
         setSearchQuery('')
     }
 
-    // Count videos per category and age range
     const normalizedVideos = useMemo(() => videos.map(normalizeVideo), [videos])
-
     const filteredVideos = useMemo(() => 
         filterVideos(normalizedVideos, selectedCategories, selectedAgeRanges, searchQuery),
         [normalizedVideos, selectedCategories, selectedAgeRanges, searchQuery]
     )
-
-    const hasActiveFilters =
-        selectedCategories.length > 0 ||
-        selectedAgeRanges.length > 0 ||
-        searchQuery.length > 0
-
-
-
-    const categoryCounts = useMemo(() => {
-        const counts: Record<string, number> = {}
-        normalizedVideos.forEach(v => {
-            counts[v.category] = (counts[v.category] || 0) + 1
-        })
-        return counts
-    }, [normalizedVideos])
-
-    const ageRangeCounts = useMemo(() => {
-        const counts: Record<string, number> = {}
-        normalizedVideos.forEach(v => {
-            counts[v.ageRange] = (counts[v.ageRange] || 0) + 1
-        })
-        return counts
-    }, [normalizedVideos])
+    const hasActiveFilters = selectedCategories.length > 0 || selectedAgeRanges.length > 0 || searchQuery.length > 0
+    const categoryCounts = useMemo(() => calculateCounts(normalizedVideos, 'category'), [normalizedVideos])
+    const ageRangeCounts = useMemo(() => calculateCounts(normalizedVideos, 'ageRange'), [normalizedVideos])
 
     return (
         <div className="flex gap-6">
-            {/* Left Sidebar */}
-            <aside className="hidden md:block w-56 flex-shrink-0">
-                <div className="sticky top-4 space-y-6">
-                    {/* Search */}
-                    <div>
-                        <Input
-                            type="text"
-                            placeholder="Search videos..."
-                            value={searchQuery}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                            className="w-full"
-                        />
-                    </div>
+            <Sidebar
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                categoryCounts={categoryCounts}
+                ageRangeCounts={ageRangeCounts}
+                selectedCategories={selectedCategories}
+                selectedAgeRanges={selectedAgeRanges}
+                toggleCategory={toggleCategory}
+                toggleAgeRange={toggleAgeRange}
+                hasActiveFilters={hasActiveFilters}
+                clearAllFilters={clearAllFilters}
+            />
 
-                    {/* Categories */}
-                    <div>
-                        <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
-                            Categories
-                        </h3>
-                        <div className="space-y-1">
-                            {CATEGORIES.map((category) => {
-                                const count = categoryCounts[category.value] || 0
-                                if (count === 0) return null
-                                return (
-                                    <button
-                                        key={category.value}
-                                        onClick={() => toggleCategory(category.value)}
-                                        className={cn(
-                                            "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all",
-                                            selectedCategories.includes(category.value)
-                                                ? "bg-violet-600 text-white"
-                                                : "hover:bg-muted text-foreground"
-                                        )}
-                                    >
-                                        <span>{category.label}</span>
-                                        <span className={cn(
-                                            "text-xs px-1.5 py-0.5 rounded-full",
-                                            selectedCategories.includes(category.value)
-                                                ? "bg-violet-500 text-white"
-                                                : "bg-muted text-muted-foreground"
-                                        )}>
-                                            {count}
-                                        </span>
-                                    </button>
-                                )
-                            })}
-                        </div>
-                    </div>
+            <MobileFilters
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                selectedCategories={selectedCategories}
+                toggleCategory={toggleCategory}
+            />
 
-                    {/* Age Ranges */}
-                    <div>
-                        <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
-                            Age Range
-                        </h3>
-                        <div className="space-y-1">
-                            {AGE_RANGES.map((ageRange) => {
-                                const count = ageRangeCounts[ageRange.value] || 0
-                                if (count === 0) return null
-                                return (
-                                    <button
-                                        key={ageRange.value}
-                                        onClick={() => toggleAgeRange(ageRange.value)}
-                                        className={cn(
-                                            "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all",
-                                            selectedAgeRanges.includes(ageRange.value)
-                                                ? "bg-blue-600 text-white"
-                                                : "hover:bg-muted text-foreground"
-                                        )}
-                                    >
-                                        <span>{ageRange.label}</span>
-                                        <span className={cn(
-                                            "text-xs px-1.5 py-0.5 rounded-full",
-                                            selectedAgeRanges.includes(ageRange.value)
-                                                ? "bg-blue-500 text-white"
-                                                : "bg-muted text-muted-foreground"
-                                        )}>
-                                            {count}
-                                        </span>
-                                    </button>
-                                )
-                            })}
-                        </div>
-                    </div>
-
-                    {/* Clear Filters */}
-                    {hasActiveFilters && (
-                        <Button variant="outline" size="sm" onClick={clearAllFilters} className="w-full">
-                            Clear all filters
-                        </Button>
-                    )}
-                </div>
-            </aside>
-
-            {/* Mobile Filters (horizontal) */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t p-3 z-50">
-                <div className="flex gap-2 overflow-x-auto pb-1">
-                    <Input
-                        type="text"
-                        placeholder="Search..."
-                        value={searchQuery}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                        className="w-32 flex-shrink-0"
-                    />
-                    {CATEGORIES.slice(0, 4).map((category) => (
-                        <button
-                            key={category.value}
-                            onClick={() => toggleCategory(category.value)}
-                            className={cn(
-                                "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0",
-                                selectedCategories.includes(category.value)
-                                    ? "bg-violet-600 text-white"
-                                    : "bg-muted text-muted-foreground"
-                            )}
-                        >
-                            {category.label}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            {/* Main Content */}
             <main className="flex-1 min-w-0 pb-20 md:pb-0">
-                {/* Results Header */}
                 <div className="flex items-center justify-between mb-4">
                     <p className="text-sm text-muted-foreground">
                         {filteredVideos.length} video{filteredVideos.length !== 1 ? 's' : ''}
@@ -357,7 +394,6 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
                     </p>
                 </div>
 
-                {/* Videos Grid with Virtual Scrolling */}
                 {filteredVideos.length === 0 ? (
                     <Card>
                         <CardContent className="p-16 text-center">

@@ -33,6 +33,7 @@
     "@payloadcms/ui": "3.72.0",
     "@radix-ui/react-slot": "^1.2.4",
     "@tailwindcss/postcss": "^4.1.18",
+    "@tanstack/react-virtual": "^3.13.18",
     "@types/jsonwebtoken": "^9.0.10",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

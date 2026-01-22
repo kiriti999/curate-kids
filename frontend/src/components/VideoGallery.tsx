@@ -161,8 +161,11 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
         setSearchQuery('')
     }
 
+    // Count videos per category and age range
+    const normalizedVideos = useMemo(() => videos.map(normalizeVideo), [videos])
+
     const filteredVideos = useMemo(() => {
-        return videos.map(normalizeVideo).filter((video) => {
+        return normalizedVideos.filter((video) => {
             if (
                 selectedCategories.length > 0 &&
                 !selectedCategories.includes(video.category)
@@ -188,112 +191,195 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
 
             return true
         })
-    }, [videos, selectedCategories, selectedAgeRanges, searchQuery])
+    }, [normalizedVideos, selectedCategories, selectedAgeRanges, searchQuery])
 
     const hasActiveFilters =
         selectedCategories.length > 0 ||
         selectedAgeRanges.length > 0 ||
         searchQuery.length > 0
 
+
+
+    const categoryCounts = useMemo(() => {
+        const counts: Record<string, number> = {}
+        normalizedVideos.forEach(v => {
+            counts[v.category] = (counts[v.category] || 0) + 1
+        })
+        return counts
+    }, [normalizedVideos])
+
+    const ageRangeCounts = useMemo(() => {
+        const counts: Record<string, number> = {}
+        normalizedVideos.forEach(v => {
+            counts[v.ageRange] = (counts[v.ageRange] || 0) + 1
+        })
+        return counts
+    }, [normalizedVideos])
+
     return (
-        <div className="space-y-6">
-            {/* Filters Section */}
-            <Card>
-                <CardContent className="p-4 space-y-3">
-                    {/* Search Row */}
-                    <div className="flex items-center gap-4">
+        <div className="flex gap-6">
+            {/* Left Sidebar */}
+            <aside className="hidden md:block w-56 flex-shrink-0">
+                <div className="sticky top-4 space-y-6">
+                    {/* Search */}
+                    <div>
                         <Input
                             type="text"
                             placeholder="Search videos..."
                             value={searchQuery}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                            className="max-w-sm"
+                            className="w-full"
                         />
-                        {hasActiveFilters && (
-                            <Button variant="outline" size="sm" onClick={clearAllFilters}>
-                                Clear filters ({filteredVideos.length} results)
-                            </Button>
-                        )}
                     </div>
 
-                    {/* Filter Chips Row */}
-                    <div className="flex flex-wrap items-center gap-2">
-                        {CATEGORIES.map((category) => (
-                            <button
-                                key={category.value}
-                                onClick={() => toggleCategory(category.value)}
-                                className={cn(
-                                    "px-3 py-1.5 rounded-md text-sm font-medium transition-all",
-                                    selectedCategories.includes(category.value)
-                                        ? "bg-violet-600 text-white"
-                                        : "bg-muted text-muted-foreground hover:bg-muted/80"
-                                )}
-                            >
-                                {category.label}
-                            </button>
-                        ))}
-                        <span className="text-muted-foreground mx-2">|</span>
-                        {AGE_RANGES.map((ageRange) => (
-                            <button
-                                key={ageRange.value}
-                                onClick={() => toggleAgeRange(ageRange.value)}
-                                className={cn(
-                                    "px-3 py-1.5 rounded-md text-sm font-medium transition-all",
-                                    selectedAgeRanges.includes(ageRange.value)
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-muted text-muted-foreground hover:bg-muted/80"
-                                )}
-                            >
-                                {ageRange.label}
-                            </button>
-                        ))}
+                    {/* Categories */}
+                    <div>
+                        <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
+                            Categories
+                        </h3>
+                        <div className="space-y-1">
+                            {CATEGORIES.map((category) => {
+                                const count = categoryCounts[category.value] || 0
+                                if (count === 0) return null
+                                return (
+                                    <button
+                                        key={category.value}
+                                        onClick={() => toggleCategory(category.value)}
+                                        className={cn(
+                                            "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all",
+                                            selectedCategories.includes(category.value)
+                                                ? "bg-violet-600 text-white"
+                                                : "hover:bg-muted text-foreground"
+                                        )}
+                                    >
+                                        <span>{category.label}</span>
+                                        <span className={cn(
+                                            "text-xs px-1.5 py-0.5 rounded-full",
+                                            selectedCategories.includes(category.value)
+                                                ? "bg-violet-500 text-white"
+                                                : "bg-muted text-muted-foreground"
+                                        )}>
+                                            {count}
+                                        </span>
+                                    </button>
+                                )
+                            })}
+                        </div>
                     </div>
-                </CardContent>
-            </Card>
 
-            {/* Videos Grid */}
-            {filteredVideos.length === 0 ? (
-                <Card>
-                    <CardContent className="p-16 text-center">
-                        <p className="text-xl text-muted-foreground">
-                            {hasActiveFilters
-                                ? 'No videos match your filters. Try adjusting your selection.'
-                                : 'No videos published yet. Add videos via the admin panel!'}
-                        </p>
-                    </CardContent>
-                </Card>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredVideos.map((video) => (
-                        <Card key={video.id} className="overflow-hidden p-0">
-                            <div className="aspect-video bg-black">
-                                <VideoThumbnail video={video} />
-                            </div>
-                            <CardContent className="p-4 space-y-3">
-                                <h2 className="font-semibold text-lg">
-                                    {video.title}
-                                </h2>
-                                <div className="flex flex-wrap gap-2">
-                                    <Badge>{video.category}</Badge>
-                                    <Badge variant="secondary">{video.ageRange} years</Badge>
-                                </div>
-                                {video.tags && video.tags.length > 0 && (
-                                    <div className="flex flex-wrap gap-1">
-                                        {video.tags.slice(0, 3).map((tag) => (
-                                            <span
-                                                key={tag}
-                                                className="text-xs text-muted-foreground"
-                                            >
-                                                #{tag}
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
+                    {/* Age Ranges */}
+                    <div>
+                        <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
+                            Age Range
+                        </h3>
+                        <div className="space-y-1">
+                            {AGE_RANGES.map((ageRange) => {
+                                const count = ageRangeCounts[ageRange.value] || 0
+                                if (count === 0) return null
+                                return (
+                                    <button
+                                        key={ageRange.value}
+                                        onClick={() => toggleAgeRange(ageRange.value)}
+                                        className={cn(
+                                            "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all",
+                                            selectedAgeRanges.includes(ageRange.value)
+                                                ? "bg-blue-600 text-white"
+                                                : "hover:bg-muted text-foreground"
+                                        )}
+                                    >
+                                        <span>{ageRange.label}</span>
+                                        <span className={cn(
+                                            "text-xs px-1.5 py-0.5 rounded-full",
+                                            selectedAgeRanges.includes(ageRange.value)
+                                                ? "bg-blue-500 text-white"
+                                                : "bg-muted text-muted-foreground"
+                                        )}>
+                                            {count}
+                                        </span>
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Clear Filters */}
+                    {hasActiveFilters && (
+                        <Button variant="outline" size="sm" onClick={clearAllFilters} className="w-full">
+                            Clear all filters
+                        </Button>
+                    )}
+                </div>
+            </aside>
+
+            {/* Mobile Filters (horizontal) */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t p-3 z-50">
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                    <Input
+                        type="text"
+                        placeholder="Search..."
+                        value={searchQuery}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                        className="w-32 flex-shrink-0"
+                    />
+                    {CATEGORIES.slice(0, 4).map((category) => (
+                        <button
+                            key={category.value}
+                            onClick={() => toggleCategory(category.value)}
+                            className={cn(
+                                "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0",
+                                selectedCategories.includes(category.value)
+                                    ? "bg-violet-600 text-white"
+                                    : "bg-muted text-muted-foreground"
+                            )}
+                        >
+                            {category.label}
+                        </button>
                     ))}
                 </div>
-            )}
+            </div>
+
+            {/* Main Content */}
+            <main className="flex-1 min-w-0 pb-20 md:pb-0">
+                {/* Results Header */}
+                <div className="flex items-center justify-between mb-4">
+                    <p className="text-sm text-muted-foreground">
+                        {filteredVideos.length} video{filteredVideos.length !== 1 ? 's' : ''}
+                        {hasActiveFilters && ' (filtered)'}
+                    </p>
+                </div>
+
+                {/* Videos Grid */}
+                {filteredVideos.length === 0 ? (
+                    <Card>
+                        <CardContent className="p-16 text-center">
+                            <p className="text-xl text-muted-foreground">
+                                {hasActiveFilters
+                                    ? 'No videos match your filters. Try adjusting your selection.'
+                                    : 'No videos published yet. Add videos via the admin panel!'}
+                            </p>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                        {filteredVideos.map((video) => (
+                            <Card key={video.id} className="overflow-hidden p-0">
+                                <div className="aspect-video bg-black">
+                                    <VideoThumbnail video={video} />
+                                </div>
+                                <CardContent className="p-3 space-y-2">
+                                    <h2 className="font-medium text-sm line-clamp-2">
+                                        {video.title}
+                                    </h2>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        <Badge variant="outline" className="text-xs">{video.category}</Badge>
+                                        <Badge variant="secondary" className="text-xs">{video.ageRange}</Badge>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                )}
+            </main>
         </div>
     )
 }

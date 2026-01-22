@@ -397,8 +397,8 @@ function useFilterState() {
     }
 }
 
-export default function VideoGallery({ videos }: VideoGalleryProps) {
-    const filters = useFilterState()
+// Custom hook for processed video data
+function useProcessedVideos(videos: Video[], filters: ReturnType<typeof useFilterState>) {
     const normalizedVideos = useMemo(() => videos.map(normalizeVideo), [videos])
     const filteredVideos = useMemo(() => 
         filterVideos(normalizedVideos, filters.selectedCategories, filters.selectedAgeRanges, filters.searchQuery),
@@ -406,6 +406,13 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
     )
     const categoryCounts = useMemo(() => calculateCounts(normalizedVideos, 'category'), [normalizedVideos])
     const ageRangeCounts = useMemo(() => calculateCounts(normalizedVideos, 'ageRange'), [normalizedVideos])
+    
+    return { filteredVideos, categoryCounts, ageRangeCounts }
+}
+
+export default function VideoGallery({ videos }: VideoGalleryProps) {
+    const filters = useFilterState()
+    const { filteredVideos, categoryCounts, ageRangeCounts } = useProcessedVideos(videos, filters)
 
     return (
         <div className="flex gap-6">

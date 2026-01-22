@@ -3,7 +3,7 @@
 ## What We Built
 
 ### 1. Core Orchestration (`orchestrator.ts`)
-**Main coordinator that deploys CurateKids to customer infrastructure**
+**Main coordinator that deploys CuratedReels to customer infrastructure**
 
 Features:
 - ✅ Sequential deployment flow (MongoDB → CMS → Frontend → Bot)

@@ -28,7 +28,7 @@ export const User: CollectionConfig = {
           <p>If you didn't request this, you can safely ignore this email.</p>
         `
       },
-      generateEmailSubject: () => 'Reset your CurateKids password',
+      generateEmailSubject: () => 'Reset your CuratedReels password',
     },
     tokenExpiration: 86400, // 24 hours
   },

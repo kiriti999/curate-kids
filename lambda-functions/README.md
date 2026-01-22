@@ -1,4 +1,4 @@
-# CurateKids License Server - AWS Lambda
+# CuratedReels License Server - AWS Lambda
 
 Serverless license verification system using AWS Lambda + MongoDB + Razorpay.
 
@@ -227,7 +227,7 @@ This will:
 ```bash
 # Create API
 API_ID=$(aws apigateway create-rest-api \
-  --name 'CurateKids License API' \
+  --name 'CuratedReels License API' \
   --region ap-south-1 \
   --query 'id' \
   --output text)

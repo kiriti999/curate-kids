@@ -60,7 +60,7 @@ EOF
 
 # Create README
 cat > "$OUTPUT_DIR/README.md" << 'EOF'
-# CurateKids Frontend
+# CuratedReels Frontend
 
 Pre-built Next.js application.
 Source code is not included.

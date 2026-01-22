@@ -145,7 +145,7 @@ exports.handler = async (event) => {
     // Email license key to customer
     await sendEmail({
       to: email,
-      subject: 'Your CurateKids License',
+      subject: 'Your CuratedReels License',
       body: `License Key: ${licenseKey}`
     });
   }
@@ -181,7 +181,7 @@ Email license to customer
 const options = {
   key: 'YOUR_RAZORPAY_KEY', // Same as whatsnxt.in
   subscription_id: 'sub_xxx',
-  name: 'CurateKids',
+  name: 'CuratedReels',
   description: 'Monthly Subscription',
   handler: function(response) {
     // Send to your webhook

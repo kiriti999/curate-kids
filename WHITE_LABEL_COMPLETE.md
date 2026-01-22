@@ -2,7 +2,7 @@
 
 ## 🎉 Status: DEPLOYMENT SYSTEM COMPLETE!
 
-CurateKids is now a fully-functional **white-label SaaS platform** where customers can deploy to their own infrastructure without seeing your source code.
+CuratedReels is now a fully-functional **white-label SaaS platform** where customers can deploy to their own infrastructure without seeing your source code.
 
 ---
 
@@ -50,7 +50,7 @@ npm install -g @curatekids/deploy
 curatekids-deploy
 
 # Step 3: Follow prompts (interactive)
-? Enter your CurateKids license key: ••••••••••
+? Enter your CuratedReels license key: ••••••••••
 ? Project name: my-curatekids
 ? Vercel API Token: ••••••••••
 ? Deno Deploy Token: ••••••••••
@@ -63,7 +63,7 @@ curatekids-deploy
 # Step 5: Done!
 ✅ Deployment Complete!
 
-Your CurateKids instance is live:
+Your CuratedReels instance is live:
   📱 Frontend: https://my-curatekids-frontend.vercel.app
   ⚙️  Admin:    https://my-curatekids-cms.vercel.app/admin
   🤖 Bot:      https://my-curatekids-bot.deno.dev

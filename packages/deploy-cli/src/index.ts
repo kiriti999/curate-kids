@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * CurateKids Deployment CLI
+ * CuratedReels Deployment CLI
  * 
- * White-label deployment tool that deploys CurateKids to customer's
+ * White-label deployment tool that deploys CuratedReels to customer's
  * infrastructure without exposing source code.
  */
 
@@ -11,16 +11,16 @@ import prompts from 'prompts'
 import chalk from 'chalk'
 import ora from 'ora'
 import { DeploymentOrchestrator } from './orchestrator.js'
-import { verifyLicense } from './services/license.js'
+import { verifyLicense, mockVerifyLicense } from './services/license.js'
 import { collectCredentials } from './utils/credentials.js'
 import { downloadBundles } from './services/bundles.js'
 
 const VERSION = '1.0.0'
 
 async function showWelcome() {
-    console.log(chalk.cyan.bold('\n🎯 CurateKids Deployment CLI'))
+    console.log(chalk.cyan.bold('\n🎯 CuratedReels Deployment CLI'))
     console.log(chalk.gray(`   Version ${VERSION}\n`))
-    console.log(chalk.white('   Deploy CurateKids to your infrastructure'))
+    console.log(chalk.white('   Deploy CuratedReels to your infrastructure'))
     console.log(chalk.gray('   - Vercel (Frontend + CMS)'))
     console.log(chalk.gray('   - Deno Deploy (Bot)'))
     console.log(chalk.gray('   - MongoDB Atlas (Database)\n'))
@@ -30,7 +30,7 @@ async function verifyLicenseKey(): Promise<string> {
     const { licenseKey } = await prompts({
         type: 'password',
         name: 'licenseKey',
-        message: 'Enter your CurateKids license key:',
+        message: 'Enter your CuratedReels license key:',
         validate: (value) => value.length > 10 || 'License key is too short'
     })
 
@@ -42,7 +42,9 @@ async function verifyLicenseKey(): Promise<string> {
     const spinner = ora('Verifying license...').start()
 
     try {
-        const isValid = await verifyLicense(licenseKey)
+        // Use mock verification in development
+        const verify = process.env.NODE_ENV === 'development' ? mockVerifyLicense : verifyLicense
+        const isValid = await verify(licenseKey)
 
         if (!isValid) {
             spinner.fail('Invalid license key')
@@ -63,7 +65,7 @@ async function confirmDeployment() {
     const { confirm } = await prompts({
         type: 'confirm',
         name: 'confirm',
-        message: 'Ready to deploy CurateKids to your infrastructure?',
+        message: 'Ready to deploy CuratedReels to your infrastructure?',
         initial: true
     })
 
@@ -99,7 +101,7 @@ async function main() {
 
         // Success!
         console.log(chalk.green.bold('\n✅ Deployment Complete!\n'))
-        console.log(chalk.white('Your CurateKids instance is live:\n'))
+        console.log(chalk.white('Your CuratedReels instance is live:\n'))
         console.log(chalk.cyan(`  📱 Frontend: ${orchestrator.frontendUrl}`))
         console.log(chalk.cyan(`  ⚙️  Admin:    ${orchestrator.cmsUrl}/admin`))
         console.log(chalk.cyan(`  🤖 Bot:      ${orchestrator.botUrl}\n`))

@@ -1,6 +1,6 @@
-# CurateKids Integration Status
+# CuratedReels Integration Status
 
-I have successfully integrated CurateKids payment flow into the `whatsnxt` ecosystem.
+I have successfully integrated CuratedReels payment flow into the `whatsnxt` ecosystem.
 
 ## Backend Changes (`whatsnxt-bff`)
 1.  **Service**: Added `createLicenseOrder` to `PaymentGatewayService`.

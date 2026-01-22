@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * CurateKids Template - Provisioning Script
+ * CuratedReels Template - Provisioning Script
  * 
  * This script orchestrates the complete setup for a new customer:
  * 1. Collects credentials (interactive prompts)
@@ -51,7 +51,7 @@ interface ProvisionResult {
 // ============================================================================
 
 async function collectInputs(): Promise<CustomerConfig> {
-    console.log(chalk.blue.bold('\n🚀 CurateKids Customer Provisioning\n'));
+    console.log(chalk.blue.bold('\n🚀 CuratedReels Customer Provisioning\n'));
     console.log(chalk.gray('Please provide the following credentials:\n'));
 
     const answers = await inquirer.prompt([

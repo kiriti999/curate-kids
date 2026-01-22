@@ -37,7 +37,7 @@ export interface DeploymentCredentials {
 }
 
 export async function collectCredentials(): Promise<DeploymentCredentials> {
-    console.log(chalk.gray('\nWe need your infrastructure credentials to deploy CurateKids.\n'))
+    console.log(chalk.gray('\nWe need your infrastructure credentials to deploy CuratedReels.\n'))
     console.log(chalk.white('Required services:'))
     console.log(chalk.gray('  • Vercel (hosting)'))
     console.log(chalk.gray('  • Deno Deploy (bot)'))

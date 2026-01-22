@@ -3,7 +3,7 @@ import { ThemeProvider } from "@/components/ThemeProvider"
 import './globals.css'
 
 export const metadata = {
-  title: 'CurateKids',
+  title: 'CuratedReels',
   description: 'Curated videos for young learners',
 }
 

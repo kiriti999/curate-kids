@@ -6,7 +6,7 @@
 
 ## Overview
 
-This document consolidates research findings for bringing the CurateKids codebase into constitutional compliance. All NEEDS CLARIFICATION items from Technical Context have been resolved through codebase analysis and best practices research.
+This document consolidates research findings for bringing the CuratedReels codebase into constitutional compliance. All NEEDS CLARIFICATION items from Technical Context have been resolved through codebase analysis and best practices research.
 
 ---
 

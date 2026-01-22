@@ -1,4 +1,4 @@
-# Troubleshooting Guide - CurateKids CMS
+# Troubleshooting Guide - CuratedReels CMS
 
 ## Common Issues and Solutions
 

@@ -1,4 +1,4 @@
-# Admin User Guide - CurateKids CMS
+# Admin User Guide - CuratedReels CMS
 
 ## Quick Reference
 

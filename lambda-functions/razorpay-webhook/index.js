@@ -158,7 +158,7 @@ exports.handler = async (event) => {
             // TODO: Send email with license key
             // await sendEmail({
             //   to: subscription.customer_email,
-            //   subject: 'Your CurateKids License Key',
+            //   subject: 'Your CuratedReels License Key',
             //   body: `Your license key: ${licenseKey}`
             // });
 

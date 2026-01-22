@@ -1,10 +1,10 @@
-# CurateKids Template
+# CuratedReels Template
 
 A complete, white-label solution for curating kid-friendly video content via Telegram with a beautiful web frontend.
 
-## 🎯 What is CurateKids?
+## 🎯 What is CuratedReels?
 
-CurateKids allows parents, educators, and content curators to:
+CuratedReels allows parents, educators, and content curators to:
 
 - **Curate videos** from YouTube, Facebook, Instagram, and direct uploads
 - **Organize by age** (0-2, 3-5, 6-8, 9-12, 13+)

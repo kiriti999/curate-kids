@@ -102,7 +102,7 @@ export default function LinkAccountPage() {
                             Link Your Telegram Account
                         </h1>
                         <p className="text-white/70">
-                            Sign in to connect your Telegram account with CurateKids
+                            Sign in to connect your Telegram account with CuratedReels
                         </p>
                     </div>
 
@@ -142,7 +142,7 @@ export default function LinkAccountPage() {
                     </div>
 
                     <p className="text-white/50 text-sm text-center mt-6">
-                        By continuing, you agree to link your Telegram account with your CurateKids account.
+                        By continuing, you agree to link your Telegram account with your CuratedReels account.
                     </p>
                 </div>
             </div>
@@ -184,14 +184,14 @@ export default function LinkAccountPage() {
                                 Link Accounts
                             </h1>
                             <p className="text-white/70">
-                                Connect your Telegram to your CurateKids account
+                                Connect your Telegram to your CuratedReels account
                             </p>
                         </div>
 
                         <div className="space-y-4 mb-6">
                             {/* CMS Account */}
                             <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                <p className="text-white/60 text-sm mb-1">CurateKids Account</p>
+                                <p className="text-white/60 text-sm mb-1">CuratedReels Account</p>
                                 <p className="text-white font-medium">{user?.email}</p>
                                 <p className="text-white/60 text-sm">{user?.name}</p>
                             </div>

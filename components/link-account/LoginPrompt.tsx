@@ -48,7 +48,7 @@ export function LoginPrompt({ telegramUsername, telegramName, searchParams, isOw
   const title = isOwner ? 'Connect Admin Account' : 'Link Your Account'
   const description = isOwner
     ? 'Sign in to link your existing account to this Telegram group'
-    : 'Sign in to connect your Telegram account with CurateKids'
+    : 'Sign in to connect your Telegram account with CuratedReels'
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 p-4">
@@ -74,7 +74,7 @@ export function LoginPrompt({ telegramUsername, telegramName, searchParams, isOw
         </div>
 
         <p className="text-white/50 text-sm text-center mt-6">
-          By continuing, you agree to link your Telegram account with your CurateKids account.
+          By continuing, you agree to link your Telegram account with your CuratedReels account.
         </p>
       </div>
     </div>

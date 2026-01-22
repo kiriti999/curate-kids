@@ -1,7 +1,7 @@
 {
   "name": "@curatekids/deploy",
   "version": "1.0.0",
-  "description": "White-label deployment CLI for CurateKids",
+  "description": "White-label deployment CLI for CuratedReels",
   "type": "module",
   "bin": {
     "curatekids-deploy": "./dist/index.js"
@@ -17,7 +17,7 @@
     "white-label",
     "saas"
   ],
-  "author": "CurateKids",
+  "author": "CuratedReels",
   "license": "PROPRIETARY",
   "dependencies": {
     "prompts": "^2.4.2",

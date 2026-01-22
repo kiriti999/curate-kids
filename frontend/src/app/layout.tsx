@@ -4,7 +4,7 @@ import { AuthProvider } from "@/components/AuthProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CurateKids",
+  title: "CuratedReels",
   description: "Curated videos for young learners",
 };
 

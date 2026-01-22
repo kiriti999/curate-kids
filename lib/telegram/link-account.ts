@@ -1,7 +1,7 @@
 /**
  * Telegram Account Linking Service
  * 
- * Business logic for linking Telegram accounts to CurateKids users
+ * Business logic for linking Telegram accounts to CuratedReels users
  */
 
 import { Payload } from 'payload'

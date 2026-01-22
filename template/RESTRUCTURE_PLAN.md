@@ -1,4 +1,4 @@
-# CurateKids Template - Restructuring Plan
+# CuratedReels Template - Restructuring Plan
 
 ## Current State
 

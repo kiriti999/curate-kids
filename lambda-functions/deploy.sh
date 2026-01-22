@@ -5,7 +5,7 @@
 
 set -e
 
-echo "🚀 Deploying CurateKids License Server to AWS"
+echo "🚀 Deploying CuratedReels License Server to AWS"
 echo "=============================================="
 echo ""
 

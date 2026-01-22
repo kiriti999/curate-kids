@@ -175,7 +175,7 @@ async function seedCategories(db: Db): Promise<void> {
 // ============================================================================
 
 async function main(): Promise<void> {
-    console.log('🗄️  CurateKids MongoDB Setup\n');
+    console.log('🗄️  CuratedReels MongoDB Setup\n');
     console.log('─'.repeat(50));
 
     // Get inputs

@@ -4,7 +4,7 @@ info:
   description: Bot message handling and inline keyboard interface using grammY framework
   version: 1.0.0
   contact:
-    name: CurateKids Bot Integration
+    name: CuratedReels Bot Integration
 
 servers:
   - url: https://api.telegram.org/bot{token}

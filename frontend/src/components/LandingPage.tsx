@@ -50,7 +50,7 @@ export default function LandingPage() {
                             Empower Learning with <span className="text-blue-600">Curated Content</span>
                         </h1>
                         <p className="text-xl text-gray-600 mb-10 leading-relaxed">
-                            CurateKids provides a dedicated platform for schools, parents, and businesses to curate, manage, and share educational video content safely and efficiently.
+                            CuratedReels provides a dedicated platform for schools, parents, and businesses to curate, manage, and share educational video content safely and efficiently.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <Link
@@ -76,7 +76,7 @@ export default function LandingPage() {
                     <div className="text-center mb-16">
                         <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl mb-4">Tailored for Every Need</h2>
                         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                            Whether you are an educator, a parent, or a corporate trainer, CurateKids adapts to your specific content curation requirements.
+                            Whether you are an educator, a parent, or a corporate trainer, CuratedReels adapts to your specific content curation requirements.
                         </p>
                     </div>
 
@@ -201,7 +201,7 @@ export default function LandingPage() {
                         <div>
                             <h2 className="text-3xl font-bold mb-6">Technical Pre-requisites</h2>
                             <p className="text-xl text-gray-300 mb-8">
-                                CurateKids is designed to be self-hosted or deployed on your preferred cloud infrastructure. Here's what you need to get started.
+                                CuratedReels is designed to be self-hosted or deployed on your preferred cloud infrastructure. Here's what you need to get started.
                             </p>
 
                             <div className="space-y-6">
@@ -238,8 +238,8 @@ export default function LandingPage() {
 
                             <div className="mt-10 p-4 bg-gray-800 rounded-lg border border-gray-700">
                                 <code className="text-sm font-mono text-green-400">
-                                    npm install -g @curatekids/deploy-cli<br />
-                                    curatekids-deploy init
+                                    npm install -g @curatedreels/deploy-cli<br />
+                                    curatedreels-deploy init
                                 </code>
                             </div>
                         </div>
@@ -250,7 +250,7 @@ export default function LandingPage() {
                                 <li className="mb-10 ml-6">
                                     <span className="absolute flex items-center justify-center w-8 h-8 bg-blue-600 rounded-full -left-4 ring-4 ring-gray-900 text-sm font-bold">1</span>
                                     <h4 className="font-medium leading-tight text-lg">Get Your License</h4>
-                                    <p className="text-sm text-gray-400 mt-1">Purchase a license key to unlock your own private CurateKids platform.</p>
+                                    <p className="text-sm text-gray-400 mt-1">Purchase a license key to unlock your own private CuratedReels platform.</p>
                                 </li>
                                 <li className="mb-10 ml-6">
                                     <span className="absolute flex items-center justify-center w-8 h-8 bg-gray-700 rounded-full -left-4 ring-4 ring-gray-900 text-sm font-bold">2</span>

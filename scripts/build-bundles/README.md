@@ -1,10 +1,10 @@
-# Build Scripts - CurateKids White-Label Bundles
+# Build Scripts - CuratedReels White-Label Bundles
 
 Scripts to create production-ready bundles for white-label deployment.
 
 ## Overview
 
-These scripts compile and package CurateKids into distributable bundles that **hide source code** while maintaining functionality.
+These scripts compile and package CuratedReels into distributable bundles that **hide source code** while maintaining functionality.
 
 ## Prerequisites
 

@@ -1,4 +1,4 @@
-# CurateKids Template - Terraform Providers
+# CuratedReels Template - Terraform Providers
 
 terraform {
   required_version = ">= 1.0"

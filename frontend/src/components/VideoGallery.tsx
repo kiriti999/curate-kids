@@ -332,7 +332,35 @@ function calculateCounts(videos: NormalizedVideo[], key: 'category' | 'ageRange'
     return counts
 }
 
-export default function VideoGallery({ videos }: VideoGalleryProps) {
+// Empty state component
+function EmptyState({ hasActiveFilters }: { hasActiveFilters: boolean }) {
+    const message = hasActiveFilters
+        ? 'No videos match your filters. Try adjusting your selection.'
+        : 'No videos published yet. Add videos via the admin panel!'
+    
+    return (
+        <Card>
+            <CardContent className="p-16 text-center">
+                <p className="text-xl text-muted-foreground">{message}</p>
+            </CardContent>
+        </Card>
+    )
+}
+
+// Results header component
+function ResultsHeader({ count, hasActiveFilters }: { count: number; hasActiveFilters: boolean }) {
+    return (
+        <div className="flex items-center justify-between mb-4">
+            <p className="text-sm text-muted-foreground">
+                {count} video{count !== 1 ? 's' : ''}
+                {hasActiveFilters && ' (filtered)'}
+            </p>
+        </div>
+    )
+}
+
+// Custom hook for filter state
+function useFilterState() {
     const [selectedCategories, setSelectedCategories] = useState<string[]>([])
     const [selectedAgeRanges, setSelectedAgeRanges] = useState<string[]>([])
     const [searchQuery, setSearchQuery] = useState('')
@@ -355,58 +383,58 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
         setSearchQuery('')
     }
 
+    const hasActiveFilters = selectedCategories.length > 0 || selectedAgeRanges.length > 0 || searchQuery.length > 0
+
+    return {
+        selectedCategories,
+        selectedAgeRanges,
+        searchQuery,
+        setSearchQuery,
+        toggleCategory,
+        toggleAgeRange,
+        clearAllFilters,
+        hasActiveFilters,
+    }
+}
+
+export default function VideoGallery({ videos }: VideoGalleryProps) {
+    const filters = useFilterState()
     const normalizedVideos = useMemo(() => videos.map(normalizeVideo), [videos])
     const filteredVideos = useMemo(() => 
-        filterVideos(normalizedVideos, selectedCategories, selectedAgeRanges, searchQuery),
-        [normalizedVideos, selectedCategories, selectedAgeRanges, searchQuery]
+        filterVideos(normalizedVideos, filters.selectedCategories, filters.selectedAgeRanges, filters.searchQuery),
+        [normalizedVideos, filters.selectedCategories, filters.selectedAgeRanges, filters.searchQuery]
     )
-    const hasActiveFilters = selectedCategories.length > 0 || selectedAgeRanges.length > 0 || searchQuery.length > 0
     const categoryCounts = useMemo(() => calculateCounts(normalizedVideos, 'category'), [normalizedVideos])
     const ageRangeCounts = useMemo(() => calculateCounts(normalizedVideos, 'ageRange'), [normalizedVideos])
 
     return (
         <div className="flex gap-6">
             <Sidebar
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
+                searchQuery={filters.searchQuery}
+                setSearchQuery={filters.setSearchQuery}
                 categoryCounts={categoryCounts}
                 ageRangeCounts={ageRangeCounts}
-                selectedCategories={selectedCategories}
-                selectedAgeRanges={selectedAgeRanges}
-                toggleCategory={toggleCategory}
-                toggleAgeRange={toggleAgeRange}
-                hasActiveFilters={hasActiveFilters}
-                clearAllFilters={clearAllFilters}
+                selectedCategories={filters.selectedCategories}
+                selectedAgeRanges={filters.selectedAgeRanges}
+                toggleCategory={filters.toggleCategory}
+                toggleAgeRange={filters.toggleAgeRange}
+                hasActiveFilters={filters.hasActiveFilters}
+                clearAllFilters={filters.clearAllFilters}
             />
 
             <MobileFilters
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                selectedCategories={selectedCategories}
-                toggleCategory={toggleCategory}
+                searchQuery={filters.searchQuery}
+                setSearchQuery={filters.setSearchQuery}
+                selectedCategories={filters.selectedCategories}
+                toggleCategory={filters.toggleCategory}
             />
 
             <main className="flex-1 min-w-0 pb-20 md:pb-0">
-                <div className="flex items-center justify-between mb-4">
-                    <p className="text-sm text-muted-foreground">
-                        {filteredVideos.length} video{filteredVideos.length !== 1 ? 's' : ''}
-                        {hasActiveFilters && ' (filtered)'}
-                    </p>
-                </div>
-
-                {filteredVideos.length === 0 ? (
-                    <Card>
-                        <CardContent className="p-16 text-center">
-                            <p className="text-xl text-muted-foreground">
-                                {hasActiveFilters
-                                    ? 'No videos match your filters. Try adjusting your selection.'
-                                    : 'No videos published yet. Add videos via the admin panel!'}
-                            </p>
-                        </CardContent>
-                    </Card>
-                ) : (
-                    <VirtualizedVideoGrid videos={filteredVideos} />
-                )}
+                <ResultsHeader count={filteredVideos.length} hasActiveFilters={filters.hasActiveFilters} />
+                {filteredVideos.length === 0 
+                    ? <EmptyState hasActiveFilters={filters.hasActiveFilters} />
+                    : <VirtualizedVideoGrid videos={filteredVideos} />
+                }
             </main>
         </div>
     )

@@ -135,6 +135,38 @@ function VideoThumbnail({ video }: { video: NormalizedVideo }) {
     )
 }
 
+// Filter helper functions
+function matchesCategoryFilter(video: NormalizedVideo, selectedCategories: string[]): boolean {
+    if (selectedCategories.length === 0) return true
+    return selectedCategories.includes(video.category)
+}
+
+function matchesAgeRangeFilter(video: NormalizedVideo, selectedAgeRanges: string[]): boolean {
+    if (selectedAgeRanges.length === 0) return true
+    return selectedAgeRanges.includes(video.ageRange)
+}
+
+function matchesSearchQuery(video: NormalizedVideo, searchQuery: string): boolean {
+    if (!searchQuery) return true
+    const query = searchQuery.toLowerCase()
+    const matchesTitle = video.title.toLowerCase().includes(query)
+    const matchesTags = video.tags?.some((tag) => tag.toLowerCase().includes(query))
+    return matchesTitle || matchesTags
+}
+
+function filterVideos(
+    videos: NormalizedVideo[],
+    selectedCategories: string[],
+    selectedAgeRanges: string[],
+    searchQuery: string
+): NormalizedVideo[] {
+    return videos.filter((video) =>
+        matchesCategoryFilter(video, selectedCategories) &&
+        matchesAgeRangeFilter(video, selectedAgeRanges) &&
+        matchesSearchQuery(video, searchQuery)
+    )
+}
+
 export default function VideoGallery({ videos }: VideoGalleryProps) {
     const [selectedCategories, setSelectedCategories] = useState<string[]>([])
     const [selectedAgeRanges, setSelectedAgeRanges] = useState<string[]>([])
@@ -165,34 +197,10 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
     // Count videos per category and age range
     const normalizedVideos = useMemo(() => videos.map(normalizeVideo), [videos])
 
-    const filteredVideos = useMemo(() => {
-        return normalizedVideos.filter((video) => {
-            if (
-                selectedCategories.length > 0 &&
-                !selectedCategories.includes(video.category)
-            ) {
-                return false
-            }
-
-            if (
-                selectedAgeRanges.length > 0 &&
-                !selectedAgeRanges.includes(video.ageRange)
-            ) {
-                return false
-            }
-
-            if (searchQuery) {
-                const query = searchQuery.toLowerCase()
-                const matchesTitle = video.title.toLowerCase().includes(query)
-                const matchesTags = video.tags?.some((tag) =>
-                    tag.toLowerCase().includes(query)
-                )
-                return matchesTitle || matchesTags
-            }
-
-            return true
-        })
-    }, [normalizedVideos, selectedCategories, selectedAgeRanges, searchQuery])
+    const filteredVideos = useMemo(() => 
+        filterVideos(normalizedVideos, selectedCategories, selectedAgeRanges, searchQuery),
+        [normalizedVideos, selectedCategories, selectedAgeRanges, searchQuery]
+    )
 
     const hasActiveFilters =
         selectedCategories.length > 0 ||

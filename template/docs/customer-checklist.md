@@ -1,6 +1,6 @@
 # Customer Onboarding Checklist
 
-Welcome to CurateKids! This guide will help you set up your own curated video platform for kids.
+Welcome to CuratedReels! This guide will help you set up your own curated video platform for kids.
 
 ---
 
@@ -53,7 +53,7 @@ Before we begin, you'll need to create accounts on the following platforms:
 
 - [ ] Open Telegram and search for [@BotFather](https://t.me/BotFather)
 - [ ] Send `/newbot`
-- [ ] Choose a name (e.g., "My CurateKids Bot")
+- [ ] Choose a name (e.g., "My CuratedReels Bot")
 - [ ] Choose a username (e.g., "MyCurateKidsBot") - must end with "bot"
 - [ ] Copy the bot token
 
@@ -93,11 +93,11 @@ Before we begin, you'll need to create accounts on the following platforms:
 
 Create 5 private Telegram groups for content curation:
 
-- [ ] Create group: "CurateKids 0-2 Years"
-- [ ] Create group: "CurateKids 3-5 Years"
-- [ ] Create group: "CurateKids 6-8 Years"
-- [ ] Create group: "CurateKids 9-12 Years"
-- [ ] Create group: "CurateKids 13+ Years"
+- [ ] Create group: "CuratedReels 0-2 Years"
+- [ ] Create group: "CuratedReels 3-5 Years"
+- [ ] Create group: "CuratedReels 6-8 Years"
+- [ ] Create group: "CuratedReels 9-12 Years"
+- [ ] Create group: "CuratedReels 13+ Years"
 
 For each group:
 1. Add your bot as an admin

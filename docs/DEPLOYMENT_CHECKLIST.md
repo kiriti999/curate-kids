@@ -1,4 +1,4 @@
-# Deployment Checklist - CurateKids CMS
+# Deployment Checklist - CuratedReels CMS
 
 ## Pre-Deployment
 

@@ -40,7 +40,7 @@ export default buildConfig({
   admin: {
     user: 'users',
     meta: {
-      titleSuffix: '- CurateKids CMS',
+      titleSuffix: '- CuratedReels CMS',
     },
   },
 
@@ -51,7 +51,7 @@ export default buildConfig({
   ...(process.env.SMTP_USER && process.env.SMTP_PASS ? {
     email: nodemailerAdapter({
       defaultFromAddress: process.env.SMTP_FROM_EMAIL || 'noreply@curatekids.com',
-      defaultFromName: process.env.SMTP_FROM_NAME || 'CurateKids',
+      defaultFromName: process.env.SMTP_FROM_NAME || 'CuratedReels',
       transportOptions: {
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
         port: parseInt(process.env.SMTP_PORT || '587'),

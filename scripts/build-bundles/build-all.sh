@@ -5,7 +5,7 @@
 
 set -e
 
-echo "🚀 CurateKids Bundle Builder"
+echo "🚀 CuratedReels Bundle Builder"
 echo "============================"
 echo ""
 

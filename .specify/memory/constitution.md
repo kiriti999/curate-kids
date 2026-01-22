@@ -4,7 +4,7 @@ SYNC IMPACT REPORT
 Version Change: 1.0.0 → 2.0.0 (MAJOR)
 
 Rationale: Complete rewrite to expand scope from Sanity Studio-specific constitution to 
-comprehensive CurateKids Bot project covering Telegram bot functionality, Deno runtime,
+comprehensive CuratedReels Bot project covering Telegram bot functionality, Deno runtime,
 multiple external service integrations (Cloudinary, Sanity CMS, YouTube API), and 
 expanded architectural standards.
 
@@ -61,11 +61,11 @@ Follow-up TODOs:
 Last Generated: 2026-01-17
 -->
 
-# CurateKids Bot Constitution
+# CuratedReels Bot Constitution
 
 ## Project Overview
 
-CurateKids Bot is a Telegram bot that curates kid-friendly video content from various platforms (YouTube, Facebook, Instagram, LinkedIn) and direct uploads. Videos are stored in Sanity CMS with Cloudinary for media hosting.
+CuratedReels Bot is a Telegram bot that curates kid-friendly video content from various platforms (YouTube, Facebook, Instagram, LinkedIn) and direct uploads. Videos are stored in Sanity CMS with Cloudinary for media hosting.
 
 ---
 

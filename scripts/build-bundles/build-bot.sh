@@ -70,7 +70,7 @@ echo ""
 
 # Create README
 cat > "$OUTPUT_DIR/README.md" << 'EOF'
-# CurateKids Bot
+# CuratedReels Bot
 
 Pre-built Telegram bot (Deno runtime).
 Source code is not included.

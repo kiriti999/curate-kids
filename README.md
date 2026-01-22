@@ -1,10 +1,10 @@
-# CurateKids - Youth Content CMS
+# CuratedReels - Youth Content CMS
 
 A headless CMS built with PayloadCMS for curating age-appropriate YouTube videos with dynamic ad management, category hierarchies, and activity logging.
 
 ## Overview
 
-CurateKids is a comprehensive content management system designed to organize YouTube videos by age-based categories, manage dynamic ad placements, track affiliate partnerships, and log all user activity for analytics.
+CuratedReels is a comprehensive content management system designed to organize YouTube videos by age-based categories, manage dynamic ad placements, track affiliate partnerships, and log all user activity for analytics.
 
 ### Key Features
 

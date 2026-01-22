@@ -1,10 +1,10 @@
 # @curatekids/deploy
 
-White-label deployment CLI for CurateKids - Deploy to customer's infrastructure without exposing source code.
+White-label deployment CLI for CuratedReels - Deploy to customer's infrastructure without exposing source code.
 
 ## Overview
 
-This CLI tool allows customers to deploy CurateKids to their own infrastructure (Vercel, Deno Deploy, MongoDB) using pre-compiled bundles, without seeing or modifying the source code.
+This CLI tool allows customers to deploy CuratedReels to their own infrastructure (Vercel, Deno Deploy, MongoDB) using pre-compiled bundles, without seeing or modifying the source code.
 
 ## Installation
 
@@ -31,7 +31,7 @@ Customers need:
 - ✅ [Deno Deploy](https://deno.com/deploy) account + access token
 - ✅ [MongoDB Atlas](https://mongodb.com/atlas) cluster + connection URI
 - ✅ [Telegram Bot](https://t.me/botfather) token
-- ✅ Valid CurateKids license key
+- ✅ Valid CuratedReels license key
 
 ## Optional Services
 
@@ -137,7 +137,7 @@ YOUTUBE_API_KEY=<customer-youtube-key>
 ```
 Error: Invalid license key
 ```
-**Solution:** Ensure you have an active CurateKids license. Purchase at https://curatekids.com/pricing
+**Solution:** Ensure you have an active CuratedReels license. Purchase at https://curatekids.com/pricing
 
 ### Vercel Deployment Fails
 ```
@@ -171,6 +171,6 @@ Error: Failed to download bundles
 
 ## License
 
-Proprietary - © CurateKids 2026
+Proprietary - © CuratedReels 2026
 
 This tool is licensed software. Source code is not included in the distributed bundles.

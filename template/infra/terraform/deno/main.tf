@@ -1,4 +1,4 @@
-# CurateKids Template - Deno Deploy Configuration
+# CuratedReels Template - Deno Deploy Configuration
 # Note: Deno Deploy doesn't have an official Terraform provider
 # This file documents the configuration; actual deployment uses deployctl CLI
 

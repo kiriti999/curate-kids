@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight, School, Baby, Briefcase, CheckCircle } from "lucide-react";
 
 export const metadata = {
-    title: "CurateKids for Business",
+    title: "CuratedReels for Business",
     description: "White-label video curation platform for schools, parents, and businesses",
 };
 
@@ -13,7 +13,7 @@ export default function BusinessPage() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     <Link href="/" className="hover:opacity-80 transition-opacity">
                         <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                            CurateKids
+                            CuratedReels
                         </h1>
                     </Link>
                     <div className="flex items-center gap-4">
@@ -35,7 +35,7 @@ export default function BusinessPage() {
                             Empower Learning with <span className="text-blue-600">Curated Content</span>
                         </h1>
                         <p className="text-xl text-gray-600 mb-10 leading-relaxed">
-                            CurateKids provides a dedicated platform for schools, parents, and businesses to curate, manage, and share educational video content safely and efficiently.
+                            CuratedReels provides a dedicated platform for schools, parents, and businesses to curate, manage, and share educational video content safely and efficiently.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <a
@@ -63,7 +63,7 @@ export default function BusinessPage() {
                     <div className="text-center mb-16">
                         <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl mb-4">Tailored for Every Need</h2>
                         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                            Whether you are an educator, a parent, or a corporate trainer, CurateKids adapts to your specific content curation requirements.
+                            Whether you are an educator, a parent, or a corporate trainer, CuratedReels adapts to your specific content curation requirements.
                         </p>
                     </div>
 

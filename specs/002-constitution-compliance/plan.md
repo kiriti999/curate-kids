@@ -7,7 +7,7 @@
 
 ## Summary
 
-Bring the CurateKids codebase into full compliance with the project constitution by implementing critical infrastructure (logger utility, environment validation), improving code quality (reducing complexity, extracting constants), adding robust error handling with retry logic, and enhancing type safety. This is a foundational refactoring that will establish patterns and utilities for all future development.
+Bring the CuratedReels codebase into full compliance with the project constitution by implementing critical infrastructure (logger utility, environment validation), improving code quality (reducing complexity, extracting constants), adding robust error handling with retry logic, and enhancing type safety. This is a foundational refactoring that will establish patterns and utilities for all future development.
 
 ## Technical Context
 
@@ -175,4 +175,4 @@ The codebase follows a web application structure with three main areas:
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|
 | Deno runtime requirement | Existing Node.js/TypeScript codebase is stable and production-ready | Migration to Deno would require complete rewrite of Sanity Studio integration, Next.js frontend, and all dependencies. Zero business value for current scope. |
-| Telegram bot patterns | CurateKids is a content management system, not a Telegram bot | The constitution appears written for a different project. The actual codebase is Sanity CMS + Next.js frontend for video content curation. |
+| Telegram bot patterns | CuratedReels is a content management system, not a Telegram bot | The constitution appears written for a different project. The actual codebase is Sanity CMS + Next.js frontend for video content curation. |

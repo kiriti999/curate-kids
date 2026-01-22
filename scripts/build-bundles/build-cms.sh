@@ -72,7 +72,7 @@ EOF
 
 # Create README
 cat > "$OUTPUT_DIR/README.md" << 'EOF'
-# CurateKids CMS
+# CuratedReels CMS
 
 Pre-built PayloadCMS application.
 Source code is not included.

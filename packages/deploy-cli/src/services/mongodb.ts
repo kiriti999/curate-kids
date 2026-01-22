@@ -1,7 +1,7 @@
 /**
  * MongoDB Setup Service
  * 
- * Configures MongoDB Atlas database for CurateKids
+ * Configures MongoDB Atlas database for CuratedReels
  * - Creates collections
  * - Sets up indexes
  * - Seeds initial data

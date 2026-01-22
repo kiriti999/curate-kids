@@ -17,7 +17,7 @@ if [ -z "$VERSION" ]; then
     exit 1
 fi
 
-echo "☁️  Uploading CurateKids v$VERSION to CDN"
+echo "☁️  Uploading CuratedReels v$VERSION to CDN"
 echo "========================================"
 echo ""
 

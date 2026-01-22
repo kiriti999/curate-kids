@@ -11,7 +11,7 @@ export default function Header() {
                     <Link href="/" className="hover:opacity-80 transition-opacity">
                         <div>
                             <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                CurateKids
+                                CuratedReels
                             </h1>
                             <p className="text-muted-foreground text-sm">Curated videos for young learners</p>
                         </div>

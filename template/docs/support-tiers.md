@@ -1,8 +1,8 @@
-# CurateKids - Support Tiers & Pricing
+# CuratedReels - Support Tiers & Pricing
 
 ## Overview
 
-CurateKids offers flexible pricing tiers to match your needs, from one-time setup to fully managed hosting.
+CuratedReels offers flexible pricing tiers to match your needs, from one-time setup to fully managed hosting.
 
 ---
 

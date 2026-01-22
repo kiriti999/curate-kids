@@ -118,7 +118,7 @@ export default function Pricing() {
                 key: data.key,
                 amount: data.order.amount,
                 currency: data.order.currency,
-                name: "CurateKids License",
+                name: "CuratedReels License",
                 description: `${plan?.title} License`,
                 order_id: data.order.id,
                 prefill: {
@@ -152,9 +152,9 @@ export default function Pricing() {
         <div className="py-20 bg-gray-50 dark:bg-gray-900" id="pricing">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl mb-4">CurateKids Licenses</h2>
+                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl mb-4">CuratedReels Licenses</h2>
                     <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                        Deploy your own white-labeled CurateKids platform. One-time payment, lifetime license.
+                        Deploy your own white-labeled CuratedReels platform. One-time payment, lifetime license.
                     </p>
                 </div>
 

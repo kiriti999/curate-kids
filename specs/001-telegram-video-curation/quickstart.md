@@ -650,4 +650,4 @@ curl https://api.telegram.org/bot<TOKEN>/getUpdates
 
 **Last Updated**: 2025-01-20  
 **Version**: 1.0.0  
-**Maintainer**: CurateKids Team
+**Maintainer**: CuratedReels Team

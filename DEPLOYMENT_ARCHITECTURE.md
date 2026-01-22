@@ -1,8 +1,8 @@
-# CurateKids White-Label Deployment Architecture
+# CuratedReels White-Label Deployment Architecture
 
 ## Overview
 
-CurateKids uses a **white-label deployment model** where customers deploy to their own infrastructure without accessing source code.
+CuratedReels uses a **white-label deployment model** where customers deploy to their own infrastructure without accessing source code.
 
 ## Customer Experience
 
@@ -76,13 +76,13 @@ import { prompt } from 'prompts'
 import { DeploymentOrchestrator } from './orchestrator'
 
 async function main() {
-  console.log('🎯 CurateKids Deployment CLI')
+  console.log('🎯 CuratedReels Deployment CLI')
   
   // 1. License verification
   const { licenseKey } = await prompt({
     type: 'password',
     name: 'licenseKey',
-    message: 'Enter your CurateKids license key:'
+    message: 'Enter your CuratedReels license key:'
   })
   
   if (!verifyLicense(licenseKey)) {
@@ -336,7 +336,7 @@ Automated steps:
 ```
 ✅ Deployment Complete!
 
-Your CurateKids instance is live:
+Your CuratedReels instance is live:
   📱 Frontend: https://your-project-frontend.vercel.app
   ⚙️  Admin:    https://your-project-cms.vercel.app/admin
   🤖 Bot:      https://your-project-bot.deno.dev
@@ -463,4 +463,4 @@ releases/
 
 ---
 
-**Result:** Customers deploy CurateKids to their own infrastructure in minutes, without ever seeing your source code.
+**Result:** Customers deploy CuratedReels to their own infrastructure in minutes, without ever seeing your source code.

@@ -1,4 +1,4 @@
-# Activity Log Event Types - CurateKids CMS
+# Activity Log Event Types - CuratedReels CMS
 
 ## Event Type Format
 

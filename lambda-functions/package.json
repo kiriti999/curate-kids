@@ -1,7 +1,7 @@
 {
   "name": "curatekids-license-lambdas",
   "version": "1.0.0",
-  "description": "AWS Lambda functions for CurateKids license server",
+  "description": "AWS Lambda functions for CuratedReels license server",
   "private": true,
   "dependencies": {
     "mongodb": "^6.3.0"

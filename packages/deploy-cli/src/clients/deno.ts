@@ -66,13 +66,10 @@ export class DenoClient {
 
             const output = stdout + stderr
 
-            // Extract deployment URL
-            const urlMatch = output.match(/https:\/\/[^\s]+\.deno\.dev/)
-            if (urlMatch) {
-                return urlMatch[0]
-            }
-
-            throw new Error(`Could not extract deployment URL: ${output.slice(0, 500)}`)
+            // Return production URL (stable, doesn't change with redeployments)
+            // Format: https://{projectName}.deno.dev
+            // This is better than the deployment-specific URL with random suffix
+            return `https://${projectName}.deno.dev`
         } catch (error: any) {
             // If deployctl not found, try installing it
             if (error.message?.includes('ENOENT') || error.message?.includes('not found')) {

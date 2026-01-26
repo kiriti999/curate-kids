@@ -41,12 +41,10 @@ export class DenoClient {
             const { stdout, stderr } = await execAsync(`cd "${deployDir}" && DENO_DEPLOY_TOKEN=${this.token} "${deployctlPath}" deploy --project=${projectName} --entrypoint=src/main.ts --prod 2>&1`, { timeout: 300000 } // 5 minute timeout
             );
             const output = stdout + stderr;
-            // Extract deployment URL
-            const urlMatch = output.match(/https:\/\/[^\s]+\.deno\.dev/);
-            if (urlMatch) {
-                return urlMatch[0];
-            }
-            throw new Error(`Could not extract deployment URL: ${output.slice(0, 500)}`);
+            // Return production URL (stable, doesn't change with redeployments)
+            // Format: https://{projectName}.deno.dev
+            // This is better than the deployment-specific URL with random suffix
+            return `https://${projectName}.deno.dev`;
         }
         catch (error) {
             // If deployctl not found, try installing it

@@ -86,6 +86,30 @@ export default buildConfig({
     url: process.env.MONGODB_URI || 'mongodb://localhost:27017/curatedreels',
   }),
 
+  // Create default admin on first init if no users exist
+  onInit: async (payload) => {
+    const users = await payload.find({
+      collection: 'users',
+      limit: 1,
+    })
+
+    if (users.docs.length === 0) {
+      await payload.create({
+        collection: 'users',
+        data: {
+          name: 'Admin User',
+          email: 'admin@curatedreels.com',
+          password: 'admin123',
+          role: 'superadmin',
+          status: 'active',
+        },
+        draft: false,
+      })
+      payload.logger.info('✅ Default admin user created: admin@curatedreels.com / admin123')
+      payload.logger.warn('⚠️  IMPORTANT: Change the default password immediately!')
+    }
+  },
+
   // CORS configuration for frontend access
   cors: [
     process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3001',

@@ -39,6 +39,10 @@ export class VercelClient {
         // Step 2: Build the app locally and deploy using Vercel CLI
         const deploymentUrl = await this.deployWithCLI(options)
 
+        // Step 3: Trigger redeployment to apply env vars from Vercel project settings
+        // This ensures Next.js build-time env vars (NEXT_PUBLIC_*) are properly injected
+        await this.triggerRedeployment(projectId)
+
         return deploymentUrl
     }
 

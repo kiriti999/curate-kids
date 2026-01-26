@@ -11,9 +11,9 @@ import { extract } from 'tar';
 import ora from 'ora';
 import chalk from 'chalk';
 // GitHub Releases configuration
-const GITHUB_OWNER = 'choicexchangedev-cpu';
-const GITHUB_REPO = 'curatedreels-releases';
-const BUNDLES_VERSION = process.env.CURATEKIDS_VERSION || '1.0.6';
+const GITHUB_OWNER = 'kiriti999';
+const GITHUB_REPO = 'curate-kids';
+const BUNDLES_VERSION = process.env.CURATEKIDS_VERSION || '1.0.7';
 const BUNDLES_DIR = './.curatedreels-bundles';
 const GITHUB_RELEASES_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/download`;
 /**

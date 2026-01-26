@@ -150,6 +150,34 @@ async function main() {
         console.log(chalk.white('Click this link to activate your bot:\n'));
         console.log(chalk.cyan(`  ${webhookSetupUrl}\n`));
         console.log(chalk.gray('This tells Telegram where to send messages for your bot.\n'));
+        // Call setup endpoint to create admin user
+        console.log(chalk.white('🔧 Setting up admin user...'));
+        try {
+            const setupResponse = await fetch(`${orchestrator.cmsUrl}/api/setup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const setupResult = await setupResponse.json();
+            if (setupResponse.ok) {
+                console.log(chalk.green(`✔ Admin user created successfully`));
+                console.log(chalk.gray(`  Email: ${credentials.adminEmail}`));
+                console.log(chalk.gray(`  Password: ${credentials.adminPassword}\n`));
+                console.log(chalk.yellow.bold('⚠️  IMPORTANT: Change your password after first login!\n'));
+            }
+            else {
+                if (setupResult.message?.includes('already exists')) {
+                    console.log(chalk.yellow('⚠️  Admin user already exists'));
+                }
+                else {
+                    console.log(chalk.yellow(`⚠️  Could not create admin user: ${setupResult.message}`));
+                }
+                console.log(chalk.gray(`  Login with: ${credentials.adminEmail}\n`));
+            }
+        }
+        catch (error) {
+            console.log(chalk.yellow(`⚠️  Could not auto-create admin user`));
+            console.log(chalk.gray(`  Please create manually or contact support\n`));
+        }
         console.log(chalk.white('Next steps:'));
         console.log(chalk.gray('  1. Click the webhook URL above (should show "ok":true)'));
         console.log(chalk.gray('  2. Configure bot environment variables if needed (see instructions above)'));

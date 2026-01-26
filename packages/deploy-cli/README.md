@@ -1,176 +1,239 @@
-# @curatedreels/deploy
+# CuratedReels Deploy CLI
 
-White-label deployment CLI for CuratedReels - Deploy to customer's infrastructure without exposing source code.
+Deploy your white-label video curation platform to your own infrastructure in minutes.
 
-## Overview
-
-This CLI tool allows customers to deploy CuratedReels to their own infrastructure (Vercel, Deno Deploy, MongoDB) using pre-compiled bundles, without seeing or modifying the source code.
-
-## Installation
+## 🚀 Quick Start
 
 ```bash
-npm install -g @curatedreels/deploy
+npx curatedreels-deploy
 ```
 
-## Usage
+That's it! The CLI will guide you through the entire deployment process.
+
+## 📋 Prerequisites
+
+Before you start, make sure you have:
+
+1. **CuratedReels License Key** - You received this when you purchased CuratedReels
+2. **Vercel Account** (free tier works)
+   - Sign up: https://vercel.com
+   - Get API token: https://vercel.com/account/tokens
+3. **Deno Deploy Account** (free tier works)
+   - Sign up: https://deno.com/deploy
+   - Get access token: https://dash.deno.com/account/access-tokens
+4. **MongoDB Atlas** (free tier works)
+   - Sign up: https://mongodb.com/atlas
+   - Create a cluster and get connection URI
+5. **Telegram Bot Token**
+   - Chat with [@BotFather](https://t.me/botfather)
+   - Create a new bot and get the token
+
+### Optional (Recommended)
+- **Cloudinary** - For video uploads (https://cloudinary.com)
+- **YouTube API Key** - For video metadata (https://developers.google.com/youtube/v3)
+
+## 🎯 What You'll Get
+
+After deployment, you'll have:
+
+- **Public Website** - Your branded video platform at `your-project.vercel.app`
+- **Admin Panel** - CMS to manage content at `your-project-cms.vercel.app`
+- **Telegram Bot** - Interactive bot for video curation at `t.me/your_bot`
+- **Database** - All your data in your own MongoDB
+
+## 📖 Step-by-Step Guide
+
+### Step 1: Run the Deploy Command
 
 ```bash
-curatedreels-deploy
+npx curatedreels-deploy
 ```
 
-The CLI will guide you through:
-1. License verification
-2. Infrastructure credentials collection
-3. Bundle download
-4. Automated deployment
+### Step 2: Enter Your License Key
 
-## Required Accounts
+Paste the license key you received from CuratedReels:
+```
+? Enter your CuratedReels license key: ck_live_abc123...
+```
 
-Customers need:
-- ✅ [Vercel](https://vercel.com) account + API token
-- ✅ [Deno Deploy](https://deno.com/deploy) account + access token
-- ✅ [MongoDB Atlas](https://mongodb.com/atlas) cluster + connection URI
-- ✅ [Telegram Bot](https://t.me/botfather) token
-- ✅ Valid CuratedReels license key
-
-## Optional Services
-
-- [Cloudinary](https://cloudinary.com) - For video uploads
-- [YouTube Data API](https://developers.google.com/youtube/v3) - For metadata extraction
-
-## What Gets Deployed
-
-### Vercel (2 projects)
-1. **Frontend** - Public-facing web app
-2. **CMS/Admin** - PayloadCMS admin panel + API
-
-### Deno Deploy (1 project)
-3. **Bot** - Telegram bot worker
-
-###  MongoDB Atlas
-- Creates database collections
-- Sets up indexes
-- Seeds initial data
-
-## Architecture
+### Step 3: Choose Your Project Name
 
 ```
-Customer's Infrastructure:
-├── Vercel
-│   ├── Frontend (Next.js)
-│   └── CMS (Next.js + PayloadCMS)
-├── Deno Deploy
-│   └── Bot (Telegram worker)
+? Enter project name: my-video-platform
+```
+
+This will be used for:
+- Vercel project names (`my-video-platform`, `my-video-platform-cms`)
+- Deno Deploy project name (`my-video-platform-bot`)
+
+### Step 4: Enter API Tokens
+
+The CLI will ask for your tokens one by one:
+
+**Vercel:**
+```
+? Vercel API token: [paste your token]
+```
+
+**Deno Deploy:**
+```
+? Deno Deploy access token: [paste your token]
+```
+
+**MongoDB:**
+```
+? MongoDB connection URI: mongodb+srv://user:pass@cluster.mongodb.net/
+```
+
+**Telegram:**
+```
+? Telegram bot token: 123456:ABC-DEF...
+```
+
+**Cloudinary (optional):**
+```
+? Cloudinary cloud name: [your-cloud-name]
+? Cloudinary API key: [your-api-key]
+? Cloudinary API secret: [your-api-secret]
+```
+
+### Step 5: Wait for Deployment
+
+The CLI will:
+1. ✅ Verify your license
+2. ✅ Download deployment bundles
+3. ✅ Deploy frontend to Vercel
+4. ✅ Deploy CMS/admin to Vercel
+5. ✅ Deploy bot to Deno Deploy
+6. ✅ Configure environment variables
+7. ✅ Run health checks
+
+This takes ~3-5 minutes.
+
+### Step 6: Access Your Platform
+
+When complete, you'll see:
+```
+✅ Deployment successful!
+
+🌐 Frontend: https://my-video-platform.vercel.app
+⚙️  CMS Admin: https://my-video-platform-cms.vercel.app
+🤖 Telegram Bot: https://t.me/my_video_bot
+```
+
+## 🎨 Next Steps
+
+1. **Open your admin panel** - Visit the CMS URL and create your admin account
+2. **Configure your bot** - Send `/start` to your Telegram bot
+3. **Customize branding** - Update colors, logo in the admin panel
+4. **Add videos** - Start curating content!
+
+## ❓ FAQ
+
+### Do I need to know how to code?
+No! The CLI handles everything. Just provide your API tokens and project name.
+
+### Will I own the infrastructure?
+Yes! Everything is deployed to **your** accounts (Vercel, Deno, MongoDB). You have full control.
+
+### Can I use the free tiers?
+Yes! All platforms offer free tiers that work with CuratedReels:
+- Vercel: Free tier (100GB bandwidth)
+- Deno Deploy: Free tier (100k requests/day)
+- MongoDB Atlas: Free tier (512MB storage)
+
+### How do I update my deployment?
+Run `npx curatedreels-deploy` again with the same project name. It will update your existing deployment.
+
+### Can I customize the platform?
+You can customize branding, colors, and content through the admin panel. Source code customization is not available.
+
+### What happens if I exceed deployment limits?
+Your license tier determines how many deployments you can create:
+- **Starter**: 1 deployment
+- **Pro**: 5 deployments
+- **Enterprise**: 999 deployments
+
+Contact support to upgrade your license.
+
+## 🏗️ Architecture
+
+Your deployed platform includes:
+
+```
+Your Infrastructure:
+├── Vercel (Frontend)
+│   └── User-facing website
+├── Vercel (CMS)
+│   └── Admin panel + API
+├── Deno Deploy (Bot)
+│   └── Telegram bot worker
 └── MongoDB Atlas
-    └── Database
+    └── Your database
 ```
 
-## Deployment Process
+All components connect automatically during deployment.
 
-1. **License Verification** - Validates license key
-2. **Credential Collection** - Interactive prompts for API tokens
-3. **Bundle Download** - Downloads pre-compiled bundles (authenticated)
-4. **Checksum Verification** - Ensures bundle integrity
-5. **Deployment** - Deploys to all services
-6. **Configuration** - Sets up environment variables
-7. **Health Check** - Verifies all services are running
+## 🔒 Security & Privacy
 
-## Security
+- Your data stays in **your** infrastructure
+- CuratedReels never has access to your MongoDB or user data
+- Pre-compiled, secure bundles
+- Automatic SSL certificates on all deployments
+- Environment variables encrypted in transit
 
-- ✅ Pre-compiled bundles only (no source code)
-- ✅ License-gated downloads
-- ✅ Checksum verification
-- ✅ Encrypted credentials
-- ✅ API token validation
+## 🐛 Troubleshooting
 
-## Bundle Contents
+### "Invalid license key"
+- Double-check you copied the entire key (starts with `ck_live_`)
+- Ensure your license hasn't expired
+- Contact support if you need a new key
 
-### frontend.zip
-- Next.js production build (`.next/`)
-- Static assets (`public/`)
-- Package.json (dependencies only)
+### "Vercel API authentication failed"
+- Get a new token from https://vercel.com/account/tokens
+- Make sure it has deployment permissions
+- Copy the entire token without spaces
 
-### cms.zip
-- Next.js production build
-- PayloadCMS compiled code
-- Package.json (dependencies only)
+### "MongoDB connection failed"
+- **IP Whitelist**: Go to MongoDB Atlas → Network Access → Add IP `0.0.0.0/0` (allow all)
+- **Format**: Should look like `mongodb+srv://user:password@cluster.mongodb.net/`
+- **Permissions**: Database user needs read/write access
 
-### bot.js
-- Single bundled Deno executable
-- All dependencies included
-- Obfuscated code
+### "Deployment limit exceeded"
+You've used all deployments for your license tier. To add more:
+- Upgrade your license tier
+- Or delete an existing deployment from the admin panel
 
-### schema.json
-- MongoDB collection schemas
-- Index definitions
-- Seed data structure
+### "Bot not responding on Telegram"
+- Make sure bot token is correct
+- Send `/start` to the bot
+- Check bot status at https://dash.deno.com
 
-## Environment Variables
+### Still stuck?
+Contact support with your deployment logs:
+- 💬 Email: support@whatsnxt.in
+- Include: License key (first 10 chars only), error message, timestamps
 
-Auto-configured during deployment:
+## 📦 What's Included
 
-**Frontend:**
-```env
-NEXT_PUBLIC_PAYLOAD_API_URL=<cms-url>
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| Frontend | Next.js | Public video platform |
+| CMS/Admin | PayloadCMS | Content management |
+| Bot | Grammy (Deno) | Telegram integration |
+| Database | MongoDB | Data storage |
+
+## 🔄 Updates
+
+To update your deployment to the latest version:
+```bash
+npx curatedreels-deploy
 ```
 
-**CMS:**
-```env
-MONGODB_URI=<customer-mongo-uri>
-NEXT_PUBLIC_FRONTEND_URL=<frontend-url>
-TELEGRAM_BOT_TOKEN=<customer-bot-token>
-CLOUDINARY_*=<customer-cloudinary-creds>
-```
+Use the same project name and credentials. The CLI will update everything automatically.
 
-**Bot:**
-```env
-TELEGRAM_BOT_TOKEN=<customer-bot-token>
-MONGODB_URI=<customer-mongo-uri>
-PAYLOAD_API_URL=<cms-url>
-CLOUDINARY_*=<customer-cloudinary-creds>
-YOUTUBE_API_KEY=<customer-youtube-key>
-```
-
-## Troubleshooting
-
-### License Issues
-```
-Error: Invalid license key
-```
-**Solution:** Ensure you have an active CuratedReels license. Purchase at https://curatedreels.com/pricing
-
-### Vercel Deployment Fails
-```
-Error: Vercel API authentication failed
-```
-**Solution:** Verify your Vercel API token. Get it from https://vercel.com/account/tokens
-
-### MongoDB Connection Fails
-```
-Error: MongoDB authentication failed
-```
-**Solution:** 
-1. Check your connection string format
-2. Verify IP whitelist in MongoDB Atlas
-3. Confirm database user has read/write permissions
-
-### Bundle Download Fails
-```
-Error: Failed to download bundles
-```
-**Solution:**
-1. Check your internet connection
-2. Verify license key is valid and not expired
-3. Ensure you haven't exceeded deployment limits
-
-## Support
-
-- 📚 Documentation: https://docs.curatedreels.com
-- 💬 Support: support@curatedreels.com
-- 🐛 Issues: https://github.com/curatedreels/deploy-cli/issues
-
-## License
+## 📄 License
 
 Proprietary - © CuratedReels 2026
 
-This tool is licensed software. Source code is not included in the distributed bundles.
+This is licensed software. You have the right to deploy and use the platform, but source code is not included.

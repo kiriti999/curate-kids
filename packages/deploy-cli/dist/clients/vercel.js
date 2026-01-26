@@ -4,7 +4,7 @@
  * Deploys Next.js applications to Vercel using CLI for pre-built deployments
  */
 import fetch from 'node-fetch';
-import { readdir, readFile, stat, writeFile } from 'fs/promises';
+import { readdir, readFile, writeFile } from 'fs/promises';
 import { join, resolve } from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -33,20 +33,15 @@ export class VercelClient {
      */
     async deployWithCLI(options) {
         const bundlePath = resolve(options.bundlePath);
-        // Check if there's a .next folder (pre-built) or source files
-        const hasNextBuild = await stat(join(bundlePath, '.next')).catch(() => null);
+        // Always clean and rebuild to ensure fresh build with latest dependencies
+        // This prevents issues from stale node_modules or .next folders
+        const buildCmd = `cd "${bundlePath}" && rm -rf .next node_modules && npm install --legacy-peer-deps && npm run build && `;
         // Create vercel.json configuration
         const vercelConfig = {
             name: options.projectName,
             framework: options.framework === 'nextjs' ? 'nextjs' : null
         };
         await writeFile(join(bundlePath, 'vercel.json'), JSON.stringify(vercelConfig, null, 2));
-        // Build command if no .next exists
-        let buildCmd = '';
-        if (!hasNextBuild) {
-            // Need to build first - use legacy-peer-deps to handle PayloadCMS version conflicts
-            buildCmd = `cd "${bundlePath}" && npm install --legacy-peer-deps && npm run build && `;
-        }
         // Deploy using Vercel CLI
         const teamArg = this.teamId ? `--scope ${this.teamId}` : '';
         const cmd = `${buildCmd}cd "${bundlePath}" && npx vercel deploy --token ${this.token} ${teamArg} --yes --prod 2>&1`;

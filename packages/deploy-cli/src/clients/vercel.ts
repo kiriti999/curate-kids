@@ -48,8 +48,9 @@ export class VercelClient {
     private async deployWithCLI(options: VercelDeploymentOptions): Promise<string> {
         const bundlePath = resolve(options.bundlePath)
         
-        // Check if there's a .next folder (pre-built) or source files
-        const hasNextBuild = await stat(join(bundlePath, '.next')).catch(() => null)
+        // Always clean and rebuild to ensure fresh build with latest dependencies
+        // This prevents issues from stale node_modules or .next folders
+        const buildCmd = `cd "${bundlePath}" && rm -rf .next node_modules && npm install --legacy-peer-deps && npm run build && `
         
         // Create vercel.json configuration
         const vercelConfig = {
@@ -61,13 +62,6 @@ export class VercelClient {
             join(bundlePath, 'vercel.json'),
             JSON.stringify(vercelConfig, null, 2)
         )
-
-        // Build command if no .next exists
-        let buildCmd = ''
-        if (!hasNextBuild) {
-            // Need to build first - use legacy-peer-deps to handle PayloadCMS version conflicts
-            buildCmd = `cd "${bundlePath}" && npm install --legacy-peer-deps && npm run build && `
-        }
 
         // Deploy using Vercel CLI
         const teamArg = this.teamId ? `--scope ${this.teamId}` : ''

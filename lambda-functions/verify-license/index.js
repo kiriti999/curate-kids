@@ -15,16 +15,16 @@ exports.handler = async (event) => {
     };
 
     // Handle preflight
-    if (event.httpMethod === 'OPTIONS') {
+    if (event.httpMethod === 'OPTIONS' || event.requestContext?.http?.method === 'OPTIONS') {
         return { statusCode: 200, headers, body: '' };
     }
 
     try {
         // Parse request body
         const body = JSON.parse(event.body || '{}');
-        const { key: licenseKey } = body;
+        const { key } = body;
 
-        if (!licenseKey) {
+        if (!key) {
             return {
                 statusCode: 400,
                 headers,
@@ -35,11 +35,8 @@ exports.handler = async (event) => {
         // Connect to MongoDB
         const { db } = await connectToDatabase();
 
-        // Find license
-        const license = await db.collection('licenses').findOne({
-            licenseKey,
-            status: 'active'
-        });
+        // Find license by key field
+        const license = await db.collection('licenses').findOne({ key });
 
         // License not found
         if (!license) {
@@ -48,13 +45,30 @@ exports.handler = async (event) => {
                 headers,
                 body: JSON.stringify({
                     valid: false,
-                    error: 'Invalid or inactive license key'
+                    error: 'Invalid license key'
+                }),
+            };
+        }
+
+        // Check status
+        if (license.status === 'suspended') {
+            return {
+                statusCode: 401,
+                headers,
+                body: JSON.stringify({
+                    valid: false,
+                    error: 'License has been suspended'
                 }),
             };
         }
 
         // Check expiration
-        if (new Date(license.expiresAt) < new Date()) {
+        if (license.expiresAt && new Date(license.expiresAt) < new Date()) {
+            // Auto-update status to expired
+            await db.collection('licenses').updateOne(
+                { key },
+                { $set: { status: 'expired' } }
+            );
             return {
                 statusCode: 401,
                 headers,
@@ -65,15 +79,21 @@ exports.handler = async (event) => {
             };
         }
 
+        // Count current deployments
+        const currentDeployments = await db.collection('deployments').countDocuments({
+            licenseKey: key,
+            status: 'active'
+        });
+
         // Check deployment limit
-        if (license.currentDeployments >= license.maxDeployments) {
+        if (currentDeployments >= license.maxDeployments) {
             return {
                 statusCode: 403,
                 headers,
                 body: JSON.stringify({
                     valid: false,
-                    error: `Deployment limit reached (${license.maxDeployments} max)`,
-                    currentDeployments: license.currentDeployments,
+                    error: `Deployment limit reached (${license.maxDeployments} max for ${license.tier} tier)`,
+                    currentDeployments,
                     maxDeployments: license.maxDeployments
                 }),
             };
@@ -87,8 +107,8 @@ exports.handler = async (event) => {
                 valid: true,
                 tier: license.tier,
                 customerId: license.customerId,
-                email: license.email,
-                currentDeployments: license.currentDeployments,
+                email: license.customerEmail,
+                currentDeployments,
                 maxDeployments: license.maxDeployments,
                 expiresAt: license.expiresAt,
             }),

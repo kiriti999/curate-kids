@@ -4,12 +4,20 @@ Deploy your white-label video curation platform to your own infrastructure in mi
 
 ## 🚀 Quick Start
 
+**One-line deployment (easiest):**
+
 ```bash
-# Set your GitHub token (required for private repo access)
-export GITHUB_TOKEN=ghp_your_token_here
+GITHUB_TOKEN=$(gh auth token) npx curatedreels-deploy@latest
+```
+
+**Or set token separately:**
+
+```bash
+# Get your GitHub token
+export GITHUB_TOKEN=$(gh auth token)
 
 # Run the deployment
-npx curatedreels-deploy
+npx curatedreels-deploy@latest
 ```
 
 That's it! The CLI will guide you through the entire deployment process.
@@ -19,10 +27,10 @@ That's it! The CLI will guide you through the entire deployment process.
 Before you start, make sure you have:
 
 1. **CuratedReels License Key** - You received this when you purchased CuratedReels
-2. **GitHub Token** - Required to download deployment bundles
-   - Get token: https://github.com/settings/tokens
-   - Required scope: `repo` (Full control of private repositories)
-   - Set as environment variable: `export GITHUB_TOKEN=ghp_...`
+2. **GitHub CLI** - To get authentication token
+   - Install: https://cli.github.com/
+   - Login: `gh auth login`
+   - Or create token manually: https://github.com/settings/tokens (needs `repo` scope)
 3. **Vercel Account** (free tier works)
    - Sign up: https://vercel.com
    - Get API token: https://vercel.com/account/tokens
@@ -193,7 +201,7 @@ Yes! All platforms offer free tiers that work with CuratedReels:
 - MongoDB Atlas: Free tier (512MB storage)
 
 ### How do I update my deployment?
-Run `npx curatedreels-deploy` again with the same project name. It will update your existing deployment.
+Run `GITHUB_TOKEN=$(gh auth token) npx curatedreels-deploy@latest` again with the same project name. It will update your existing deployment.
 
 ### Can I customize the platform?
 You can customize branding, colors, and content through the admin panel. Source code customization is not available.
@@ -205,6 +213,45 @@ Your license tier determines how many deployments you can create:
 - **Enterprise**: 999 deployments
 
 Contact support to upgrade your license.
+
+## 🐛 Troubleshooting
+
+### Error: "GitHub token not found"
+
+Make sure you're setting the token when running npx:
+
+```bash
+# Use this command (not just npx curatedreels-deploy)
+GITHUB_TOKEN=$(gh auth token) npx curatedreels-deploy@latest
+```
+
+Or export it first:
+```bash
+export GITHUB_TOKEN=$(gh auth token)
+npx curatedreels-deploy@latest
+```
+
+### Error: "Authentication required"
+
+Your GitHub CLI might not be logged in:
+```bash
+gh auth login
+# Then try deployment again
+GITHUB_TOKEN=$(gh auth token) npx curatedreels-deploy@latest
+```
+
+### Error: "Release v1.0.7 not found"
+
+Make sure you're using the latest version:
+```bash
+GITHUB_TOKEN=$(gh auth token) npx curatedreels-deploy@latest
+```
+
+### Bot not responding in Telegram group
+
+1. Check privacy mode is disabled (`/setprivacy` with @BotFather)
+2. Remove bot from group and add it back
+3. Verify webhook was set (check the webhook URL from deployment output)
 
 ## 🏗️ Architecture
 

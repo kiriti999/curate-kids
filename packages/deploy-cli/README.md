@@ -55,6 +55,15 @@ Before running the deploy command, create your Telegram bot:
 6. **BotFather gives you a TOKEN:** `7951673577:AAEalQZ...`
 7. **Save this token!** You'll need it in Step 3
 
+**Configure Bot Privacy (IMPORTANT):**
+
+8. **Send to @BotFather:** `/setprivacy`
+9. **Select your bot:** Click on @my_curated_bot
+10. **Choose:** `Disable`
+11. **Confirmation:** BotFather says "Success! Privacy mode is disabled"
+
+⚠️ **Why?** By default, bots only see messages that start with `/` or mention them. Disabling privacy mode lets your bot see ALL messages in the group, which is required to detect video links.
+
 ### STEP 2: Run the Deploy Command
 
 ```bash

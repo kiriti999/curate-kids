@@ -204,8 +204,25 @@ export class DeploymentOrchestrator {
             
             const bundlePath = `${getBundlesDir()}/frontend`
 
+            // Frontend bundle includes Payload CMS, so needs all CMS env vars
             const envVars = {
+                MONGODB_URI: this.credentials.mongodbUri,
+                PAYLOAD_SECRET: Array.from(crypto.getRandomValues(new Uint8Array(32)))
+                    .map(b => b.toString(16).padStart(2, '0')).join(''),
+                TELEGRAM_BOT_TOKEN: this.credentials.telegramBotToken,
                 NEXT_PUBLIC_PAYLOAD_API_URL: `${this.cmsUrl}/api`,
+                ...(this.credentials.telegramGroupId && {
+                    TELEGRAM_GROUP: this.credentials.telegramGroupId
+                }),
+                ...(this.credentials.cloudinaryCloudName && {
+                    CLOUDINARY_CLOUD_NAME: this.credentials.cloudinaryCloudName,
+                    CLOUDINARY_API_KEY: this.credentials.cloudinaryApiKey!,
+                    CLOUDINARY_API_SECRET: this.credentials.cloudinaryApiSecret!,
+                }),
+                ...(this.credentials.youtubeApiKey && {
+                    YOUTUBE_API_KEY: this.credentials.youtubeApiKey
+                }),
+                NODE_ENV: 'production',
             }
 
             this.frontendUrl = await this.vercel.deploy({

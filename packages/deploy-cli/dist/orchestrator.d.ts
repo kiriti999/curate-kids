@@ -15,11 +15,16 @@ export declare class DeploymentOrchestrator {
     frontendUrl: string;
     cmsUrl: string;
     botUrl: string;
+    private deployedResources;
     constructor(credentials: DeploymentCredentials, licenseKey: string);
     /**
      * Main deployment flow
      */
     deploy(): Promise<void>;
+    /**
+     * Rollback deployed resources on failure
+     */
+    private rollback;
     /**
      * Deploy and configure MongoDB
      */

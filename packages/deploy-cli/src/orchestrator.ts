@@ -23,6 +23,13 @@ export class DeploymentOrchestrator {
     public frontendUrl: string = ''
     public cmsUrl: string = ''
     public botUrl: string = ''
+    
+    // Track deployed resources for rollback
+    private deployedResources: {
+        cms?: string
+        frontend?: string
+        bot?: string
+    } = {}
 
     constructor(
         private credentials: DeploymentCredentials,
@@ -60,7 +67,43 @@ export class DeploymentOrchestrator {
 
         } catch (error) {
             console.error(chalk.red('\n❌ Deployment failed\n'))
+            
+            // Rollback deployed resources
+            await this.rollback()
+            
             throw error
+        }
+    }
+
+    /**
+     * Rollback deployed resources on failure
+     */
+    private async rollback(): Promise<void> {
+        console.log(chalk.yellow('\n🔄 Rolling back deployed resources...\n'))
+
+        const rollbackSpinner = ora('Cleaning up...').start()
+
+        try {
+            // Delete Vercel projects
+            if (this.deployedResources.cms) {
+                rollbackSpinner.text = `Deleting CMS project: ${this.deployedResources.cms}...`
+                await this.vercel.deleteProject(this.deployedResources.cms).catch(() => {})
+            }
+
+            if (this.deployedResources.frontend) {
+                rollbackSpinner.text = `Deleting Frontend project: ${this.deployedResources.frontend}...`
+                await this.vercel.deleteProject(this.deployedResources.frontend).catch(() => {})
+            }
+
+            // Delete Deno Deploy project
+            if (this.deployedResources.bot) {
+                rollbackSpinner.text = `Deleting Bot project: ${this.deployedResources.bot}...`
+                await this.deno.deleteProject(this.deployedResources.bot).catch(() => {})
+            }
+
+            rollbackSpinner.succeed('Cleanup completed')
+        } catch (error) {
+            rollbackSpinner.warn('Some resources may need manual cleanup')
         }
     }
 
@@ -87,6 +130,8 @@ export class DeploymentOrchestrator {
 
         try {
             const projectName = `${this.credentials.projectName}-cms`
+            this.deployedResources.cms = projectName
+
             const bundlePath = `${getBundlesDir()}/cms`
 
             // Generate a random secret for Payload CMS
@@ -133,6 +178,8 @@ export class DeploymentOrchestrator {
 
         try {
             const projectName = `${this.credentials.projectName}-frontend`
+            this.deployedResources.frontend = projectName
+            
             const bundlePath = `${getBundlesDir()}/frontend`
 
             const envVars = {
@@ -175,6 +222,8 @@ export class DeploymentOrchestrator {
 
         try {
             const projectName = `${this.credentials.projectName}-bot`
+            this.deployedResources.bot = projectName
+            
             const botDir = `${getBundlesDir()}/bot`
 
             const envVars = {

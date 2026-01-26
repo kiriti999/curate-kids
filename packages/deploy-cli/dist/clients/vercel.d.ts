@@ -71,6 +71,10 @@ export declare class VercelClient {
      */
     addDomain(projectName: string, domain: string): Promise<void>;
     /**
+     * Delete a project
+     */
+    deleteProject(projectName: string): Promise<void>;
+    /**
      * Build API URL with team parameter
      */
     private buildUrl;

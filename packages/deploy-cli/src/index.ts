@@ -26,11 +26,11 @@ const isEnvMode = process.env.DEPLOY_CLI_ENV_MODE === 'true'
 function getEnvCredentials(): DeploymentCredentials | null {
     const required = ['PROJECT_NAME', 'VERCEL_TOKEN', 'DENO_TOKEN', 'MONGODB_URI', 'TELEGRAM_BOT_TOKEN']
     const missing = required.filter(key => !process.env[key])
-    
+
     if (missing.length > 0) {
         return null
     }
-    
+
     return {
         projectName: process.env.PROJECT_NAME!,
         vercelToken: process.env.VERCEL_TOKEN!,
@@ -59,7 +59,7 @@ async function showWelcome() {
 
 async function verifyLicenseKey(): Promise<string> {
     let licenseKey: string
-    
+
     if (isEnvMode && process.env.LICENSE_KEY) {
         licenseKey = process.env.LICENSE_KEY
     } else {
@@ -86,7 +86,7 @@ async function verifyLicenseKey(): Promise<string> {
 
         if (!isValid) {
             spinner.fail('Invalid license key')
-            console.log(chalk.yellow('\n💡 Purchase a license at: https://curatekids.com/pricing'))
+            console.log(chalk.yellow('\n💡 Purchase a license at: https://curatedreels.com/pricing'))
             process.exit(1)
         }
 
@@ -104,7 +104,7 @@ async function confirmDeployment() {
         // Skip confirmation in env mode
         return
     }
-    
+
     const { confirm } = await prompts({
         type: 'confirm',
         name: 'confirm',
@@ -129,7 +129,7 @@ async function main() {
         // Step 2: Collect credentials
         console.log(chalk.bold('\n🔐 Step 2: Infrastructure Credentials'))
         let credentials: DeploymentCredentials
-        
+
         if (isEnvMode) {
             const envCreds = getEnvCredentials()
             if (!envCreds) {
@@ -171,14 +171,14 @@ async function main() {
         console.log(chalk.gray('  3. Configure your groups\n'))
 
         console.log(chalk.white('Resources:'))
-        console.log(chalk.gray('  📚 Documentation: https://docs.curatekids.com'))
-        console.log(chalk.gray('  💬 Support: support@curatekids.com\n'))
+        console.log(chalk.gray('  📚 Documentation: https://docs.curatedreels.com'))
+        console.log(chalk.gray('  💬 Support: support@curatedreels.com\n'))
 
     } catch (error) {
         console.error(chalk.red(`\n❌ Deployment failed:`))
         console.error(chalk.red(`   ${error instanceof Error ? error.message : String(error)}\n`))
 
-        console.log(chalk.yellow('💡 Need help? Contact support@curatekids.com\n'))
+        console.log(chalk.yellow('💡 Need help? Contact support@curatedreels.com\n'))
         process.exit(1)
     }
 }

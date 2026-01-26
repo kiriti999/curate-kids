@@ -115,7 +115,7 @@ For each group:
 ### 8. Custom Domain (Optional)
 **Time: varies**
 
-If you want a custom domain (e.g., `curatekids.yourname.com`):
+If you want a custom domain (e.g., `curatedreels.yourname.com`):
 
 - [ ] Purchase/own a domain
 - [ ] Have access to DNS settings
@@ -195,7 +195,7 @@ Once you have all credentials ready:
 ## Support
 
 If you have questions during setup:
-- Email: support@curatekids.io (replace with actual)
+- Email: support@curatedreels.io (replace with actual)
 - Telegram: @CurateKidsSupport (replace with actual)
 
 ---

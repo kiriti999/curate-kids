@@ -156,7 +156,7 @@ For large organizations or special requirements:
 - Custom SLA terms
 - Volume discounts
 
-Contact: enterprise@curatekids.io
+Contact: enterprise@curatedreels.io
 
 ---
 
@@ -202,9 +202,9 @@ Contact: enterprise@curatekids.io
 
 ## Contact
 
-- **Email:** support@curatekids.io
+- **Email:** support@curatedreels.io
 - **Telegram:** @CurateKidsSupport
-- **Website:** https://curatekids.io
+- **Website:** https://curatedreels.io
 
 ---
 

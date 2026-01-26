@@ -42,10 +42,10 @@
 
 ```
 1. Install CLI
-   npm install -g @curatekids/deploy
+   npm install -g @curatedreels/deploy
 
 2. Run Deployment
-   curatekids-deploy
+   curatedreels-deploy
    
 3. Interactive Setup
    ├── Enter license key
@@ -110,7 +110,7 @@
 ## File Structure
 
 ```
-curatekids/
+curatedreels/
 ├── packages/
 │   └── deploy-cli/              # ✅ Created
 │       ├── src/

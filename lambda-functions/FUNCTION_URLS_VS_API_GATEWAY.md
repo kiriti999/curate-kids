@@ -55,9 +55,9 @@ https://ghi789.lambda-url.ap-south-1.on.aws  → razorpay-webhook
 
 **Result:**
 ```
-https://api.curatekids.com/v1/licenses/verify
-https://api.curatekids.com/v1/deployments
-https://api.curatekids.com/v1/webhook/razorpay
+https://api.curatedreels.com/v1/licenses/verify
+https://api.curatedreels.com/v1/deployments
+https://api.curatedreels.com/v1/webhook/razorpay
 ```
 
 **Pros:**
@@ -118,7 +118,7 @@ Use API Gateway if you need:
    - Add/remove headers automatically
 
 5. **Custom domain with SSL**
-   - `api.curatekids.com` instead of AWS URL
+   - `api.curatedreels.com` instead of AWS URL
    - Automatic SSL certificate management
 
 6. **Caching**
@@ -161,7 +161,7 @@ fetch('https://abc123.lambda-url.ap-south-1.on.aws', {
 
 Customer CLI:
 ```typescript
-fetch('https://api.curatekids.com/v1/licenses/verify', {
+fetch('https://api.curatedreels.com/v1/licenses/verify', {
   method: 'POST',
   headers: { 'X-API-Key': apiKey },  // optional
   body: JSON.stringify({ key: licenseKey })

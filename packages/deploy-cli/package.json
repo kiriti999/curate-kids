@@ -1,24 +1,38 @@
 {
-  "name": "@curatekids/deploy",
+  "name": "curatedreels-deploy",
   "version": "1.0.0",
   "description": "White-label deployment CLI for CuratedReels",
   "type": "module",
   "bin": {
-    "curatekids-deploy": "./dist/index.js"
+    "curatedreels-deploy": "./dist/index.js",
+    "curatedreels": "./dist/index.js"
   },
+  "main": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
-    "curatekids",
+    "curatedreels",
+    "curatedreels",
     "deployment",
     "white-label",
-    "saas"
+    "saas",
+    "telegram",
+    "video",
+    "curation"
   ],
   "author": "CuratedReels",
   "license": "PROPRIETARY",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/choicexchangedev-cpu/curatedreels-releases"
+  },
+  "homepage": "https://curatedreels.com",
   "dependencies": {
     "chalk": "^5.3.0",
     "dotenv": "^16.4.1",

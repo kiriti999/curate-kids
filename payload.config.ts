@@ -50,7 +50,7 @@ export default buildConfig({
   // Email configuration for verification and password reset
   ...(process.env.SMTP_USER && process.env.SMTP_PASS ? {
     email: nodemailerAdapter({
-      defaultFromAddress: process.env.SMTP_FROM_EMAIL || 'noreply@curatekids.com',
+      defaultFromAddress: process.env.SMTP_FROM_EMAIL || 'noreply@curatedreels.com',
       defaultFromName: process.env.SMTP_FROM_NAME || 'CuratedReels',
       transportOptions: {
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -83,7 +83,7 @@ export default buildConfig({
 
   // Database configuration
   db: mongooseAdapter({
-    url: process.env.MONGODB_URI || 'mongodb://localhost:27017/curatekids',
+    url: process.env.MONGODB_URI || 'mongodb://localhost:27017/curatedreels',
   }),
 
   // CORS configuration for frontend access

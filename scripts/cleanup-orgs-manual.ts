@@ -23,7 +23,7 @@ if (fs.existsSync(envLocalPath)) {
     }
 }
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/curatekids'
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/curatedreels'
 
 interface Organization {
     _id: any

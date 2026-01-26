@@ -25,7 +25,7 @@ if (fs.existsSync(envLocalPath)) {
 
 // Load bot token
 if (!process.env.TELEGRAM_BOT_TOKEN) {
-    const botEnvLocalPath = path.resolve(process.cwd(), '../curatekids-bot/.env.local')
+    const botEnvLocalPath = path.resolve(process.cwd(), '../curatedreels-bot/.env.local')
     if (fs.existsSync(botEnvLocalPath)) {
         const botEnvConfig = dotenv.parse(fs.readFileSync(botEnvLocalPath))
         if (botEnvConfig.TELEGRAM_BOT_TOKEN) {
@@ -34,7 +34,7 @@ if (!process.env.TELEGRAM_BOT_TOKEN) {
     }
 }
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/curatekids'
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/curatedreels'
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
 
 interface Organization {

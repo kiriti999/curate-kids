@@ -17,7 +17,7 @@ aws configure
 ```bash
 # Create role
 aws iam create-role \
-  --role-name curatekids-lambda-role \
+  --role-name curatedreels-lambda-role \
   --assume-role-policy-document '{
     "Version": "2012-10-17",
     "Statement": [{
@@ -29,18 +29,18 @@ aws iam create-role \
 
 # Attach permissions
 aws iam attach-role-policy \
-  --role-name curatekids-lambda-role \
+  --role-name curatedreels-lambda-role \
   --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
 # Get ARN (copy this!)
-aws iam get-role --role-name curatekids-lambda-role --query 'Role.Arn' --output text
+aws iam get-role --role-name curatedreels-lambda-role --query 'Role.Arn' --output text
 ```
 
 ### Step 3: Set Environment Variables (1 minute)
 
 ```bash
 export MONGODB_URI='your-mongodb-connection-string'
-export LAMBDA_ROLE='arn:aws:iam::123456789:role/curatekids-lambda-role'  # from step 2
+export LAMBDA_ROLE='arn:aws:iam::123456789:role/curatedreels-lambda-role'  # from step 2
 export RAZORPAY_WEBHOOK_SECRET='your-razorpay-webhook-secret'  # optional for now
 ```
 
@@ -83,7 +83,7 @@ const REGISTER_URL = 'https://def456xyz.lambda-url.ap-south-1.on.aws'  // paste 
 # Create test license in MongoDB
 mongosh "your-connection-string"
 
-use curatekids-licenses
+use curatedreels-licenses
 
 db.licenses.insertOne({
   licenseKey: "ck_test_12345",
@@ -123,7 +123,7 @@ curl -X POST https://abc123xyz.lambda-url.ap-south-1.on.aws \
 5. Update Lambda environment variable:
    ```bash
    aws lambda update-function-configuration \
-     --function-name curatekids-razorpay-webhook \
+     --function-name curatedreels-razorpay-webhook \
      --environment "Variables={MONGODB_URI=$MONGODB_URI,RAZORPAY_WEBHOOK_SECRET=your-secret}"
    ```
 
@@ -159,7 +159,7 @@ If you want to change URLs without redeploying:
 ```bash
 # Get current URLs
 aws lambda get-function-url-config \
-  --function-name curatekids-verify-license \
+  --function-name curatedreels-verify-license \
   --query 'FunctionUrl'
 ```
 

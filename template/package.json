@@ -1,5 +1,5 @@
 {
-  "name": "curatekids-template",
+  "name": "curatedreels-template",
   "version": "1.0.0",
   "description": "White-label video curation platform for kids - Template",
   "private": true,
@@ -36,7 +36,7 @@
   "author": "",
   "license": "PROPRIETARY",
   "keywords": [
-    "curatekids",
+    "curatedreels",
     "video-curation",
     "kids",
     "telegram-bot",

@@ -8,7 +8,7 @@ CuratedReels uses a **white-label deployment model** where customers deploy to t
 
 ```bash
 # One command to deploy everything
-npx @curatekids/deploy
+npx @curatedreels/deploy
 ```
 
 ### Interactive Setup
@@ -39,11 +39,11 @@ cd frontend && npm run build
 zip -r frontend.zip .next public package.json
 
 # CMS
-cd curatekids && npm run build
+cd curatedreels && npm run build
 zip -r cms.zip .next payload-cms package.json
 
 # Bot (bundle everything into single file)
-cd curatekids-bot && deno bundle src/main.ts dist/bot.js
+cd curatedreels-bot && deno bundle src/main.ts dist/bot.js
 # Minify/obfuscate bot.js
 ```
 
@@ -67,7 +67,7 @@ releases/
 
 ### 3. Deployment CLI
 
-**NPM Package: `@curatekids/deploy`**
+**NPM Package: `@curatedreels/deploy`**
 
 ```typescript
 // packages/deploy-cli/src/index.ts
@@ -213,7 +213,7 @@ class DeploymentOrchestrator {
     const client = new MongoClient(this.credentials.mongodbUri)
     await client.connect()
     
-    const db = client.db('curatekids')
+    const db = client.db('curatedreels')
     
     // Create indexes
     await db.collection('videos').createIndexes([
@@ -265,7 +265,7 @@ interface License {
 }
 
 async function verifyLicense(key: string): Promise<boolean> {
-  const response = await fetch('https://api.curatekids.com/v1/licenses/verify', {
+  const response = await fetch('https://api.curatedreels.com/v1/licenses/verify', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ key })
@@ -280,7 +280,7 @@ async function verifyLicense(key: string): Promise<boolean> {
 **Authenticated CDN:**
 ```typescript
 async function downloadBundles(licenseKey: string) {
-  const bundleUrl = `https://releases.curatekids.com/v1.0.0/bundles.tar.gz`
+  const bundleUrl = `https://releases.curatedreels.com/v1.0.0/bundles.tar.gz`
   
   const response = await fetch(bundleUrl, {
     headers: {
@@ -303,10 +303,10 @@ async function downloadBundles(licenseKey: string) {
 
 ```bash
 # Install CLI
-npm install -g @curatekids/deploy
+npm install -g @curatedreels/deploy
 
 # Run deployment
-curatekids-deploy init
+curatedreels-deploy init
 ```
 
 ### Phase 2: Credential Collection
@@ -345,8 +345,8 @@ Next steps:
 2. Login to admin: https://your-project-cms.vercel.app/admin
 3. Configure groups
 
-Documentation: https://docs.curatekids.com
-Support: support@curatekids.com
+Documentation: https://docs.curatedreels.com
+Support: support@curatedreels.com
 ```
 
 ## Monetization Model
@@ -374,7 +374,7 @@ Support: support@curatekids.com
 
 **License Server:**
 ```
-https://api.curatekids.com/v1/licenses
+https://api.curatedreels.com/v1/licenses
   - POST /verify
   - POST /activate
   - GET /deployments
@@ -387,10 +387,10 @@ https://api.curatekids.com/v1/licenses
 **Customer update process:**
 ```bash
 # Check for updates
-curatekids-deploy update --check
+curatedreels-deploy update --check
 
 # Apply update
-curatekids-deploy update --apply
+curatedreels-deploy update --apply
 ```
 
 **Automatic:**
@@ -430,7 +430,7 @@ curatekids-deploy update --apply
 ## Files Structure
 
 ```
-@curatekids/deploy/
+@curatedreels/deploy/
 ├── src/
 │   ├── index.ts                 # CLI entry
 │   ├── orchestrator.ts          # Deployment orchestration
@@ -452,7 +452,7 @@ releases/
 
 ## Next Steps
 
-1. **Build the CLI tool** (`@curatekids/deploy`)
+1. **Build the CLI tool** (`@curatedreels/deploy`)
 2. **Set up build pipeline** (automate bundling)
 3. **Create license system** (API + database)
 4. **Set up CDN** (S3 + CloudFront)

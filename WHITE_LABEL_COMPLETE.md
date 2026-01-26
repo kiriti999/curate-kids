@@ -13,7 +13,7 @@ CuratedReels is now a fully-functional **white-label SaaS platform** where custo
 
 **Files:** 11 TypeScript files + 4 documentation files  
 **Lines of Code:** ~2,500  
-**NPM Package:** `@curatekids/deploy`
+**NPM Package:** `@curatedreels/deploy`
 
 **Components:**
 - ✅ Interactive credential collection
@@ -44,14 +44,14 @@ CuratedReels is now a fully-functional **white-label SaaS platform** where custo
 
 ```bash
 # Step 1: Install CLI
-npm install -g @curatekids/deploy
+npm install -g @curatedreels/deploy
 
 # Step 2: Run deployment
-curatekids-deploy
+curatedreels-deploy
 
 # Step 3: Follow prompts (interactive)
 ? Enter your CuratedReels license key: ••••••••••
-? Project name: my-curatekids
+? Project name: my-curatedreels
 ? Vercel API Token: ••••••••••
 ? Deno Deploy Token: ••••••••••
 ? MongoDB URI: mongodb+srv://...
@@ -64,9 +64,9 @@ curatekids-deploy
 ✅ Deployment Complete!
 
 Your CuratedReels instance is live:
-  📱 Frontend: https://my-curatekids-frontend.vercel.app
-  ⚙️  Admin:    https://my-curatekids-cms.vercel.app/admin
-  🤖 Bot:      https://my-curatekids-bot.deno.dev
+  📱 Frontend: https://my-curatedreels-frontend.vercel.app
+  ⚙️  Admin:    https://my-curatedreels-cms.vercel.app/admin
+  🤖 Bot:      https://my-curatedreels-bot.deno.dev
 ```
 
 **Total Time:** 10-15 minutes (including user input)  
@@ -113,7 +113,7 @@ Your CuratedReels instance is live:
 │               CUSTOMER'S INFRASTRUCTURE                  │
 │                                                          │
 │  ┌─────────────────────────────────────────────────┐   │
-│  │  @curatekids/deploy CLI                         │   │
+│  │  @curatedreels/deploy CLI                         │   │
 │  │     1. Verify license ✓                         │   │
 │  │     2. Collect credentials ✓                    │   │
 │  │     3. Download bundles (authenticated) ✓       │   │
@@ -213,7 +213,7 @@ Your CuratedReels instance is live:
 ## 📊 File Structure
 
 ```
-curatekids/
+curatedreels/
 ├── packages/
 │   └── deploy-cli/                    # ✅ Customer-facing CLI
 │       ├── src/
@@ -372,8 +372,8 @@ npm install -g terser javascript-obfuscator
 
 ```bash
 # Configure AWS
-export S3_BUCKET=curatekids-releases
-export CDN_URL=https://releases.curatekids.com
+export S3_BUCKET=curatedreels-releases
+export CDN_URL=https://releases.curatedreels.com
 
 # Upload
 ./upload-to-cdn.sh 1.0.0
@@ -421,7 +421,7 @@ npm run dev
 
 ## 🎉 Key Achievements
 
-✅ **One-command deployment** - Customer runs `curatekids-deploy`  
+✅ **One-command deployment** - Customer runs `curatedreels-deploy`  
 ✅ **Source code protected** - Obfuscated bundles only  
 ✅ **Customer infrastructure** - They pay Vercel/Deno/MongoDB  
 ✅ **Automated everything** - No manual configuration  
@@ -450,7 +450,7 @@ npm run dev
 **Immediate (Week 3):**
 1. Build license server (Node.js + PostgreSQL + Stripe)
 2. Set up AWS S3 + CloudFront CDN
-3. Configure DNS for releases.curatekids.com
+3. Configure DNS for releases.curatedreels.com
 
 **Short-term (Week 4-5):**
 4. End-to-end testing
@@ -459,7 +459,7 @@ npm run dev
 7. Create landing page
 
 **Launch (Week 6):**
-8. Publish @curatekids/deploy to npm
+8. Publish @curatedreels/deploy to npm
 9. Product Hunt launch
 10. Marketing push
 

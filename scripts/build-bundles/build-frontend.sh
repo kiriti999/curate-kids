@@ -41,7 +41,7 @@ find "$OUTPUT_DIR/.next" -name "*.map" -delete
 echo "📝 Creating production package.json..."
 cat > "$OUTPUT_DIR/package.json" << 'EOF'
 {
-  "name": "curatekids-frontend",
+  "name": "curatedreels-frontend",
   "version": "1.0.0",
   "private": true,
   "scripts": {

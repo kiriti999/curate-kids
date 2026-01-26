@@ -33,7 +33,7 @@ These environment variables are **required** for the application to run:
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `MONGODB_URI` | MongoDB connection string | `mongodb://localhost:27017/curatekids` |
+| `MONGODB_URI` | MongoDB connection string | `mongodb://localhost:27017/curatedreels` |
 | `PAYLOAD_SECRET` | Secret key for JWT tokens | `your-secret-key-here` |
 | `NEXT_PUBLIC_PAYLOAD_API_URL` | PayloadCMS API URL for frontend | `http://localhost:3000` |
 
@@ -57,7 +57,7 @@ Follow these steps to set up the development environment:
 1. **Clone and install dependencies**:
    ```bash
    git clone <repository-url>
-   cd curatekids
+   cd curatedreels
    pnpm install
    ```
 

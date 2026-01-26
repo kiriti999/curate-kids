@@ -2,13 +2,13 @@
 
 ## Current State
 
-### /Users/arjun/curatekids (Frontend + Payload CMS)
+### /Users/arjun/curatedreels (Frontend + Payload CMS)
 - Next.js frontend in `frontend/`
 - Payload CMS in `payload/`
 - MongoDB-based backend
 - Already migrated from Sanity to Payload
 
-### /Users/arjun/curatekids-bot (Telegram Bot)
+### /Users/arjun/curatedreels-bot (Telegram Bot)
 - Deno-based Telegram bot
 - Grammy framework
 - MongoDB integration (migrated from Sanity)
@@ -19,7 +19,7 @@
 ## Target Structure
 
 ```
-curatekids-template/
+curatedreels-template/
 ├── apps/
 │   ├── frontend/          # Next.js + Payload CMS
 │   │   ├── frontend/      # Next.js app

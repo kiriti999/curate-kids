@@ -19,7 +19,7 @@ Get started with the Youth Content CMS in under 10 minutes.
 
 ```bash
 # Clone repository (if not already)
-cd /Users/arjun/curatekids
+cd /Users/arjun/curatedreels
 
 # Install dependencies
 pnpm install
@@ -341,7 +341,7 @@ If blocked:
 ## File Structure Reference
 
 ```
-curatekids/
+curatedreels/
 ├── schemaTypes/
 │   ├── documents/
 │   │   ├── video.ts

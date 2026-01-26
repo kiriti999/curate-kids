@@ -29,11 +29,11 @@ Instead of a dedicated Node.js server, we'll use **AWS Lambda + API Gateway** wi
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  Customer runs: curatekids-deploy                   │
+│  Customer runs: curatedreels-deploy                   │
 └─────────────────────────────────────────────────────┘
                         ↓
 ┌─────────────────────────────────────────────────────┐
-│  API Gateway: api.curatekids.com                    │
+│  API Gateway: api.curatedreels.com                    │
 │  Routes:                                            │
 │  • POST /verify                                     │
 │  • POST /register-deployment                        │
@@ -162,9 +162,9 @@ Since you already have Razorpay on whatsnxt.in:
 
 **Option 1: Redirect to whatsnxt.in**
 ```
-curatekids.com/pricing
+curatedreels.com/pricing
   ↓
-whatsnxt.in/curatekids-checkout
+whatsnxt.in/curatedreels-checkout
   ↓
 Razorpay payment
   ↓
@@ -173,9 +173,9 @@ Webhook → Lambda → Create license
 Email license to customer
 ```
 
-**Option 2: Embed on curatekids.com**
+**Option 2: Embed on curatedreels.com**
 ```javascript
-// On curatekids.com/pricing
+// On curatedreels.com/pricing
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 const options = {
@@ -185,7 +185,7 @@ const options = {
   description: 'Monthly Subscription',
   handler: function(response) {
     // Send to your webhook
-    fetch('https://api.curatekids.com/webhook/razorpay', {
+    fetch('https://api.curatedreels.com/webhook/razorpay', {
       method: 'POST',
       body: JSON.stringify(response)
     });
@@ -250,7 +250,7 @@ Customer (India) → CloudFront Edge (Mumbai) → Download 20MB
 
 **Ugly URLs:**
 ```
-S3: https://curatekids-releases.s3.amazonaws.com/v1.0.0/frontend.zip
+S3: https://curatedreels-releases.s3.amazonaws.com/v1.0.0/frontend.zip
 CloudFront: https://d123abc456def.cloudfront.net/v1.0.0/frontend.zip
 ```
 
@@ -263,14 +263,14 @@ CloudFront: https://d123abc456def.cloudfront.net/v1.0.0/frontend.zip
 
 **Clean URLs:**
 ```
-https://releases.curatekids.com/v1.0.0/frontend.zip
+https://releases.curatedreels.com/v1.0.0/frontend.zip
 ```
 
 **Setup:**
-1. Buy domain: `curatekids.com` (Already have?)
+1. Buy domain: `curatedreels.com` (Already have?)
 2. Add DNS record in Route 53 or your DNS provider:
    ```
-   releases.curatekids.com → CNAME → d123abc.cloudfront.net
+   releases.curatedreels.com → CNAME → d123abc.cloudfront.net
    ```
 3. Done!
 
@@ -282,7 +282,7 @@ https://releases.curatekids.com/v1.0.0/frontend.zip
 
 ### Simple DNS Setup
 
-If you have `curatekids.com` in Route 53:
+If you have `curatedreels.com` in Route 53:
 
 ```bash
 # Add one record:
@@ -292,14 +292,14 @@ Value: d123abc.cloudfront.net (your CloudFront URL)
 TTL: 300
 ```
 
-**Result:** `releases.curatekids.com` → Your bundles (fast & secure)
+**Result:** `releases.curatedreels.com` → Your bundles (fast & secure)
 
 ## Can You Skip CloudFront & DNS?
 
 **Yes, for testing:**
 ```
 Use S3 URLs directly:
-https://curatekids-releases.s3.amazonaws.com/...
+https://curatedreels-releases.s3.amazonaws.com/...
 ```
 
 **But for production:**

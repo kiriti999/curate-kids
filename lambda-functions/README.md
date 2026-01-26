@@ -7,7 +7,7 @@ Serverless license verification system using AWS Lambda + MongoDB + Razorpay.
 ```
 Customer CLI
      ↓
-API Gateway (api.curatekids.com)
+API Gateway (api.curatedreels.com)
      ↓
 ┌────────────────────────────────────────┐
 │  AWS Lambda Functions                  │
@@ -60,7 +60,7 @@ MongoDB Atlas (your existing cluster)
 **Request:**
 ```json
 {
-  "projectName": "my-curatekids",
+  "projectName": "my-curatedreels",
   "frontendUrl": "https://...",
   "cmsUrl": "https://...",
   "botUrl": "https://..."
@@ -157,7 +157,7 @@ aws configure
 ```bash
 # Create execution role for Lambda
 aws iam create-role \
-  --role-name curatekids-lambda-role \
+  --role-name curatedreels-lambda-role \
   --assume-role-policy-document '{
     "Version": "2012-10-17",
     "Statement": [{
@@ -169,19 +169,19 @@ aws iam create-role \
 
 # Attach basic execution policy
 aws iam attach-role-policy \
-  --role-name curatekids-lambda-role \
+  --role-name curatedreels-lambda-role \
   --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
 # Get role ARN (save this)
-aws iam get-role --role-name curatekids-lambda-role --query 'Role.Arn'
-# Output: arn:aws:iam::123456789:role/curatekids-lambda-role
+aws iam get-role --role-name curatedreels-lambda-role --query 'Role.Arn'
+# Output: arn:aws:iam::123456789:role/curatedreels-lambda-role
 ```
 
 ### Step 3: Set Environment Variables
 
 ```bash
-export MONGODB_URI='mongodb+srv://user:pass@cluster.mongodb.net/curatekids-licenses'
-export LAMBDA_ROLE='arn:aws:iam::123456789:role/curatekids-lambda-role'
+export MONGODB_URI='mongodb+srv://user:pass@cluster.mongodb.net/curatedreels-licenses'
+export LAMBDA_ROLE='arn:aws:iam::123456789:role/curatedreels-lambda-role'
 export AWS_REGION='ap-south-1'
 export RAZORPAY_WEBHOOK_SECRET='your-webhook-secret-from-razorpay'
 ```
@@ -256,7 +256,7 @@ ROOT_ID=$(aws apigateway get-resources \
 
 ```javascript
 // Connect to your MongoDB cluster
-use curatekids-licenses
+use curatedreels-licenses
 
 // Create indexes
 db.licenses.createIndex({ licenseKey: 1 }, { unique: true })
@@ -359,7 +359,7 @@ plan_enterprise_custom → Custom → tier: "enterprise" → 999 deployments
 2. Razorpay sends `subscription.activated` webhook
 3. Lambda creates license → Generates `ck_abc123...`
 4. Email sent to customer with license key
-5. Customer uses key in `curatekids-deploy`
+5. Customer uses key in `curatedreels-deploy`
 
 ## Monitoring
 
@@ -367,13 +367,13 @@ plan_enterprise_custom → Custom → tier: "enterprise" → 999 deployments
 
 ```bash
 # View logs for verify-license
-aws logs tail /aws/lambda/curatekids-verify-license --follow
+aws logs tail /aws/lambda/curatedreels-verify-license --follow
 
 # View logs for register-deployment
-aws logs tail /aws/lambda/curatekids-register-deployment --follow
+aws logs tail /aws/lambda/curatedreels-register-deployment --follow
 
 # View logs for webhook
-aws logs tail /aws/lambda/curatekids-razorpay-webhook --follow
+aws logs tail /aws/lambda/curatedreels-razorpay-webhook --follow
 ```
 
 ### Metrics
@@ -383,7 +383,7 @@ aws logs tail /aws/lambda/curatekids-razorpay-webhook --follow
 aws cloudwatch get-metric-statistics \
   --namespace AWS/Lambda \
   --metric-name Invocations \
-  --dimensions Name=FunctionName,Value=curatekids-verify-license \
+  --dimensions Name=FunctionName,Value=curatedreels-verify-license \
   --start-time $(date -u -d '1 day ago' +%Y-%m-%dT%H:%M:%S) \
   --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
   --period 3600 \

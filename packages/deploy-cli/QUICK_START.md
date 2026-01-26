@@ -28,7 +28,7 @@ For local testing without a license server:
 export NODE_ENV=development
 
 # Use test license key
-curatekids-deploy
+curatedreels-deploy
 # Enter license: test_12345 or dev_abcdef
 ```
 
@@ -54,10 +54,10 @@ curatekids-deploy
 
 ```bash
 # Create a test deployment
-curatekids-deploy
+curatedreels-deploy
 
 # Enter test values:
-Project name: test-curatekids
+Project name: test-curatedreels
 Vercel token: [your-test-token]
 Deno token: [your-test-token]
 MongoDB URI: [your-test-cluster]
@@ -107,8 +107,8 @@ npm publish
 ### 4. Customer Installation
 
 ```bash
-npm install -g @curatekids/deploy
-curatekids-deploy
+npm install -g @curatedreels/deploy
+curatedreels-deploy
 ```
 
 ## Testing Checklist

@@ -316,9 +316,12 @@ export class VercelClient {
         projectId: string,
         envVars: Record<string, string>
     ): Promise<void> {
+        console.log(`Setting ${Object.keys(envVars).length} environment variables for project ${projectId}...`)
         for (const [key, value] of Object.entries(envVars)) {
+            console.log(`  - Setting ${key}`)
             await this.createEnvironmentVariable(projectId, key, value)
         }
+        console.log('✓ All environment variables set')
     }
 
     /**
@@ -346,9 +349,11 @@ export class VercelClient {
             const error = await response.text()
             // If env var already exists, try to update it
             if (error.includes('ENV_CONFLICT') || response.status === 409) {
+                console.log(`    (updating existing ${key})`)
                 await this.updateEnvironmentVariable(projectId, key, value)
                 return
             }
+            console.error(`Failed to set env var ${key}: ${error}`)
             throw new Error(`Failed to set env var ${key}: ${error}`)
         }
     }

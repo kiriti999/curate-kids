@@ -23,14 +23,14 @@ export class DeploymentOrchestrator {
     public frontendUrl: string = ''
     public cmsUrl: string = ''
     public botUrl: string = ''
-    
+
     // Track deployed resources for rollback
     private deployedResources: {
         cms?: string
         frontend?: string
         bot?: string
     } = {}
-    
+
     // Track manual setup instructions
     private manualSetupRequired: {
         settingsUrl?: string
@@ -70,7 +70,7 @@ export class DeploymentOrchestrator {
             // Success metrics
             const duration = Math.round((Date.now() - startTime) / 1000)
             console.log(chalk.gray(`\n⏱️  Total deployment time: ${duration}s\n`))
-            
+
             // Display manual setup instructions if needed
             if (this.manualSetupRequired) {
                 console.log(chalk.yellow('\n📋 Post-Deployment Setup Required:\n'))
@@ -78,21 +78,21 @@ export class DeploymentOrchestrator {
                 console.log(`\nPlease configure the following environment variables in the Deno Deploy dashboard:\n`)
                 console.log(chalk.cyan(`   ${this.manualSetupRequired.settingsUrl}\n`))
                 console.log(chalk.gray('Environment variables to configure:\n'))
-                
+
                 for (const [key, value] of Object.entries(this.manualSetupRequired.envVars || {})) {
                     console.log(chalk.gray(`   ${key}=${value}`))
                 }
-                
+
                 console.log(chalk.yellow(`\n⚠️  After setting environment variables, the bot will automatically redeploy and start working.\n`))
                 console.log(chalk.gray(`💡 Tip: You can visit ${this.botUrl} to check if env vars are configured.\n`))
             }
 
         } catch (error) {
             console.error(chalk.red('\n❌ Deployment failed\n'))
-            
+
             // Rollback deployed resources
             await this.rollback()
-            
+
             throw error
         }
     }
@@ -109,18 +109,18 @@ export class DeploymentOrchestrator {
             // Delete Vercel projects
             if (this.deployedResources.cms) {
                 rollbackSpinner.text = `Deleting CMS project: ${this.deployedResources.cms}...`
-                await this.vercel.deleteProject(this.deployedResources.cms).catch(() => {})
+                await this.vercel.deleteProject(this.deployedResources.cms).catch(() => { })
             }
 
             if (this.deployedResources.frontend) {
                 rollbackSpinner.text = `Deleting Frontend project: ${this.deployedResources.frontend}...`
-                await this.vercel.deleteProject(this.deployedResources.frontend).catch(() => {})
+                await this.vercel.deleteProject(this.deployedResources.frontend).catch(() => { })
             }
 
             // Delete Deno Deploy project
             if (this.deployedResources.bot) {
                 rollbackSpinner.text = `Deleting Bot project: ${this.deployedResources.bot}...`
-                await this.deno.deleteProject(this.deployedResources.bot).catch(() => {})
+                await this.deno.deleteProject(this.deployedResources.bot).catch(() => { })
             }
 
             rollbackSpinner.succeed('Cleanup completed')
@@ -201,14 +201,17 @@ export class DeploymentOrchestrator {
         try {
             const projectName = `${this.credentials.projectName}-frontend`
             this.deployedResources.frontend = projectName
-            
+
             const bundlePath = `${getBundlesDir()}/frontend`
+
+            // Generate a random secret for Payload CMS
+            const payloadSecret = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+                .map(b => b.toString(16).padStart(2, '0')).join('')
 
             // Frontend bundle includes Payload CMS, so needs all CMS env vars
             const envVars = {
                 MONGODB_URI: this.credentials.mongodbUri,
-                PAYLOAD_SECRET: Array.from(crypto.getRandomValues(new Uint8Array(32)))
-                    .map(b => b.toString(16).padStart(2, '0')).join(''),
+                PAYLOAD_SECRET: payloadSecret,
                 TELEGRAM_BOT_TOKEN: this.credentials.telegramBotToken,
                 NEXT_PUBLIC_PAYLOAD_API_URL: `${this.cmsUrl}/api`,
                 ...(this.credentials.telegramGroupId && {
@@ -262,7 +265,7 @@ export class DeploymentOrchestrator {
         try {
             const projectName = `${this.credentials.projectName}-bot`
             this.deployedResources.bot = projectName
-            
+
             const botDir = `${getBundlesDir()}/bot`
 
             const envVars = {
@@ -289,9 +292,9 @@ export class DeploymentOrchestrator {
                 entrypoint: botDir,
                 envVars
             })
-            
+
             this.botUrl = result.url
-            
+
             // Store manual setup instructions for display after deployment
             this.manualSetupRequired = {
                 settingsUrl: result.settingsUrl,

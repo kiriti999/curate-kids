@@ -88,29 +88,44 @@ export default buildConfig({
 
   // Create default admin on first init if no users exist
   onInit: async (payload) => {
-    const users = await payload.find({
-      collection: 'users',
-      limit: 1,
-    })
-
-    if (users.docs.length === 0) {
-      const adminEmail = process.env.ADMIN_EMAIL || 'admin@curatedreels.com'
-      const adminPassword = process.env.ADMIN_PASSWORD || 'admin123'
-      const adminName = process.env.ADMIN_NAME || 'Admin User'
-
-      await payload.create({
+    try {
+      console.log('[PayloadCMS] onInit hook started')
+      
+      const users = await payload.find({
         collection: 'users',
-        data: {
-          name: adminName,
-          email: adminEmail,
-          password: adminPassword,
-          role: 'superadmin',
-          status: 'active',
-        },
-        draft: false,
+        limit: 1,
       })
-      payload.logger.info(`✅ Default admin user created: ${adminEmail}`)
-      payload.logger.warn('⚠️  IMPORTANT: Change the default password immediately!')
+
+      console.log(`[PayloadCMS] Found ${users.docs.length} existing users`)
+
+      if (users.docs.length === 0) {
+        const adminEmail = process.env.ADMIN_EMAIL || 'admin@curatedreels.com'
+        const adminPassword = process.env.ADMIN_PASSWORD || 'admin123'
+        const adminName = process.env.ADMIN_NAME || 'Admin User'
+
+        console.log(`[PayloadCMS] Creating admin user: ${adminEmail}`)
+
+        const user = await payload.create({
+          collection: 'users',
+          data: {
+            name: adminName,
+            email: adminEmail,
+            password: adminPassword,
+            role: 'superadmin',
+            status: 'active',
+          },
+          draft: false,
+        })
+        
+        console.log(`[PayloadCMS] ✅ Admin user created: ${user.email} (ID: ${user.id})`)
+        payload.logger.info(`✅ Default admin user created: ${adminEmail}`)
+        payload.logger.warn('⚠️  IMPORTANT: Change the default password immediately!')
+      } else {
+        console.log('[PayloadCMS] Admin user already exists, skipping creation')
+      }
+    } catch (error) {
+      console.error('[PayloadCMS] ❌ Error in onInit hook:', error)
+      // Don't throw - let the app start even if this fails
     }
   },
 

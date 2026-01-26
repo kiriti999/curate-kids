@@ -16,6 +16,7 @@ export declare class DeploymentOrchestrator {
     cmsUrl: string;
     botUrl: string;
     private deployedResources;
+    private manualSetupRequired;
     constructor(credentials: DeploymentCredentials, licenseKey: string);
     /**
      * Main deployment flow

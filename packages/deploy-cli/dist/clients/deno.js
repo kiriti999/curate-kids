@@ -19,23 +19,26 @@ export class DenoClient {
      * Deploy a project to Deno Deploy using deployctl
      */
     async deploy(options) {
-        // Step 1: Ensure project exists and get project name
-        const { name: projectName } = await this.ensureProject(options.projectName);
-        // Step 2: Deploy using deployctl with environment variables
-        const url = await this.deployWithCLI(projectName, options.entrypoint, options.envVars);
-        return url;
+        // Step 1: Ensure project exists and get project ID/name
+        const { name: projectName, id: projectId } = await this.ensureProject(options.projectName);
+        // Step 2: Deploy using deployctl (without env vars - they must be set in dashboard)
+        const url = await this.deployWithCLI(projectName, options.entrypoint);
+        // Return deployment info with manual setup instructions
+        return {
+            url,
+            projectId,
+            projectName,
+            settingsUrl: `https://dash.deno.com/projects/${projectName}/settings`,
+            envVarsToSet: options.envVars
+        };
     }
     /**
-     * Deploy using deployctl CLI with environment variables
+     * Deploy using deployctl CLI (without env vars - they must be set in dashboard)
      */
-    async deployWithCLI(projectName, deployDir, envVars) {
+    async deployWithCLI(projectName, deployDir) {
         const deployctlPath = `${process.env.HOME}/.deno/bin/deployctl`;
-        // Build --env flags for each environment variable
-        const envFlags = Object.entries(envVars)
-            .map(([key, value]) => `--env='${key}=${value.replace(/'/g, "'\\''")}'`)
-            .join(' ');
         try {
-            const { stdout, stderr } = await execAsync(`cd "${deployDir}" && DENO_DEPLOY_TOKEN=${this.token} "${deployctlPath}" deploy --project=${projectName} --entrypoint=src/main.ts ${envFlags} --prod 2>&1`, { timeout: 300000 } // 5 minute timeout
+            const { stdout, stderr } = await execAsync(`cd "${deployDir}" && DENO_DEPLOY_TOKEN=${this.token} "${deployctlPath}" deploy --project=${projectName} --entrypoint=src/main.ts --prod 2>&1`, { timeout: 300000 } // 5 minute timeout
             );
             const output = stdout + stderr;
             // Extract deployment URL

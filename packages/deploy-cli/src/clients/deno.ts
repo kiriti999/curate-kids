@@ -16,6 +16,14 @@ export interface DenoDeploymentOptions {
     envVars: Record<string, string>
 }
 
+export interface DenoDeploymentResult {
+    url: string
+    projectId: string
+    projectName: string
+    settingsUrl: string
+    envVarsToSet: Record<string, string>
+}
+
 export class DenoClient {
     private baseUrl = 'https://dash.deno.com/api'
 
@@ -27,30 +35,32 @@ export class DenoClient {
     /**
      * Deploy a project to Deno Deploy using deployctl
      */
-    async deploy(options: DenoDeploymentOptions): Promise<string> {
-        // Step 1: Ensure project exists and get project name
-        const { name: projectName } = await this.ensureProject(options.projectName)
+    async deploy(options: DenoDeploymentOptions): Promise<DenoDeploymentResult> {
+        // Step 1: Ensure project exists and get project ID/name
+        const { name: projectName, id: projectId } = await this.ensureProject(options.projectName)
 
-        // Step 2: Deploy using deployctl with environment variables
-        const url = await this.deployWithCLI(projectName, options.entrypoint, options.envVars)
+        // Step 2: Deploy using deployctl (without env vars - they must be set in dashboard)
+        const url = await this.deployWithCLI(projectName, options.entrypoint)
 
-        return url
+        // Return deployment info with manual setup instructions
+        return {
+            url,
+            projectId,
+            projectName,
+            settingsUrl: `https://dash.deno.com/projects/${projectName}/settings`,
+            envVarsToSet: options.envVars
+        }
     }
 
     /**
-     * Deploy using deployctl CLI with environment variables
+     * Deploy using deployctl CLI (without env vars - they must be set in dashboard)
      */
-    private async deployWithCLI(projectName: string, deployDir: string, envVars: Record<string, string>): Promise<string> {
+    private async deployWithCLI(projectName: string, deployDir: string): Promise<string> {
         const deployctlPath = `${process.env.HOME}/.deno/bin/deployctl`
-        
-        // Build --env flags for each environment variable
-        const envFlags = Object.entries(envVars)
-            .map(([key, value]) => `--env='${key}=${value.replace(/'/g, "'\\''")}'`)
-            .join(' ')
         
         try {
             const { stdout, stderr } = await execAsync(
-                `cd "${deployDir}" && DENO_DEPLOY_TOKEN=${this.token} "${deployctlPath}" deploy --project=${projectName} --entrypoint=src/main.ts ${envFlags} --prod 2>&1`,
+                `cd "${deployDir}" && DENO_DEPLOY_TOKEN=${this.token} "${deployctlPath}" deploy --project=${projectName} --entrypoint=src/main.ts --prod 2>&1`,
                 { timeout: 300000 } // 5 minute timeout
             )
 

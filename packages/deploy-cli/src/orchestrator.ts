@@ -89,8 +89,13 @@ export class DeploymentOrchestrator {
             const projectName = `${this.credentials.projectName}-cms`
             const bundlePath = `${getBundlesDir()}/cms`
 
+            // Generate a random secret for Payload CMS
+            const payloadSecret = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+                .map(b => b.toString(16).padStart(2, '0')).join('')
+
             const envVars = {
                 MONGODB_URI: this.credentials.mongodbUri,
+                PAYLOAD_SECRET: payloadSecret,
                 TELEGRAM_BOT_TOKEN: this.credentials.telegramBotToken,
                 ...(this.credentials.telegramGroupId && {
                     TELEGRAM_GROUP: this.credentials.telegramGroupId
@@ -170,13 +175,14 @@ export class DeploymentOrchestrator {
 
         try {
             const projectName = `${this.credentials.projectName}-bot`
-            const entrypoint = `${getBundlesDir()}/bot.js`
+            const botDir = `${getBundlesDir()}/bot`
 
             const envVars = {
                 TELEGRAM_BOT_TOKEN: this.credentials.telegramBotToken,
                 MONGODB_URI: this.credentials.mongodbUri,
-                PAYLOAD_API_URL: `${this.cmsUrl}/api`,
+                PAYLOAD_CMS_URL: this.cmsUrl,
                 FRONTEND_URL: this.frontendUrl,
+                WEBHOOK_URL: `https://${projectName}.deno.dev/webhook`,
                 ...(this.credentials.telegramGroupId && {
                     TELEGRAM_GROUP: this.credentials.telegramGroupId
                 }),
@@ -192,7 +198,7 @@ export class DeploymentOrchestrator {
 
             this.botUrl = await this.deno.deploy({
                 projectName,
-                entrypoint,
+                entrypoint: botDir,
                 envVars
             })
 

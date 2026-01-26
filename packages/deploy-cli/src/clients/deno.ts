@@ -1,20 +1,23 @@
 /**
- * Deno Deploy API Client
+ * Deno Deploy Client
  * 
- * Deploys Deno applications to Deno Deploy
+ * Deploys Deno applications to Deno Deploy using deployctl CLI
  */
 
 import fetch from 'node-fetch'
-import { readFile } from 'fs/promises'
+import { exec } from 'child_process'
+import { promisify } from 'util'
+
+const execAsync = promisify(exec)
 
 export interface DenoDeploymentOptions {
     projectName: string
-    entrypoint: string
+    entrypoint: string  // Directory containing deno.json and src/main.ts
     envVars: Record<string, string>
 }
 
 export class DenoClient {
-    private baseUrl = 'https://api.deno.com/v1'
+    private baseUrl = 'https://dash.deno.com/api'
 
     constructor(
         private token: string,
@@ -22,19 +25,50 @@ export class DenoClient {
     ) { }
 
     /**
-     * Deploy a project to Deno Deploy
+     * Deploy a project to Deno Deploy using deployctl
      */
     async deploy(options: DenoDeploymentOptions): Promise<string> {
         // Step 1: Ensure project exists
-        const projectId = await this.ensureProject(options.projectName)
+        const projectName = await this.ensureProject(options.projectName)
 
-        // Step 2: Upload deployment assets
-        const url = await this.createDeployment(projectId, options.entrypoint)
+        // Step 2: Deploy using deployctl from the bot directory
+        // entrypoint should be a directory containing deno.json and src/main.ts
+        const url = await this.deployWithCLI(projectName, options.entrypoint)
 
         // Step 3: Set environment variables
-        await this.setEnvironmentVariables(projectId, options.envVars)
+        await this.setEnvironmentVariables(projectName, options.envVars)
 
         return url
+    }
+
+    /**
+     * Deploy using deployctl CLI
+     */
+    private async deployWithCLI(projectName: string, deployDir: string): Promise<string> {
+        const deployctlPath = `${process.env.HOME}/.deno/bin/deployctl`
+        
+        try {
+            const { stdout, stderr } = await execAsync(
+                `cd "${deployDir}" && DENO_DEPLOY_TOKEN=${this.token} "${deployctlPath}" deploy --project=${projectName} --entrypoint=src/main.ts --prod 2>&1`,
+                { timeout: 300000 } // 5 minute timeout
+            )
+
+            const output = stdout + stderr
+
+            // Extract deployment URL
+            const urlMatch = output.match(/https:\/\/[^\s]+\.deno\.dev/)
+            if (urlMatch) {
+                return urlMatch[0]
+            }
+
+            throw new Error(`Could not extract deployment URL: ${output.slice(0, 500)}`)
+        } catch (error: any) {
+            // If deployctl not found, try installing it
+            if (error.message?.includes('ENOENT') || error.message?.includes('not found')) {
+                throw new Error('deployctl not found. Please install Deno and run: deno install -Arf jsr:@deno/deployctl')
+            }
+            throw new Error(`Deno Deploy failed: ${error.message}`)
+        }
     }
 
     /**
@@ -43,7 +77,7 @@ export class DenoClient {
     private async ensureProject(name: string): Promise<string> {
         try {
             const project = await this.getProject(name)
-            return project.id
+            return project.name  // Return name for deployctl
         } catch {
             return await this.createProject(name)
         }
@@ -89,86 +123,7 @@ export class DenoClient {
         }
 
         const project: any = await response.json()
-        return project.id
-    }
-
-    /**
-     * Create a deployment
-     */
-    private async createDeployment(
-        projectId: string,
-        entrypointPath: string
-    ): Promise<string> {
-        // Read the bundled bot file
-        const code = await readFile(entrypointPath, 'utf-8')
-
-        const url = `${this.baseUrl}/projects/${projectId}/deployments`
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: this.getHeaders(),
-            body: JSON.stringify({
-                entryPointUrl: 'main.ts',
-                assets: {
-                    'main.ts': {
-                        kind: 'file',
-                        content: code,
-                        encoding: 'utf-8'
-                    }
-                },
-                envVars: {}, // Will be set separately
-                productionDeployment: true
-            })
-        })
-
-        if (!response.ok) {
-            const error = await response.text()
-            throw new Error(`Deployment failed: ${error}`)
-        }
-
-        const deployment: any = await response.json()
-
-        // Wait for deployment to be ready
-        await this.waitForDeployment(projectId, deployment.id)
-
-        return `https://${projectId}.deno.dev`
-    }
-
-    /**
-     * Wait for deployment to complete
-     */
-    private async waitForDeployment(
-        projectId: string,
-        deploymentId: string
-    ): Promise<void> {
-        const maxAttempts = 60 // 5 minutes
-        const interval = 5000 // 5 seconds
-
-        for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            const url = `${this.baseUrl}/deployments/${deploymentId}`
-
-            const response = await fetch(url, {
-                headers: this.getHeaders()
-            })
-
-            if (!response.ok) {
-                throw new Error('Failed to check deployment status')
-            }
-
-            const deployment: any = await response.json()
-
-            if (deployment.status === 'success') {
-                return
-            }
-
-            if (deployment.status === 'failed') {
-                throw new Error(`Deployment failed: ${deployment.error || 'Unknown error'}`)
-            }
-
-            await new Promise(resolve => setTimeout(resolve, interval))
-        }
-
-        throw new Error('Deployment timeout')
+        return project.name  // Return name for deployctl
     }
 
     /**

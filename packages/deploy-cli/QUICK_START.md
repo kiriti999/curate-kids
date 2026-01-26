@@ -36,7 +36,7 @@ curatekids-deploy
 
 1. **Vercel**
    - Get token: https://vercel.com/account/tokens
-   - Format: `vercel_xxxxxxxxxxxxx`
+   - Format: Opaque string (e.g., `v1.xxxxxxxxxxxxxx`)
 
 2. **Deno Deploy**
    - Get token: https://dash.deno.com/account#access-tokens

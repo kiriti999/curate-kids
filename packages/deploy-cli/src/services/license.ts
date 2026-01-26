@@ -6,9 +6,9 @@
 
 import fetch from 'node-fetch'
 
-// Lambda Function URLs (set after deployment)
-const VERIFY_URL = process.env.VERIFY_LICENSE_URL || 'https://qr4uign67ucohx2dogu2xq7neq0rjonz.lambda-url.ap-south-1.on.aws'
-const REGISTER_URL = process.env.REGISTER_DEPLOYMENT_URL || 'https://e3ukc7oeybqvsf27dhrsug25my0psezs.lambda-url.ap-south-1.on.aws'
+// Lambda Function URLs (us-east-1 region)
+const VERIFY_URL = process.env.VERIFY_LICENSE_URL || 'https://rltcg4cuhqxdap4ha2nvez5gka0dvivf.lambda-url.us-east-1.on.aws'
+const REGISTER_URL = process.env.REGISTER_DEPLOYMENT_URL || 'https://qpc4fnenqobl2s2zw44c4t7mtm0uwttj.lambda-url.us-east-1.on.aws'
 
 export interface License {
     key: string

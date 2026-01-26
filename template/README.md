@@ -31,7 +31,7 @@ CuratedReels allows parents, educators, and content curators to:
 ## 📁 Project Structure
 
 ```
-curatekids-template/
+curatedreels-template/
 ├── apps/
 │   ├── frontend/          # Next.js + Payload CMS
 │   └── bot/               # Telegram Bot (Deno)
@@ -59,8 +59,8 @@ curatekids-template/
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/your-org/curatekids-template.git
-cd curatekids-template
+git clone https://github.com/your-org/curatedreels-template.git
+cd curatedreels-template
 pnpm install
 ```
 
@@ -153,8 +153,8 @@ Proprietary - Contact for licensing terms.
 
 ## 🤝 Support
 
-- **Email**: support@curatekids.io
-- **Telegram**: @CurateKidsSupport
+- **Email**: support@curatedreels.io
+- **Telegram**: @CuratedReelsSupport
 
 ---
 

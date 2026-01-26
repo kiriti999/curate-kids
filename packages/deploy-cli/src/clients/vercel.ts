@@ -1,13 +1,17 @@
 /**
  * Vercel API Client
  * 
- * Deploys Next.js applications to Vercel
+ * Deploys Next.js applications to Vercel using CLI for pre-built deployments
  */
 
 import fetch from 'node-fetch'
-import { readdir, readFile, stat } from 'fs/promises'
-import { join } from 'path'
+import { readdir, readFile, stat, writeFile, mkdir } from 'fs/promises'
+import { join, resolve } from 'path'
 import ora from 'ora'
+import { spawn, exec } from 'child_process'
+import { promisify } from 'util'
+
+const execAsync = promisify(exec)
 
 export interface VercelDeploymentOptions {
     projectName: string
@@ -25,26 +29,79 @@ export class VercelClient {
     ) { }
 
     /**
-     * Deploy a project to Vercel
+     * Deploy a project to Vercel using CLI pre-built deployment
      */
     async deploy(options: VercelDeploymentOptions): Promise<string> {
-        // Step 1: Create or get project
+        // Step 1: Create or get project and set env vars
         const projectId = await this.ensureProject(options.projectName)
-
-        // Step 2: Upload files
-        const files = await this.collectFiles(options.bundlePath)
-
-        // Step 3: Create deployment
-        const deploymentUrl = await this.createDeployment({
-            projectId,
-            files,
-            name: options.projectName
-        })
-
-        // Step 4: Set environment variables
         await this.setEnvironmentVariables(projectId, options.envVars)
 
-        return `https://${deploymentUrl}`
+        // Step 2: Build the app locally and deploy using Vercel CLI
+        const deploymentUrl = await this.deployWithCLI(options)
+
+        return deploymentUrl
+    }
+
+    /**
+     * Deploy using Vercel CLI with pre-built output
+     */
+    private async deployWithCLI(options: VercelDeploymentOptions): Promise<string> {
+        const bundlePath = resolve(options.bundlePath)
+        
+        // Check if there's a .next folder (pre-built) or source files
+        const hasNextBuild = await stat(join(bundlePath, '.next')).catch(() => null)
+        
+        // Create vercel.json configuration
+        const vercelConfig = {
+            name: options.projectName,
+            framework: options.framework === 'nextjs' ? 'nextjs' : null
+        }
+        
+        await writeFile(
+            join(bundlePath, 'vercel.json'),
+            JSON.stringify(vercelConfig, null, 2)
+        )
+
+        // Build command if no .next exists
+        let buildCmd = ''
+        if (!hasNextBuild) {
+            // Need to build first
+            buildCmd = `cd "${bundlePath}" && npm install && npm run build && `
+        }
+
+        // Deploy using Vercel CLI
+        const teamArg = this.teamId ? `--scope ${this.teamId}` : ''
+        const cmd = `${buildCmd}cd "${bundlePath}" && npx vercel deploy --token ${this.token} ${teamArg} --yes --prod 2>&1`
+        
+        try {
+            const { stdout, stderr } = await execAsync(cmd, {
+                timeout: 600000, // 10 minute timeout
+                maxBuffer: 50 * 1024 * 1024, // 50MB buffer
+                env: {
+                    ...process.env,
+                    VERCEL_ORG_ID: this.teamId || undefined,
+                    ...options.envVars
+                }
+            })
+            
+            // Extract deployment URL from output
+            const output = stdout + stderr
+            const urlMatch = output.match(/https:\/\/[^\s]+\.vercel\.app/)
+            
+            if (urlMatch) {
+                return urlMatch[0]
+            }
+            
+            // If no URL found, check for production URL
+            const prodUrlMatch = output.match(/Production: (https:\/\/[^\s]+)/)
+            if (prodUrlMatch) {
+                return prodUrlMatch[1]
+            }
+            
+            throw new Error(`Could not extract deployment URL from output: ${output.slice(0, 500)}`)
+        } catch (error: any) {
+            throw new Error(`Vercel CLI deployment failed: ${error.message}`)
+        }
     }
 
     /**
@@ -89,11 +146,7 @@ export class VercelClient {
             headers: this.getHeaders(),
             body: JSON.stringify({
                 name,
-                framework: 'nextjs',
-                buildCommand: null, // Pre-built
-                devCommand: null,
-                installCommand: null,
-                outputDirectory: null
+                framework: 'nextjs'
             })
         })
 
@@ -109,34 +162,42 @@ export class VercelClient {
     /**
      * Collect all files from bundle directory
      */
-    private async collectFiles(bundlePath: string): Promise<Array<{ file: string; data: string }>> {
-        const files: Array<{ file: string; data: string }> = []
+    private async collectFiles(bundlePath: string): Promise<Array<{ file: string; data: string; encoding: string }>> {
+        const files: Array<{ file: string; data: string; encoding: string }> = []
+        const { resolve } = await import('path')
+        const normalizedBase = resolve(bundlePath)
 
-        async function walk(dir: string, baseDir: string) {
+        async function walk(dir: string) {
             const entries = await readdir(dir, { withFileTypes: true })
 
             for (const entry of entries) {
                 const fullPath = join(dir, entry.name)
 
                 if (entry.isDirectory()) {
-                    // Skip node_modules and .git
-                    if (entry.name === 'node_modules' || entry.name === '.git') {
+                    // Skip node_modules, .git, and macOS resource forks
+                    if (entry.name === 'node_modules' || entry.name === '.git' || entry.name.startsWith('._')) {
                         continue
                     }
-                    await walk(fullPath, baseDir)
+                    await walk(fullPath)
                 } else {
-                    const relativePath = fullPath.slice(baseDir.length + 1)
+                    // Skip macOS resource fork files (._*)
+                    if (entry.name.startsWith('._')) {
+                        continue
+                    }
+                    const normalizedFull = resolve(fullPath)
+                    const relativePath = normalizedFull.slice(normalizedBase.length + 1)
                     const content = await readFile(fullPath)
 
                     files.push({
                         file: relativePath,
-                        data: content.toString('base64')
+                        data: content.toString('base64'),
+                        encoding: 'base64'
                     })
                 }
             }
         }
 
-        await walk(bundlePath, bundlePath)
+        await walk(bundlePath)
         return files
     }
 
@@ -145,23 +206,37 @@ export class VercelClient {
      */
     private async createDeployment(options: {
         projectId: string
-        files: Array<{ file: string; data: string }>
+        files: Array<{ file: string; data: string; encoding: string }>
         name: string
+        envVars?: Record<string, string>
     }): Promise<string> {
         const url = this.buildUrl('/v13/deployments')
+
+        // Log file count for debugging
+        console.log(`Uploading ${options.files.length} files to Vercel...`)
+        const pkgFile = options.files.find(f => f.file === 'package.json')
+        if (pkgFile) {
+            console.log('  - package.json found')
+        } else {
+            console.log('  - WARNING: package.json NOT found!')
+            console.log('  - Files:', options.files.slice(0, 5).map(f => f.file).join(', '), '...')
+        }
+
+        // Convert env vars to Vercel format for deployment
+        const env: Record<string, string> = options.envVars || {}
 
         const response = await fetch(url, {
             method: 'POST',
             headers: this.getHeaders(),
             body: JSON.stringify({
                 name: options.name,
+                project: options.projectId,
                 files: options.files,
                 projectSettings: {
-                    framework: 'nextjs',
-                    buildCommand: null,
-                    installCommand: null
+                    framework: 'nextjs'
                 },
-                target: 'production'
+                target: 'production',
+                env
             })
         })
 
@@ -245,9 +320,57 @@ export class VercelClient {
             })
         })
 
-        if (!response.ok && response.status !== 409) { // 409 = already exists
+        if (!response.ok) {
             const error = await response.text()
+            // If env var already exists, try to update it
+            if (error.includes('ENV_CONFLICT') || response.status === 409) {
+                await this.updateEnvironmentVariable(projectId, key, value)
+                return
+            }
             throw new Error(`Failed to set env var ${key}: ${error}`)
+        }
+    }
+
+    /**
+     * Update an existing environment variable
+     */
+    private async updateEnvironmentVariable(
+        projectId: string,
+        key: string,
+        value: string
+    ): Promise<void> {
+        // First get the env var ID
+        const listUrl = this.buildUrl(`/v10/projects/${projectId}/env`)
+        const listResponse = await fetch(listUrl, {
+            headers: this.getHeaders()
+        })
+
+        if (!listResponse.ok) {
+            throw new Error(`Failed to list env vars for update: ${await listResponse.text()}`)
+        }
+
+        const data = await listResponse.json() as { envs: Array<{ id: string, key: string }> }
+        const envVar = data.envs.find(e => e.key === key)
+
+        if (!envVar) {
+            throw new Error(`Env var ${key} not found for update`)
+        }
+
+        // Update the env var
+        const updateUrl = this.buildUrl(`/v10/projects/${projectId}/env/${envVar.id}`)
+        const updateResponse = await fetch(updateUrl, {
+            method: 'PATCH',
+            headers: this.getHeaders(),
+            body: JSON.stringify({
+                value,
+                type: 'encrypted',
+                target: ['production', 'preview', 'development']
+            })
+        })
+
+        if (!updateResponse.ok) {
+            const error = await updateResponse.text()
+            throw new Error(`Failed to update env var ${key}: ${error}`)
         }
     }
 

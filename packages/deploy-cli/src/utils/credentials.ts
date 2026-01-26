@@ -67,9 +67,6 @@ export async function collectCredentials(): Promise<DeploymentCredentials> {
             name: 'vercelToken',
             message: 'Vercel API Token:',
             validate: (value) => {
-                if (!value.startsWith('vercel_')) {
-                    return 'Invalid Vercel token (should start with "vercel_")'
-                }
                 return true
             }
         },

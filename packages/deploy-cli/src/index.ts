@@ -12,10 +12,41 @@ import chalk from 'chalk'
 import ora from 'ora'
 import { DeploymentOrchestrator } from './orchestrator.js'
 import { verifyLicense, mockVerifyLicense } from './services/license.js'
-import { collectCredentials } from './utils/credentials.js'
-import { downloadBundles } from './services/bundles.js'
+import { collectCredentials, DeploymentCredentials } from './utils/credentials.js'
+import { downloadBundles, mockDownloadBundles } from './services/bundles.js'
 
 const VERSION = '1.0.0'
+
+// Check if running in CI mode with env vars
+const isEnvMode = process.env.DEPLOY_CLI_ENV_MODE === 'true'
+
+/**
+ * Get credentials from environment variables (for CI/testing)
+ */
+function getEnvCredentials(): DeploymentCredentials | null {
+    const required = ['PROJECT_NAME', 'VERCEL_TOKEN', 'DENO_TOKEN', 'MONGODB_URI', 'TELEGRAM_BOT_TOKEN']
+    const missing = required.filter(key => !process.env[key])
+    
+    if (missing.length > 0) {
+        return null
+    }
+    
+    return {
+        projectName: process.env.PROJECT_NAME!,
+        vercelToken: process.env.VERCEL_TOKEN!,
+        vercelTeamId: process.env.VERCEL_TEAM_ID,
+        denoToken: process.env.DENO_TOKEN!,
+        denoOrg: process.env.DENO_ORG,
+        mongodbUri: process.env.MONGODB_URI!,
+        telegramBotToken: process.env.TELEGRAM_BOT_TOKEN!,
+        telegramGroupId: process.env.TELEGRAM_GROUP_ID,
+        cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME,
+        cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
+        cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET,
+        youtubeApiKey: process.env.YOUTUBE_API_KEY,
+        customDomain: process.env.CUSTOM_DOMAIN,
+    }
+}
 
 async function showWelcome() {
     console.log(chalk.cyan.bold('\n🎯 CuratedReels Deployment CLI'))
@@ -27,12 +58,19 @@ async function showWelcome() {
 }
 
 async function verifyLicenseKey(): Promise<string> {
-    const { licenseKey } = await prompts({
-        type: 'password',
-        name: 'licenseKey',
-        message: 'Enter your CuratedReels license key:',
-        validate: (value) => value.length > 10 || 'License key is too short'
-    })
+    let licenseKey: string
+    
+    if (isEnvMode && process.env.LICENSE_KEY) {
+        licenseKey = process.env.LICENSE_KEY
+    } else {
+        const response = await prompts({
+            type: 'password',
+            name: 'licenseKey',
+            message: 'Enter your CuratedReels license key:',
+            validate: (value) => value.length > 10 || 'License key is too short'
+        })
+        licenseKey = response.licenseKey
+    }
 
     if (!licenseKey) {
         console.log(chalk.red('\n❌ License key is required'))
@@ -62,6 +100,11 @@ async function verifyLicenseKey(): Promise<string> {
 }
 
 async function confirmDeployment() {
+    if (isEnvMode) {
+        // Skip confirmation in env mode
+        return
+    }
+    
     const { confirm } = await prompts({
         type: 'confirm',
         name: 'confirm',
@@ -85,11 +128,27 @@ async function main() {
 
         // Step 2: Collect credentials
         console.log(chalk.bold('\n🔐 Step 2: Infrastructure Credentials'))
-        const credentials = await collectCredentials()
+        let credentials: DeploymentCredentials
+        
+        if (isEnvMode) {
+            const envCreds = getEnvCredentials()
+            if (!envCreds) {
+                console.log(chalk.red('\n❌ Missing required environment variables'))
+                console.log(chalk.gray('Required: PROJECT_NAME, VERCEL_TOKEN, DENO_TOKEN, MONGODB_URI, TELEGRAM_BOT_TOKEN'))
+                process.exit(1)
+            }
+            credentials = envCreds
+            console.log(chalk.green('✔ Using credentials from environment variables'))
+        } else {
+            credentials = await collectCredentials()
+        }
 
         // Step 3: Download bundles
         console.log(chalk.bold('\n📦 Step 3: Downloading Deployment Bundles'))
-        await downloadBundles(licenseKey)
+        // Use mock bundles only if explicitly set, otherwise download real bundles
+        const useMockBundles = process.env.MOCK_BUNDLES === 'true'
+        const download = useMockBundles ? mockDownloadBundles : downloadBundles
+        await download(licenseKey)
 
         // Step 4: Confirm deployment
         await confirmDeployment()

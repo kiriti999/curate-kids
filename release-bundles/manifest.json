@@ -1,0 +1,10 @@
+{
+  "version": "1.0.6",
+  "releaseDate": "2026-01-26T09:52:13Z",
+  "bundles": {
+    "frontend": "frontend.tar.gz",
+    "cms": "cms.tar.gz",
+    "bot": "bot.tar.gz",
+    "schema": "schema.json"
+  }
+}

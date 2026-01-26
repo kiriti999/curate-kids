@@ -12,9 +12,12 @@ import { extract } from 'tar'
 import ora from 'ora'
 import chalk from 'chalk'
 
-const BUNDLES_CDN_URL = process.env.BUNDLES_CDN_URL || 'https://releases.curatekids.com'
-const BUNDLES_VERSION = '1.0.0'
+// GitHub Releases configuration
+const GITHUB_OWNER = 'choicexchangedev-cpu'
+const GITHUB_REPO = 'curatedreels-releases'
+const BUNDLES_VERSION = process.env.CURATEKIDS_VERSION || '1.0.6'
 const BUNDLES_DIR = './.curatekids-bundles'
+const GITHUB_RELEASES_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/download`
 
 export interface BundleManifest {
     version: string
@@ -34,7 +37,7 @@ export interface BundleManifest {
 }
 
 /**
- * Download deployment bundles from CDN
+ * Download deployment bundles from GitHub Releases
  */
 export async function downloadBundles(licenseKey: string): Promise<void> {
     const spinner = ora('Downloading deployment bundles...').start()
@@ -43,28 +46,47 @@ export async function downloadBundles(licenseKey: string): Promise<void> {
         // Create bundles directory
         await mkdir(BUNDLES_DIR, { recursive: true })
 
-        // Get manifest
+        // Get manifest from GitHub Release
         spinner.text = 'Fetching bundle manifest...'
-        const manifest = await fetchManifest(licenseKey)
+        const manifest = await fetchManifestFromGitHub()
 
-        // Download each bundle
+        // Download each bundle from GitHub Release
+        const version = `v${manifest.version}`
+        
         spinner.text = 'Downloading frontend bundle...'
-        await downloadBundle(licenseKey, manifest.bundles.frontend, `${BUNDLES_DIR}/frontend.zip`)
+        await downloadFromGitHub(version, 'frontend.tar.gz', `${BUNDLES_DIR}/frontend.tar.gz`)
+        
+        spinner.text = 'Extracting frontend bundle...'
+        await mkdir(`${BUNDLES_DIR}/frontend`, { recursive: true })
+        await extract({
+            file: `${BUNDLES_DIR}/frontend.tar.gz`,
+            cwd: `${BUNDLES_DIR}/frontend`
+        })
 
         spinner.text = 'Downloading CMS bundle...'
-        await downloadBundle(licenseKey, manifest.bundles.cms, `${BUNDLES_DIR}/cms.zip`)
+        await downloadFromGitHub(version, 'cms.tar.gz', `${BUNDLES_DIR}/cms.tar.gz`)
+        
+        spinner.text = 'Extracting CMS bundle...'
+        await mkdir(`${BUNDLES_DIR}/cms`, { recursive: true })
+        await extract({
+            file: `${BUNDLES_DIR}/cms.tar.gz`,
+            cwd: `${BUNDLES_DIR}/cms`
+        })
 
         spinner.text = 'Downloading bot bundle...'
-        await downloadBundle(licenseKey, manifest.bundles.bot, `${BUNDLES_DIR}/bot.js`)
+        await downloadFromGitHub(version, 'bot.tar.gz', `${BUNDLES_DIR}/bot.tar.gz`)
+        
+        spinner.text = 'Extracting bot bundle...'
+        await mkdir(`${BUNDLES_DIR}/bot`, { recursive: true })
+        await extract({
+            file: `${BUNDLES_DIR}/bot.tar.gz`,
+            cwd: `${BUNDLES_DIR}/bot`
+        })
 
         spinner.text = 'Downloading database schema...'
-        await downloadBundle(licenseKey, manifest.bundles.schema, `${BUNDLES_DIR}/schema.json`)
+        await downloadFromGitHub(version, 'schema.json', `${BUNDLES_DIR}/schema.json`)
 
-        // Verify checksums
-        spinner.text = 'Verifying bundle integrity...'
-        await verifyChecksums(manifest)
-
-        spinner.succeed('Bundles downloaded and verified')
+        spinner.succeed('Bundles downloaded and extracted')
     } catch (error) {
         spinner.fail('Failed to download bundles')
         throw error
@@ -72,21 +94,21 @@ export async function downloadBundles(licenseKey: string): Promise<void> {
 }
 
 /**
- * Fetch bundle manifest
+ * Fetch manifest from GitHub Release
  */
-async function fetchManifest(licenseKey: string): Promise<BundleManifest> {
-    const url = `${BUNDLES_CDN_URL}/v${BUNDLES_VERSION}/manifest.json`
-
+async function fetchManifestFromGitHub(): Promise<BundleManifest> {
+    const url = `${GITHUB_RELEASES_URL}/v${BUNDLES_VERSION}/manifest.json`
+    
     const response = await fetch(url, {
         headers: {
-            'Authorization': `License ${licenseKey}`,
             'User-Agent': 'curatekids-deploy/1.0.0'
-        }
+        },
+        redirect: 'follow'
     })
 
     if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-            throw new Error('License key is not authorized to download bundles')
+        if (response.status === 404) {
+            throw new Error(`Release v${BUNDLES_VERSION} not found. Check https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases`)
         }
         throw new Error(`Failed to fetch manifest: ${response.statusText}`)
     }
@@ -95,22 +117,20 @@ async function fetchManifest(licenseKey: string): Promise<BundleManifest> {
 }
 
 /**
- * Download a single bundle file
+ * Download a file from GitHub Release
  */
-async function downloadBundle(
-    licenseKey: string,
-    bundleUrl: string,
-    destPath: string
-): Promise<void> {
-    const response = await fetch(bundleUrl, {
+async function downloadFromGitHub(version: string, filename: string, destPath: string): Promise<void> {
+    const url = `${GITHUB_RELEASES_URL}/${version}/${filename}`
+    
+    const response = await fetch(url, {
         headers: {
-            'Authorization': `License ${licenseKey}`,
             'User-Agent': 'curatekids-deploy/1.0.0'
-        }
+        },
+        redirect: 'follow'
     })
 
     if (!response.ok) {
-        throw new Error(`Failed to download bundle: ${response.statusText}`)
+        throw new Error(`Failed to download ${filename}: ${response.statusText}`)
     }
 
     if (!response.body) {
@@ -122,26 +142,75 @@ async function downloadBundle(
 }
 
 /**
- * Verify bundle checksums
+ * Mock bundle download for development/testing
  */
-async function verifyChecksums(manifest: BundleManifest): Promise<void> {
-    const crypto = await import('crypto')
+export async function mockDownloadBundles(_licenseKey: string): Promise<void> {
+    const spinner = ora('Downloading deployment bundles...').start()
     const fs = await import('fs/promises')
 
-    const files = [
-        { path: `${BUNDLES_DIR}/frontend.zip`, checksum: manifest.checksums.frontend },
-        { path: `${BUNDLES_DIR}/cms.zip`, checksum: manifest.checksums.cms },
-        { path: `${BUNDLES_DIR}/bot.js`, checksum: manifest.checksums.bot },
-        { path: `${BUNDLES_DIR}/schema.json`, checksum: manifest.checksums.schema },
-    ]
+    try {
+        console.log(chalk.yellow('\n⚠️  Using mock bundle download (development mode)'))
+        
+        // Create bundles directory
+        await mkdir(BUNDLES_DIR, { recursive: true })
+        await mkdir(`${BUNDLES_DIR}/cms`, { recursive: true })
+        await mkdir(`${BUNDLES_DIR}/frontend`, { recursive: true })
 
-    for (const file of files) {
-        const content = await fs.readFile(file.path)
-        const hash = crypto.createHash('sha256').update(content).digest('hex')
+        // Create mock CMS bundle directory with minimal Next.js structure
+        spinner.text = 'Creating mock CMS bundle...'
+        await fs.writeFile(`${BUNDLES_DIR}/cms/package.json`, JSON.stringify({
+            name: 'mock-cms',
+            version: '1.0.0',
+            scripts: { build: 'echo mock build', start: 'echo mock start' }
+        }, null, 2))
+        await fs.writeFile(`${BUNDLES_DIR}/cms/next.config.mjs`, 'export default {}')
 
-        if (hash !== file.checksum) {
-            throw new Error(`Checksum mismatch for ${file.path}`)
+        // Create mock frontend bundle directory
+        spinner.text = 'Creating mock frontend bundle...'
+        await fs.writeFile(`${BUNDLES_DIR}/frontend/package.json`, JSON.stringify({
+            name: 'mock-frontend',
+            version: '1.0.0',
+            scripts: { build: 'echo mock build', start: 'echo mock start' }
+        }, null, 2))
+        await fs.writeFile(`${BUNDLES_DIR}/frontend/next.config.mjs`, 'export default {}')
+
+        // Create mock bot bundle
+        spinner.text = 'Creating mock bot bundle...'
+        await fs.writeFile(`${BUNDLES_DIR}/bot.js`, '// Mock bot bundle\nexport default {}')
+
+        // Create mock database schema
+        spinner.text = 'Creating mock database schema...'
+        const mockSchema = {
+            version: '1.0.0',
+            collections: [
+                {
+                    name: 'videos',
+                    indexes: [
+                        { key: { slug: 1 }, unique: true, name: 'slug_1' },
+                        { key: { category: 1 }, name: 'category_1' },
+                        { key: { ageRange: 1 }, name: 'ageRange_1' }
+                    ]
+                },
+                {
+                    name: 'users',
+                    indexes: [
+                        { key: { email: 1 }, unique: true, name: 'email_1' }
+                    ]
+                },
+                {
+                    name: 'organizations',
+                    indexes: [
+                        { key: { slug: 1 }, unique: true, name: 'slug_1' }
+                    ]
+                }
+            ]
         }
+        await fs.writeFile(`${BUNDLES_DIR}/schema.json`, JSON.stringify(mockSchema, null, 2))
+
+        spinner.succeed('Mock bundles created (development mode)')
+    } catch (error) {
+        spinner.fail('Failed to create mock bundles')
+        throw error
     }
 }
 
@@ -152,15 +221,18 @@ export async function extractBundles(): Promise<void> {
     const spinner = ora('Extracting bundles...').start()
 
     try {
+        await mkdir(`${BUNDLES_DIR}/frontend`, { recursive: true })
+        await mkdir(`${BUNDLES_DIR}/cms`, { recursive: true })
+
         // Extract frontend
         await extract({
-            file: `${BUNDLES_DIR}/frontend.zip`,
+            file: `${BUNDLES_DIR}/frontend.tar.gz`,
             cwd: `${BUNDLES_DIR}/frontend`
         })
 
         // Extract CMS
         await extract({
-            file: `${BUNDLES_DIR}/cms.zip`,
+            file: `${BUNDLES_DIR}/cms.tar.gz`,
             cwd: `${BUNDLES_DIR}/cms`
         })
 

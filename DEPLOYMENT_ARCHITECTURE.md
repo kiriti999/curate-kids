@@ -112,8 +112,7 @@ async function collectCredentials() {
     {
       type: 'password',
       name: 'vercelToken',
-      message: 'Vercel API Token:',
-      validate: (v) => v.startsWith('vercel_') || 'Invalid Vercel token'
+      message: 'Vercel API Token:'
     },
     {
       type: 'password',

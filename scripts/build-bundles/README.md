@@ -66,14 +66,14 @@ Runs all build scripts and creates release
 **Output:**
 - `releases/v1.0.0/` directory with all bundles
 - `manifest.json` with checksums
-- `curatekids-v1.0.0.tar.gz` archive
+- `curatedreels-v1.0.0.tar.gz` archive
 
 ### 5. upload-to-cdn.sh [version]`
 Uploads bundles to S3/CloudFront
 
 **Usage:**
 ```bash
-export S3_BUCKET=curatekids-releases
+export S3_BUCKET=curatedreels-releases
 export AWS_REGION=us-east-1
 ./upload-to-cdn.sh 1.0.0
 ```
@@ -104,8 +104,8 @@ cd scripts/build-bundles
 aws configure
 
 # Set environment
-export S3_BUCKET=curatekids-releases
-export CDN_URL=https://releases.curatekids.com
+export S3_BUCKET=curatedreels-releases
+export CDN_URL=https://releases.curatedreels.com
 
 # Upload
 ./upload-to-cdn.sh 1.0.0
@@ -135,7 +135,7 @@ releases/
     ├── bot.js                # Bot bundle
     ├── schema.json           # DB schema
     ├── manifest.json         # Release metadata
-    └── curatekids-v1.0.0.tar.gz  # Complete archive
+    └── curatedreels-v1.0.0.tar.gz  # Complete archive
 ```
 
 ## Metadata Files
@@ -165,8 +165,8 @@ releases/
 {
   "version": "1.0.0",
   "releaseDate": "2026-01-21T00:00:00Z",
-  "downloadUrl": "https://releases.curatekids.com/v1.0.0/curatekids-v1.0.0.tar.gz",
-  "manifestUrl": "https://releases.curatekids.com/v1.0.0/manifest.json"
+  "downloadUrl": "https://releases.curatedreels.com/v1.0.0/curatedreels-v1.0.0.tar.gz",
+  "manifestUrl": "https://releases.curatedreels.com/v1.0.0/manifest.json"
 }
 ```
 
@@ -195,9 +195,9 @@ releases/
 
 ### For upload-to-cdn.sh
 ```bash
-S3_BUCKET=curatekids-releases        # S3 bucket name
+S3_BUCKET=curatedreels-releases        # S3 bucket name
 AWS_REGION=us-east-1                  # AWS region
-CDN_URL=https://releases.curatekids.com  # CDN base URL
+CDN_URL=https://releases.curatedreels.com  # CDN base URL
 CLOUDFRONT_DISTRIBUTION_ID=E1234567   # CloudFront ID (optional)
 WEBHOOK_URL=https://...               # Notification webhook (optional)
 ```
@@ -227,7 +227,7 @@ aws configure
 ```bash
 # Make sure dependencies are installed
 cd ../frontend && npm install
-cd ../curatekids && npm install
+cd ../curatedreels && npm install
 ```
 
 ## Development Workflow
@@ -292,7 +292,7 @@ After building bundles:
 2. Update deploy-cli with new version
 3. Test deployment end-to-end
 4. Publish to npm: `npm publish packages/deploy-cli`
-5. Customer installs: `npm install -g @curatekids/deploy`
+5. Customer installs: `npm install -g @curatedreels/deploy`
 
 ---
 

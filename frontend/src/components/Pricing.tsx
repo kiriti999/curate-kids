@@ -83,7 +83,7 @@ export default function Pricing() {
 
         try {
             // 1. Initiate Order on Backend
-            const response = await fetch(`${API_HOST}/curatekids/orders`, {
+            const response = await fetch(`${API_HOST}/curatedreels/orders`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

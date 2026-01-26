@@ -514,7 +514,7 @@ function computeCTR(clicks: number, impressions: number): number {
   "content": {
     "contentType": "image",
     "imageUrl": "https://cdn.example.com/ads/educational-toys.jpg",
-    "linkUrl": "https://shop.example.com/toys?utm_source=curatekids",
+    "linkUrl": "https://shop.example.com/toys?utm_source=curatedreels",
     "altText": "Shop educational toys for kids"
   },
   "ageRanges": ["5-7", "8-9"],
@@ -621,7 +621,7 @@ function computeConversionRate(clicks: number, impressions: number): number {
   "name": "Educational Toy Shop",
   "contactEmail": "partnerships@educationalshop.com",
   "website": "https://educationalshop.com",
-  "trackingUrlTemplate": "https://educationalshop.com/track?ref=curatekids&ad={adId}&s={sessionId}",
+  "trackingUrlTemplate": "https://educationalshop.com/track?ref=curatedreels&ad={adId}&s={sessionId}",
   "commissionRate": 8.5,
   "commissionType": "cpa",
   "paymentTerms": "Net 30 days, minimum $100 payout",
@@ -853,7 +853,7 @@ interface ActivityLog {
   "metadata": {
     "adId": "ad-header-banner-1",
     "adPosition": "header",
-    "clickDestination": "https://shop.example.com/toys?utm_source=curatekids",
+    "clickDestination": "https://shop.example.com/toys?utm_source=curatedreels",
     "ageRange": "5-7"
   }
 }

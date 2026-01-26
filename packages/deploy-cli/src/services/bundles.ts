@@ -16,7 +16,7 @@ import chalk from 'chalk'
 const GITHUB_OWNER = 'choicexchangedev-cpu'
 const GITHUB_REPO = 'curatedreels-releases'
 const BUNDLES_VERSION = process.env.CURATEKIDS_VERSION || '1.0.6'
-const BUNDLES_DIR = './.curatekids-bundles'
+const BUNDLES_DIR = './.curatedreels-bundles'
 const GITHUB_RELEASES_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/download`
 
 export interface BundleManifest {
@@ -52,10 +52,10 @@ export async function downloadBundles(licenseKey: string): Promise<void> {
 
         // Download each bundle from GitHub Release
         const version = `v${manifest.version}`
-        
+
         spinner.text = 'Downloading frontend bundle...'
         await downloadFromGitHub(version, 'frontend.tar.gz', `${BUNDLES_DIR}/frontend.tar.gz`)
-        
+
         spinner.text = 'Extracting frontend bundle...'
         await mkdir(`${BUNDLES_DIR}/frontend`, { recursive: true })
         await extract({
@@ -65,7 +65,7 @@ export async function downloadBundles(licenseKey: string): Promise<void> {
 
         spinner.text = 'Downloading CMS bundle...'
         await downloadFromGitHub(version, 'cms.tar.gz', `${BUNDLES_DIR}/cms.tar.gz`)
-        
+
         spinner.text = 'Extracting CMS bundle...'
         await mkdir(`${BUNDLES_DIR}/cms`, { recursive: true })
         await extract({
@@ -75,7 +75,7 @@ export async function downloadBundles(licenseKey: string): Promise<void> {
 
         spinner.text = 'Downloading bot bundle...'
         await downloadFromGitHub(version, 'bot.tar.gz', `${BUNDLES_DIR}/bot.tar.gz`)
-        
+
         spinner.text = 'Extracting bot bundle...'
         await mkdir(`${BUNDLES_DIR}/bot`, { recursive: true })
         await extract({
@@ -98,10 +98,10 @@ export async function downloadBundles(licenseKey: string): Promise<void> {
  */
 async function fetchManifestFromGitHub(): Promise<BundleManifest> {
     const url = `${GITHUB_RELEASES_URL}/v${BUNDLES_VERSION}/manifest.json`
-    
+
     const response = await fetch(url, {
         headers: {
-            'User-Agent': 'curatekids-deploy/1.0.0'
+            'User-Agent': 'curatedreels-deploy/1.0.0'
         },
         redirect: 'follow'
     })
@@ -121,10 +121,10 @@ async function fetchManifestFromGitHub(): Promise<BundleManifest> {
  */
 async function downloadFromGitHub(version: string, filename: string, destPath: string): Promise<void> {
     const url = `${GITHUB_RELEASES_URL}/${version}/${filename}`
-    
+
     const response = await fetch(url, {
         headers: {
-            'User-Agent': 'curatekids-deploy/1.0.0'
+            'User-Agent': 'curatedreels-deploy/1.0.0'
         },
         redirect: 'follow'
     })
@@ -150,7 +150,7 @@ export async function mockDownloadBundles(_licenseKey: string): Promise<void> {
 
     try {
         console.log(chalk.yellow('\n⚠️  Using mock bundle download (development mode)'))
-        
+
         // Create bundles directory
         await mkdir(BUNDLES_DIR, { recursive: true })
         await mkdir(`${BUNDLES_DIR}/cms`, { recursive: true })

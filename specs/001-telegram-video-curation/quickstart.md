@@ -107,7 +107,7 @@ Create 5 Telegram groups for each age range:
 
 ```bash
 git clone <repository-url>
-cd curatekids
+cd curatedreels
 ```
 
 ### 2. Create Bot Directory

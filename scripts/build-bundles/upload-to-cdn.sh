@@ -7,8 +7,8 @@ set -e
 
 # Configuration
 VERSION=$1
-S3_BUCKET=${S3_BUCKET:-"curatekids-releases"}
-CDN_URL=${CDN_URL:-"https://releases.curatekids.com"}
+S3_BUCKET=${S3_BUCKET:-"curatedreels-releases"}
+CDN_URL=${CDN_URL:-"https://releases.curatedreels.com"}
 AWS_REGION=${AWS_REGION:-"us-east-1"}
 
 if [ -z "$VERSION" ]; then
@@ -72,8 +72,8 @@ aws s3 cp "$RELEASE_DIR/manifest.json" \
     --content-type "application/json"
 
 # Upload archive
-aws s3 cp "./releases/curatekids-v$VERSION.tar.gz" \
-    "s3://$S3_BUCKET/v$VERSION/curatekids-v$VERSION.tar.gz" \
+aws s3 cp "./releases/curatedreels-v$VERSION.tar.gz" \
+    "s3://$S3_BUCKET/v$VERSION/curatedreels-v$VERSION.tar.gz" \
     --region "$AWS_REGION" \
     --content-type "application/gzip"
 
@@ -83,7 +83,7 @@ cat > "./releases/latest.json" << EOF
 {
   "version": "$VERSION",
   "releaseDate": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-  "downloadUrl": "$CDN_URL/v$VERSION/curatekids-v$VERSION.tar.gz",
+  "downloadUrl": "$CDN_URL/v$VERSION/curatedreels-v$VERSION.tar.gz",
   "manifestUrl": "$CDN_URL/v$VERSION/manifest.json"
 }
 EOF

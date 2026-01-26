@@ -182,7 +182,7 @@ These principles supersede any other guidance and apply to all contributors and 
 ## Project Structure
 
 ```
-curatekids-bot/
+curatedreels-bot/
 ├── src/
 │   ├── main.ts              # Entry point, bot initialization, webhook handler
 │   ├── config/              # Configuration constants and mappings

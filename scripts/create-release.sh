@@ -59,7 +59,7 @@ rm -rf "$STAGING_DIR"
 
 # Copy bot bundle (entire Deno project)
 echo "📋 Packaging bot..."
-BOT_SOURCE_DIR="${BOT_SOURCE_DIR:-../curatekids-bot}"
+BOT_SOURCE_DIR="${BOT_SOURCE_DIR:-../curatedreels-bot}"
 if [ -d "$BOT_SOURCE_DIR/src" ]; then
     mkdir -p "$STAGING_DIR/bot"
     # Copy bot source files
@@ -87,7 +87,7 @@ Deno.serve((req) => {
 });
 BOTEOF
     cat > "$STAGING_DIR/bot/deno.json" << 'DENOEOF'
-{"name": "curatekids-bot", "version": "1.0.0", "exports": "./src/main.ts"}
+{"name": "curatedreels-bot", "version": "1.0.0", "exports": "./src/main.ts"}
 DENOEOF
     COPYFILE_DISABLE=1 tar -czf "$RELEASE_DIR/bot.tar.gz" -C "$STAGING_DIR/bot" --exclude='._*' .
     rm -rf "$STAGING_DIR/bot"

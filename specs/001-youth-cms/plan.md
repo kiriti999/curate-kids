@@ -994,7 +994,7 @@ If blocked, reassign videos and delete/move child categories first.
 Run the agent context update script to add Sanity-specific context:
 
 ```bash
-cd /Users/arjun/curatekids
+cd /Users/arjun/curatedreels
 .specify/scripts/bash/update-agent-context.sh copilot
 ```
 

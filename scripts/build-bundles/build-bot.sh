@@ -8,7 +8,7 @@ set -e
 echo "🏗️  Building Bot Bundle..."
 
 # Configuration
-BOT_DIR="../../curatekids-bot"
+BOT_DIR="../../curatedreels-bot"
 OUTPUT_DIR="./output/bot"
 BUNDLE_NAME="bot.js"
 
@@ -21,7 +21,7 @@ mkdir -p "$OUTPUT_DIR"
 # Bundle Deno code into single file
 echo "📦 Bundling Deno code..."
 cd "$BOT_DIR"
-deno  bundle src/main.ts "../curatekids/scripts/build-bundles/$OUTPUT_DIR/bot.bundle.js"
+deno  bundle src/main.ts "../curatedreels/scripts/build-bundles/$OUTPUT_DIR/bot.bundle.js"
 cd -
 
 # Minify the bundle

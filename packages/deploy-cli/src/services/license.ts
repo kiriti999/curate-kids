@@ -31,7 +31,7 @@ export async function verifyLicense(licenseKey: string): Promise<boolean> {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'User-Agent': 'curatekids-deploy/1.0.0'
+                'User-Agent': 'curatedreels-deploy/1.0.0'
             },
             body: JSON.stringify({ key: licenseKey })
         })
@@ -66,7 +66,7 @@ export async function getLicenseDetails(licenseKey: string): Promise<License> {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'User-Agent': 'curatekids-deploy/1.0.0'
+            'User-Agent': 'curatedreels-deploy/1.0.0'
         },
         body: JSON.stringify({ key: licenseKey })
     })
@@ -111,7 +111,7 @@ export async function registerDeployment(
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `License ${licenseKey}`,
-            'User-Agent': 'curatekids-deploy/1.0.0'
+            'User-Agent': 'curatedreels-deploy/1.0.0'
         },
         body: JSON.stringify(deploymentInfo)
     })

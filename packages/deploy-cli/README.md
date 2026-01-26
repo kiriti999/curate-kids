@@ -1,4 +1,4 @@
-# @curatekids/deploy
+# @curatedreels/deploy
 
 White-label deployment CLI for CuratedReels - Deploy to customer's infrastructure without exposing source code.
 
@@ -9,13 +9,13 @@ This CLI tool allows customers to deploy CuratedReels to their own infrastructur
 ## Installation
 
 ```bash
-npm install -g @curatekids/deploy
+npm install -g @curatedreels/deploy
 ```
 
 ## Usage
 
 ```bash
-curatekids-deploy
+curatedreels-deploy
 ```
 
 The CLI will guide you through:
@@ -137,7 +137,7 @@ YOUTUBE_API_KEY=<customer-youtube-key>
 ```
 Error: Invalid license key
 ```
-**Solution:** Ensure you have an active CuratedReels license. Purchase at https://curatekids.com/pricing
+**Solution:** Ensure you have an active CuratedReels license. Purchase at https://curatedreels.com/pricing
 
 ### Vercel Deployment Fails
 ```
@@ -165,9 +165,9 @@ Error: Failed to download bundles
 
 ## Support
 
-- 📚 Documentation: https://docs.curatekids.com
-- 💬 Support: support@curatekids.com
-- 🐛 Issues: https://github.com/curatekids/deploy-cli/issues
+- 📚 Documentation: https://docs.curatedreels.com
+- 💬 Support: support@curatedreels.com
+- 🐛 Issues: https://github.com/curatedreels/deploy-cli/issues
 
 ## License
 

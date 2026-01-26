@@ -117,7 +117,7 @@ async function collectInputs(): Promise<CustomerConfig> {
         {
             type: 'input',
             name: 'customDomain',
-            message: 'Custom Domain (optional, e.g., curatekids.com):',
+            message: 'Custom Domain (optional, e.g., curatedreels.com):',
         },
     ]);
 

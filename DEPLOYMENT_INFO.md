@@ -11,14 +11,14 @@ These are the live endpoints for your license server. No API Gateway is required
 **URL:** `https://qr4uign67ucohx2dogu2xq7neq0rjonz.lambda-url.ap-south-1.on.aws/`
 - **Method:** POST
 - **Body:** `{ "key": "ck_..." }`
-- **Used by:** `@curatekids/deploy` CLI to validate customer keys.
+- **Used by:** `@curatedreels/deploy` CLI to validate customer keys.
 
 ### 2. Register Deployment (Public)
 **URL:** `https://e3ukc7oeybqvsf27dhrsug25my0psezs.lambda-url.ap-south-1.on.aws/`
 - **Method:** POST
 - **Headers:** `Authorization: License ck_...`
 - **Body:** `{ "projectName": "...", "frontendUrl": "...", ... }`
-- **Used by:** `@curatekids/deploy` CLI to track usage.
+- **Used by:** `@curatedreels/deploy` CLI to track usage.
 
 ### 3. Razorpay Webhook (Secret)
 **URL:** `https://nk3yd6cab52l2d2ats3xe4ydda0pfmqh.lambda-url.ap-south-1.on.aws/`

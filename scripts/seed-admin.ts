@@ -21,7 +21,7 @@ if (process.env.NODE_ENV !== 'production') {
   }
 }
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@curatekids.com'
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@curatedreels.com'
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Admin123!'
 const ADMIN_NAME = process.env.ADMIN_NAME || 'Admin User'
 const API_URL = process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'

@@ -83,7 +83,7 @@ Defines:
 ## Deployment Flow
 
 ```
-Customer runs: curatekids-deploy
+Customer runs: curatedreels-deploy
          ↓
 1. Verify License ✅
          ↓
@@ -247,10 +247,10 @@ YOUTUBE_API_KEY={customer-youtube-key}
 
 ```bash
 # Install CLI globally
-npm install -g @curatekids/deploy
+npm install -g @curatedreels/deploy
 
 # Run deployment
-curatekids-deploy
+curatedreels-deploy
 
 # Interactive prompts (5-10 min)
 # Automated deployment (3-5 min)

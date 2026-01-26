@@ -113,12 +113,12 @@ EOF
 # Create release archive
 echo "🗜️  Creating release archive..."
 cd "$RELEASE_DIR"
-tar -czf "../curatekids-v$VERSION.tar.gz" .
+tar -czf "../curatedreels-v$VERSION.tar.gz" .
 cd -
 
 # Calculate total size
 TOTAL_SIZE=$(du -sh "$RELEASE_DIR" | cut -f1)
-ARCHIVE_SIZE=$(du -h "./releases/curatekids-v$VERSION.tar.gz" | cut -f1)
+ARCHIVE_SIZE=$(du -h "./releases/curatedreels-v$VERSION.tar.gz" | cut -f1)
 
 # Track end time
 END_TIME=$(date +%s)
@@ -144,7 +144,7 @@ echo "   ✓ cms.zip ($CMS_CHECKSUM)"
 echo "   ✓ bot.js ($BOT_CHECKSUM)"
 echo "   ✓ schema.json ($SCHEMA_CHECKSUM)"
 echo "   ✓ manifest.json"
-echo "   ✓ curatekids-v$VERSION.tar.gz"
+echo "   ✓ curatedreels-v$VERSION.tar.gz"
 echo ""
 echo "🚀 Next Steps:"
 echo "   1. Upload to CDN: ./upload-to-cdn.sh v$VERSION"

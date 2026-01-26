@@ -36,7 +36,7 @@ export async function setupMongoDB(uri: string): Promise<void> {
     try {
         await client.connect()
 
-        const db = client.db('curatekids')
+        const db = client.db('curatedreels')
 
         // Load schema from bundle
         const schema = await loadSchema()
@@ -172,7 +172,7 @@ export async function getDatabaseStats(uri: string): Promise<any> {
 
     try {
         await client.connect()
-        const db = client.db('curatekids')
+        const db = client.db('curatedreels')
 
         const stats = await db.stats()
         const collections = await db.listCollections().toArray()

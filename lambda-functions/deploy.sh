@@ -161,19 +161,19 @@ deploy_lambda() {
 
 # Deploy verify-license
 deploy_lambda \
-    "curatekids-verify-license" \
+    "curatedreels-verify-license" \
     "verify-license" \
     "MONGODB_URI=$MONGODB_URI"
 
 # Deploy register-deployment
 deploy_lambda \
-    "curatekids-register-deployment" \
+    "curatedreels-register-deployment" \
     "register-deployment" \
     "MONGODB_URI=$MONGODB_URI"
 
 # Deploy razorpay-webhook
 deploy_lambda \
-    "curatekids-razorpay-webhook" \
+    "curatedreels-razorpay-webhook" \
     "razorpay-webhook" \
     "MONGODB_URI=$MONGODB_URI,RAZORPAY_WEBHOOK_SECRET=$RAZORPAY_SECRET"
 

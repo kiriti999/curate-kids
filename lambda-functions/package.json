@@ -1,5 +1,5 @@
 {
-  "name": "curatekids-license-lambdas",
+  "name": "curatedreels-license-lambdas",
   "version": "1.0.0",
   "description": "AWS Lambda functions for CuratedReels license server",
   "private": true,

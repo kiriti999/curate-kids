@@ -111,6 +111,13 @@ The CLI will ask for your tokens one by one:
 ? Telegram bot token: [paste the token from STEP 1]
 ```
 
+**Admin Account:**
+```
+? Admin Full Name: John Doe
+? Admin Email: john@mycompany.com
+? Admin Password: ******** (min 8 characters)
+```
+
 **Cloudinary (optional):**
 ```
 ? Cloudinary cloud name: [your-cloud-name]
@@ -158,10 +165,7 @@ After deployment completes, add your bot to a Telegram group:
 
 ## 🎨 Next Steps
 
-1. **Open your admin panel** - Visit the CMS URL and login with default credentials:
-   - **Email:** `admin@curatedreels.com`
-   - **Password:** `admin123`
-   - ⚠️ **IMPORTANT:** Change the password immediately after first login!
+1. **Open your admin panel** - Visit the CMS URL and login with the credentials you provided during deployment
 2. **Configure your bot** - Send `/start` to your Telegram bot
 3. **Customize branding** - Update colors, logo in the admin panel
 4. **Add videos** - Start curating content!

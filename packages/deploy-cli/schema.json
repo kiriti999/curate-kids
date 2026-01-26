@@ -1,0 +1,90 @@
+{
+  "collections": [
+    {
+      "name": "videos",
+      "indexes": [
+        {
+          "key": { "slug": 1 },
+          "unique": true,
+          "name": "slug_1"
+        },
+        {
+          "key": { "category": 1 },
+          "name": "category_1"
+        },
+        {
+          "key": { "ageRange": 1 },
+          "name": "ageRange_1"
+        },
+        {
+          "key": { "createdAt": -1 },
+          "name": "createdAt_-1"
+        },
+        {
+          "key": { "category": 1, "ageRange": 1 },
+          "name": "category_1_ageRange_1"
+        },
+        {
+          "key": { "youtubeId": 1 },
+          "name": "youtubeId_1"
+        },
+        {
+          "key": { "cloudinaryId": 1 },
+          "name": "cloudinaryId_1"
+        }
+      ]
+    },
+    {
+      "name": "organizations",
+      "indexes": [
+        {
+          "key": { "telegramGroupId": 1 },
+          "unique": true,
+          "name": "telegramGroupId_1"
+        },
+        {
+          "key": { "ownerTelegramId": 1 },
+          "name": "ownerTelegramId_1"
+        }
+      ]
+    },
+    {
+      "name": "users",
+      "indexes": [
+        {
+          "key": { "email": 1 },
+          "unique": true,
+          "name": "email_1"
+        },
+        {
+          "key": { "telegramId": 1 },
+          "name": "telegramId_1"
+        },
+        {
+          "key": { "organization": 1 },
+          "name": "organization_1"
+        }
+      ]
+    },
+    {
+      "name": "payload-preferences",
+      "indexes": [
+        {
+          "key": { "key": 1 },
+          "name": "key_1"
+        }
+      ]
+    },
+    {
+      "name": "payload-migrations",
+      "indexes": [
+        {
+          "key": { "name": 1 },
+          "unique": true,
+          "name": "name_1"
+        }
+      ]
+    }
+  ],
+  "seedData": []
+}

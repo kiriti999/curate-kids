@@ -1,2 +1,0 @@
-/* THIS FILE WAS GENERATED AUTOMATICALLY BY PAYLOAD. */
-export const importMap = {}

@@ -128,6 +128,9 @@ export class DeploymentOrchestrator {
                 MONGODB_URI: this.credentials.mongodbUri,
                 PAYLOAD_SECRET: payloadSecret,
                 TELEGRAM_BOT_TOKEN: this.credentials.telegramBotToken,
+                ADMIN_EMAIL: this.credentials.adminEmail,
+                ADMIN_PASSWORD: this.credentials.adminPassword,
+                ADMIN_NAME: this.credentials.adminName || 'Admin User',
                 ...(this.credentials.telegramGroupId && {
                     TELEGRAM_GROUP: this.credentials.telegramGroupId
                 }),
@@ -172,6 +175,9 @@ export class DeploymentOrchestrator {
                 PAYLOAD_SECRET: payloadSecret,
                 TELEGRAM_BOT_TOKEN: this.credentials.telegramBotToken,
                 NEXT_PUBLIC_PAYLOAD_API_URL: `${this.cmsUrl}/api`,
+                ADMIN_EMAIL: this.credentials.adminEmail,
+                ADMIN_PASSWORD: this.credentials.adminPassword,
+                ADMIN_NAME: this.credentials.adminName || 'Admin User',
                 ...(this.credentials.telegramGroupId && {
                     TELEGRAM_GROUP: this.credentials.telegramGroupId
                 }),

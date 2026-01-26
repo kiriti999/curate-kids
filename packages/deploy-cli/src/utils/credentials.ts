@@ -23,6 +23,11 @@ export interface DeploymentCredentials {
     telegramBotToken: string
     telegramGroupId?: string
 
+    // Admin Account
+    adminEmail: string
+    adminPassword: string
+    adminName?: string
+
     // Cloudinary (optional)
     cloudinaryCloudName?: string
     cloudinaryApiKey?: string
@@ -121,6 +126,37 @@ export async function collectCredentials(): Promise<DeploymentCredentials> {
             name: 'telegramGroupId',
             message: 'Telegram Group ID (optional, can set later):',
             initial: ''
+        },
+
+        // Admin Account
+        {
+            type: 'text',
+            name: 'adminName',
+            message: 'Admin Full Name:',
+            initial: 'Admin User',
+            validate: (value) => value.length > 0 || 'Admin name is required'
+        },
+        {
+            type: 'text',
+            name: 'adminEmail',
+            message: 'Admin Email:',
+            validate: (value) => {
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                    return 'Invalid email format'
+                }
+                return true
+            }
+        },
+        {
+            type: 'password',
+            name: 'adminPassword',
+            message: 'Admin Password (min 8 characters):',
+            validate: (value) => {
+                if (value.length < 8) {
+                    return 'Password must be at least 8 characters'
+                }
+                return true
+            }
         },
 
         // Optional services

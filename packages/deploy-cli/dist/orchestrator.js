@@ -21,6 +21,8 @@ export class DeploymentOrchestrator {
     frontendUrl = '';
     cmsUrl = '';
     botUrl = '';
+    // Track deployed resources for rollback
+    deployedResources = {};
     constructor(credentials, licenseKey) {
         this.credentials = credentials;
         this.licenseKey = licenseKey;
@@ -49,7 +51,36 @@ export class DeploymentOrchestrator {
         }
         catch (error) {
             console.error(chalk.red('\n❌ Deployment failed\n'));
+            // Rollback deployed resources
+            await this.rollback();
             throw error;
+        }
+    }
+    /**
+     * Rollback deployed resources on failure
+     */
+    async rollback() {
+        console.log(chalk.yellow('\n🔄 Rolling back deployed resources...\n'));
+        const rollbackSpinner = ora('Cleaning up...').start();
+        try {
+            // Delete Vercel projects
+            if (this.deployedResources.cms) {
+                rollbackSpinner.text = `Deleting CMS project: ${this.deployedResources.cms}...`;
+                await this.vercel.deleteProject(this.deployedResources.cms).catch(() => { });
+            }
+            if (this.deployedResources.frontend) {
+                rollbackSpinner.text = `Deleting Frontend project: ${this.deployedResources.frontend}...`;
+                await this.vercel.deleteProject(this.deployedResources.frontend).catch(() => { });
+            }
+            // Delete Deno Deploy project
+            if (this.deployedResources.bot) {
+                rollbackSpinner.text = `Deleting Bot project: ${this.deployedResources.bot}...`;
+                await this.deno.deleteProject(this.deployedResources.bot).catch(() => { });
+            }
+            rollbackSpinner.succeed('Cleanup completed');
+        }
+        catch (error) {
+            rollbackSpinner.warn('Some resources may need manual cleanup');
         }
     }
     /**
@@ -73,6 +104,7 @@ export class DeploymentOrchestrator {
         const spinner = ora('Deploying CMS to Vercel...').start();
         try {
             const projectName = `${this.credentials.projectName}-cms`;
+            this.deployedResources.cms = projectName;
             const bundlePath = `${getBundlesDir()}/cms`;
             // Generate a random secret for Payload CMS
             const payloadSecret = Array.from(crypto.getRandomValues(new Uint8Array(32)))
@@ -114,6 +146,7 @@ export class DeploymentOrchestrator {
         const spinner = ora('Deploying Frontend to Vercel...').start();
         try {
             const projectName = `${this.credentials.projectName}-frontend`;
+            this.deployedResources.frontend = projectName;
             const bundlePath = `${getBundlesDir()}/frontend`;
             const envVars = {
                 NEXT_PUBLIC_PAYLOAD_API_URL: `${this.cmsUrl}/api`,
@@ -147,6 +180,7 @@ export class DeploymentOrchestrator {
         const spinner = ora('Deploying Bot to Deno Deploy...').start();
         try {
             const projectName = `${this.credentials.projectName}-bot`;
+            this.deployedResources.bot = projectName;
             const botDir = `${getBundlesDir()}/bot`;
             const envVars = {
                 TELEGRAM_BOT_TOKEN: this.credentials.telegramBotToken,

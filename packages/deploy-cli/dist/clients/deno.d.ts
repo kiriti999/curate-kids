@@ -18,7 +18,7 @@ export declare class DenoClient {
      */
     deploy(options: DenoDeploymentOptions): Promise<string>;
     /**
-     * Deploy using deployctl CLI
+     * Deploy using deployctl CLI with environment variables
      */
     private deployWithCLI;
     /**
@@ -33,10 +33,6 @@ export declare class DenoClient {
      * Create a new project
      */
     private createProject;
-    /**
-     * Set environment variables
-     */
-    setEnvironmentVariables(projectId: string, envVars: Record<string, string>): Promise<void>;
     /**
      * Update project settings
      */

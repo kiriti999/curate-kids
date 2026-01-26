@@ -28,28 +28,29 @@ export class DenoClient {
      * Deploy a project to Deno Deploy using deployctl
      */
     async deploy(options: DenoDeploymentOptions): Promise<string> {
-        // Step 1: Ensure project exists
-        const projectName = await this.ensureProject(options.projectName)
+        // Step 1: Ensure project exists and get project name
+        const { name: projectName } = await this.ensureProject(options.projectName)
 
-        // Step 2: Deploy using deployctl from the bot directory
-        // entrypoint should be a directory containing deno.json and src/main.ts
-        const url = await this.deployWithCLI(projectName, options.entrypoint)
-
-        // Step 3: Set environment variables
-        await this.setEnvironmentVariables(projectName, options.envVars)
+        // Step 2: Deploy using deployctl with environment variables
+        const url = await this.deployWithCLI(projectName, options.entrypoint, options.envVars)
 
         return url
     }
 
     /**
-     * Deploy using deployctl CLI
+     * Deploy using deployctl CLI with environment variables
      */
-    private async deployWithCLI(projectName: string, deployDir: string): Promise<string> {
+    private async deployWithCLI(projectName: string, deployDir: string, envVars: Record<string, string>): Promise<string> {
         const deployctlPath = `${process.env.HOME}/.deno/bin/deployctl`
+        
+        // Build --env flags for each environment variable
+        const envFlags = Object.entries(envVars)
+            .map(([key, value]) => `--env='${key}=${value.replace(/'/g, "'\\''")}'`)
+            .join(' ')
         
         try {
             const { stdout, stderr } = await execAsync(
-                `cd "${deployDir}" && DENO_DEPLOY_TOKEN=${this.token} "${deployctlPath}" deploy --project=${projectName} --entrypoint=src/main.ts --prod 2>&1`,
+                `cd "${deployDir}" && DENO_DEPLOY_TOKEN=${this.token} "${deployctlPath}" deploy --project=${projectName} --entrypoint=src/main.ts ${envFlags} --prod 2>&1`,
                 { timeout: 300000 } // 5 minute timeout
             )
 
@@ -74,12 +75,13 @@ export class DenoClient {
     /**
      * Ensure project exists (create if not)
      */
-    private async ensureProject(name: string): Promise<string> {
+    private async ensureProject(name: string): Promise<{ name: string, id: string }> {
         try {
             const project = await this.getProject(name)
-            return project.name  // Return name for deployctl
+            return { name: project.name, id: project.id }
         } catch {
-            return await this.createProject(name)
+            const newProjectId = await this.createProject(name)
+            return { name, id: newProjectId }
         }
     }
 
@@ -123,33 +125,7 @@ export class DenoClient {
         }
 
         const project: any = await response.json()
-        return project.name  // Return name for deployctl
-    }
-
-    /**
-     * Set environment variables
-     */
-    async setEnvironmentVariables(
-        projectId: string,
-        envVars: Record<string, string>
-    ): Promise<void> {
-        const url = `${this.baseUrl}/projects/${projectId}/env`
-
-        const variables = Object.entries(envVars).map(([key, value]) => ({
-            key,
-            value
-        }))
-
-        const response = await fetch(url, {
-            method: 'PATCH',
-            headers: this.getHeaders(),
-            body: JSON.stringify({ variables })
-        })
-
-        if (!response.ok) {
-            const error = await response.text()
-            throw new Error(`Failed to set environment variables: ${error}`)
-        }
+        return project.id  // Return ID
     }
 
     /**

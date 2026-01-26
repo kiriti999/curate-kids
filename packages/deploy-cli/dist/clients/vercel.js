@@ -362,6 +362,29 @@ export class VercelClient {
         }
     }
     /**
+     * Delete a project
+     */
+    async deleteProject(projectName) {
+        try {
+            const project = await this.getProject(projectName);
+            const url = this.buildUrl(`/v9/projects/${project.id}`);
+            const response = await fetch(url, {
+                method: 'DELETE',
+                headers: this.getHeaders()
+            });
+            if (!response.ok) {
+                throw new Error(`Failed to delete project: ${await response.text()}`);
+            }
+        }
+        catch (error) {
+            // Ignore if project doesn't exist
+            if (error instanceof Error && error.message.includes('not found')) {
+                return;
+            }
+            throw error;
+        }
+    }
+    /**
      * Build API URL with team parameter
      */
     buildUrl(path) {

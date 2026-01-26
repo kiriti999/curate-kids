@@ -30,6 +30,12 @@ export class DeploymentOrchestrator {
         frontend?: string
         bot?: string
     } = {}
+    
+    // Track manual setup instructions
+    private manualSetupRequired: {
+        settingsUrl?: string
+        envVars?: Record<string, string>
+    } | null = null
 
     constructor(
         private credentials: DeploymentCredentials,
@@ -64,6 +70,25 @@ export class DeploymentOrchestrator {
             // Success metrics
             const duration = Math.round((Date.now() - startTime) / 1000)
             console.log(chalk.gray(`\n⏱️  Total deployment time: ${duration}s\n`))
+            
+            // Display manual setup instructions if needed
+            if (this.manualSetupRequired) {
+                console.log(chalk.yellow('\n⚠️  Manual Setup Required:\n'))
+                console.log(`Deno Deploy does not support programmatic environment variable setup.`)
+                console.log(`Please configure the following environment variables in the dashboard:\n`)
+                console.log(chalk.cyan(`   ${this.manualSetupRequired.settingsUrl}\n`))
+                console.log(chalk.gray('Environment variables to set:\n'))
+                
+                for (const [key, value] of Object.entries(this.manualSetupRequired.envVars || {})) {
+                    // Show first 20 chars of sensitive values
+                    const displayValue = value.length > 50 
+                        ? `${value.substring(0, 20)}...${value.substring(value.length - 10)}`
+                        : value
+                    console.log(chalk.gray(`   ${key}=${displayValue}`))
+                }
+                
+                console.log(chalk.yellow(`\n⚠️  The bot will not work until environment variables are set!\n`))
+            }
 
         } catch (error) {
             console.error(chalk.red('\n❌ Deployment failed\n'))
@@ -245,11 +270,19 @@ export class DeploymentOrchestrator {
                 }),
             }
 
-            this.botUrl = await this.deno.deploy({
+            const result = await this.deno.deploy({
                 projectName,
                 entrypoint: botDir,
                 envVars
             })
+            
+            this.botUrl = result.url
+            
+            // Store manual setup instructions for display after deployment
+            this.manualSetupRequired = {
+                settingsUrl: result.settingsUrl,
+                envVars: result.envVarsToSet
+            }
 
             spinner.succeed(`Bot deployed: ${chalk.cyan(this.botUrl)}`)
         } catch (error) {

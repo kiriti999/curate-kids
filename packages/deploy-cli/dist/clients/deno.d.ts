@@ -8,6 +8,13 @@ export interface DenoDeploymentOptions {
     entrypoint: string;
     envVars: Record<string, string>;
 }
+export interface DenoDeploymentResult {
+    url: string;
+    projectId: string;
+    projectName: string;
+    settingsUrl: string;
+    envVarsToSet: Record<string, string>;
+}
 export declare class DenoClient {
     private token;
     private org?;
@@ -16,9 +23,9 @@ export declare class DenoClient {
     /**
      * Deploy a project to Deno Deploy using deployctl
      */
-    deploy(options: DenoDeploymentOptions): Promise<string>;
+    deploy(options: DenoDeploymentOptions): Promise<DenoDeploymentResult>;
     /**
-     * Deploy using deployctl CLI with environment variables
+     * Deploy using deployctl CLI (without env vars - they must be set in dashboard)
      */
     private deployWithCLI;
     /**

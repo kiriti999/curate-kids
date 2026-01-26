@@ -1,0 +1,20 @@
+{
+  "name": "curatekids-telegram-bot",
+  "version": "1.0.0",
+  "exports": "./src/main.ts",
+  "tasks": {
+    "dev": "deno run --watch --unstable-kv --allow-net --allow-env --allow-import --allow-sys --allow-read --env=.env.local src/main.ts",
+    "start": "deno run --unstable-kv --allow-net --allow-env --allow-import --allow-sys --env src/main.ts"
+  },
+  "imports": {
+    "grammy": "npm:grammy@1.30.0"
+  },
+  "deploy": {
+    "project": "338e7a4d-7063-4fff-9dde-d56905c52c52",
+    "exclude": [
+      "**/node_modules"
+    ],
+    "include": [],
+    "entrypoint": "src/main.ts"
+  }
+}

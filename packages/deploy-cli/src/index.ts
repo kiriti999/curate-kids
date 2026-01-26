@@ -176,31 +176,66 @@ async function main() {
         console.log(chalk.cyan(`  ${webhookSetupUrl}\n`))
         console.log(chalk.gray('This tells Telegram where to send messages for your bot.\n'))
 
-        // Call setup endpoint to create admin user
+        // Call setup endpoint to create admin user (with retries and wait)
         console.log(chalk.white('🔧 Setting up admin user...'))
-        try {
-            const setupResponse = await fetch(`${orchestrator.cmsUrl}/api/setup`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            })
-            const setupResult = await setupResponse.json() as any
-            
-            if (setupResponse.ok) {
-                console.log(chalk.green(`✔ Admin user created successfully`))
-                console.log(chalk.gray(`  Email: ${credentials.adminEmail}`))
-                console.log(chalk.gray(`  Password: ${credentials.adminPassword}\n`))
-                console.log(chalk.yellow.bold('⚠️  IMPORTANT: Change your password after first login!\n'))
-            } else {
-                if (setupResult.message?.includes('already exists')) {
+        console.log(chalk.gray('   Waiting for CMS to be ready...\n'))
+        
+        let setupSuccess = false
+        const maxRetries = 10
+        const retryDelay = 10000 // 10 seconds
+        
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                // First check if CMS is responding
+                const healthCheck = await fetch(`${orchestrator.cmsUrl}/api/health`, { 
+                    method: 'GET',
+                    signal: AbortSignal.timeout(8000)
+                }).catch(() => null)
+                
+                if (!healthCheck?.ok) {
+                    if (attempt < maxRetries) {
+                        console.log(chalk.gray(`   Attempt ${attempt}/${maxRetries}: CMS not ready yet, waiting...`))
+                        await new Promise(resolve => setTimeout(resolve, retryDelay))
+                        continue
+                    }
+                }
+                
+                // Try to create admin user
+                const setupResponse = await fetch(`${orchestrator.cmsUrl}/api/setup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    signal: AbortSignal.timeout(15000)
+                })
+                const setupResult = await setupResponse.json() as any
+                
+                if (setupResponse.ok) {
+                    console.log(chalk.green(`✔ Admin user created successfully`))
+                    console.log(chalk.gray(`  Email: ${credentials.adminEmail}`))
+                    console.log(chalk.gray(`  Password: ${credentials.adminPassword}\n`))
+                    console.log(chalk.yellow.bold('⚠️  IMPORTANT: Change your password after first login!\n'))
+                    setupSuccess = true
+                    break
+                } else if (setupResult.message?.includes('already exists')) {
                     console.log(chalk.yellow('⚠️  Admin user already exists'))
+                    console.log(chalk.gray(`  Login with: ${credentials.adminEmail}\n`))
+                    setupSuccess = true
+                    break
+                } else if (attempt < maxRetries) {
+                    console.log(chalk.gray(`   Attempt ${attempt}/${maxRetries}: ${setupResult.message || 'Failed'}, retrying...`))
+                    await new Promise(resolve => setTimeout(resolve, retryDelay))
                 } else {
                     console.log(chalk.yellow(`⚠️  Could not create admin user: ${setupResult.message}`))
+                    console.log(chalk.gray(`  Login with: ${credentials.adminEmail}\n`))
                 }
-                console.log(chalk.gray(`  Login with: ${credentials.adminEmail}\n`))
+            } catch (error: any) {
+                if (attempt < maxRetries) {
+                    console.log(chalk.gray(`   Attempt ${attempt}/${maxRetries}: ${error.message}, retrying...`))
+                    await new Promise(resolve => setTimeout(resolve, retryDelay))
+                } else {
+                    console.log(chalk.yellow(`⚠️  Could not auto-create admin user: ${error.message}`))
+                    console.log(chalk.cyan(`\n   Manual setup: POST ${orchestrator.cmsUrl}/api/setup\n`))
+                }
             }
-        } catch (error) {
-            console.log(chalk.yellow(`⚠️  Could not auto-create admin user`))
-            console.log(chalk.gray(`  Please create manually or contact support\n`))
         }
 
         console.log(chalk.white('Next steps:'))

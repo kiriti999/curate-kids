@@ -1,6 +1,6 @@
 {
   "name": "curatedreels-deploy",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "White-label deployment CLI for CuratedReels",
   "type": "module",
   "bin": {
@@ -30,7 +30,7 @@
   "license": "PROPRIETARY",
   "repository": {
     "type": "git",
-    "url": "https://github.com/choicexchangedev-cpu/curatedreels-releases"
+    "url": "https://github.com/kiriti999/curate-kids"
   },
   "homepage": "https://curatedreels.com",
   "dependencies": {

@@ -141,10 +141,17 @@ async function main() {
         console.log(chalk.cyan(`  📱 Frontend: ${orchestrator.frontendUrl}`));
         console.log(chalk.cyan(`  ⚙️  Admin:    ${orchestrator.cmsUrl}/admin`));
         console.log(chalk.cyan(`  🤖 Bot:      ${orchestrator.botUrl}\n`));
+        // Generate webhook setup URL
+        const webhookSetupUrl = `https://api.telegram.org/bot${credentials.telegramBotToken}/setWebhook?url=${orchestrator.botUrl}/webhook`;
+        console.log(chalk.yellow.bold('⚠️  IMPORTANT: Set up Telegram Webhook\n'));
+        console.log(chalk.white('Click this link to activate your bot:\n'));
+        console.log(chalk.cyan(`  ${webhookSetupUrl}\n`));
+        console.log(chalk.gray('This tells Telegram where to send messages for your bot.\n'));
         console.log(chalk.white('Next steps:'));
-        console.log(chalk.gray('  1. Configure bot environment variables (see instructions above)'));
-        console.log(chalk.gray('  2. Login to admin panel and create your first user'));
-        console.log(chalk.gray('  3. Add your Telegram bot to a group to start curating\n'));
+        console.log(chalk.gray('  1. Click the webhook URL above (should show "ok":true)'));
+        console.log(chalk.gray('  2. Configure bot environment variables if needed (see instructions above)'));
+        console.log(chalk.gray('  3. Login to admin panel and create your first user'));
+        console.log(chalk.gray('  4. Add your Telegram bot to a group to start curating\n'));
         console.log(chalk.white('Resources:'));
         console.log(chalk.gray('  💬 Support: support@whatsnxt.in\n'));
     }

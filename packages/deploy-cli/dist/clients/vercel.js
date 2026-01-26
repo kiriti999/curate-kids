@@ -26,6 +26,9 @@ export class VercelClient {
         await this.setEnvironmentVariables(projectId, options.envVars);
         // Step 2: Build the app locally and deploy using Vercel CLI
         const deploymentUrl = await this.deployWithCLI(options);
+        // Step 3: Trigger redeployment to apply env vars from Vercel project settings
+        // This ensures Next.js build-time env vars (NEXT_PUBLIC_*) are properly injected
+        await this.triggerRedeployment(projectId);
         return deploymentUrl;
     }
     /**
@@ -246,9 +249,12 @@ export class VercelClient {
      * Set environment variables for a project
      */
     async setEnvironmentVariables(projectId, envVars) {
+        console.log(`Setting ${Object.keys(envVars).length} environment variables for project ${projectId}...`);
         for (const [key, value] of Object.entries(envVars)) {
+            console.log(`  - Setting ${key}`);
             await this.createEnvironmentVariable(projectId, key, value);
         }
+        console.log('✓ All environment variables set');
     }
     /**
      * Create or update a single environment variable
@@ -269,9 +275,11 @@ export class VercelClient {
             const error = await response.text();
             // If env var already exists, try to update it
             if (error.includes('ENV_CONFLICT') || response.status === 409) {
+                console.log(`    (updating existing ${key})`);
                 await this.updateEnvironmentVariable(projectId, key, value);
                 return;
             }
+            console.error(`Failed to set env var ${key}: ${error}`);
             throw new Error(`Failed to set env var ${key}: ${error}`);
         }
     }

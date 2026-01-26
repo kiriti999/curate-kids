@@ -24,7 +24,7 @@ Before you start, make sure you have:
 4. **MongoDB Atlas** (free tier works)
    - Sign up: https://mongodb.com/atlas
    - Create a cluster and get connection URI
-5. **Telegram Bot Token**
+5. **Telegram Bot Token** (See detailed steps below)
    - Chat with [@BotFather](https://t.me/botfather)
    - Create a new bot and get the token
 
@@ -43,20 +43,32 @@ After deployment, you'll have:
 
 ## 📖 Step-by-Step Guide
 
-### Step 1: Run the Deploy Command
+### STEP 1: Create Bot (BEFORE Deployment)
+
+Before running the deploy command, create your Telegram bot:
+
+1. **Open Telegram**
+2. **Search for @BotFather**
+3. **Send:** `/newbot`
+4. **Choose a name:** "My CuratedReels Bot"
+5. **Choose username:** `my_curated_bot` (must end with 'bot')
+6. **BotFather gives you a TOKEN:** `7951673577:AAEalQZ...`
+7. **Save this token!** You'll need it in Step 3
+
+### STEP 2: Run the Deploy Command
 
 ```bash
 npx curatedreels-deploy
 ```
 
-### Step 2: Enter Your License Key
+### STEP 3: Enter Your License Key
 
 Paste the license key you received from CuratedReels:
 ```
 ? Enter your CuratedReels license key: ck_live_abc123...
 ```
 
-### Step 3: Choose Your Project Name
+### STEP 4: Choose Your Project Name
 
 ```
 ? Enter project name: my-video-platform
@@ -66,7 +78,7 @@ This will be used for:
 - Vercel project names (`my-video-platform`, `my-video-platform-cms`)
 - Deno Deploy project name (`my-video-platform-bot`)
 
-### Step 4: Enter API Tokens
+### STEP 5: Enter API Tokens
 
 The CLI will ask for your tokens one by one:
 
@@ -87,7 +99,7 @@ The CLI will ask for your tokens one by one:
 
 **Telegram:**
 ```
-? Telegram bot token: 123456:ABC-DEF...
+? Telegram bot token: [paste the token from STEP 1]
 ```
 
 **Cloudinary (optional):**
@@ -97,7 +109,7 @@ The CLI will ask for your tokens one by one:
 ? Cloudinary API secret: [your-api-secret]
 ```
 
-### Step 5: Wait for Deployment
+### STEP 6: Wait for Deployment
 
 The CLI will:
 1. ✅ Verify your license
@@ -110,7 +122,7 @@ The CLI will:
 
 This takes ~3-5 minutes.
 
-### Step 6: Access Your Platform
+### STEP 7: Access Your Platform
 
 When complete, you'll see:
 ```
@@ -120,6 +132,16 @@ When complete, you'll see:
 ⚙️  CMS Admin: https://my-video-platform-cms.vercel.app
 🤖 Telegram Bot: https://t.me/my_video_bot
 ```
+
+### STEP 8: Add Bot to Group
+
+After deployment completes, add your bot to a Telegram group:
+
+1. **Create a Telegram group** (or use an existing one)
+2. **In group settings** → Add Members
+3. **Search for @my_curated_bot** (the username from STEP 1)
+4. **Add it to the group**
+5. **Make it admin** (optional, but recommended for full functionality)
 
 ## 🎨 Next Steps
 

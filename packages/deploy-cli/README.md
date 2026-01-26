@@ -5,6 +5,10 @@ Deploy your white-label video curation platform to your own infrastructure in mi
 ## 🚀 Quick Start
 
 ```bash
+# Set your GitHub token (required for private repo access)
+export GITHUB_TOKEN=ghp_your_token_here
+
+# Run the deployment
 npx curatedreels-deploy
 ```
 
@@ -15,16 +19,20 @@ That's it! The CLI will guide you through the entire deployment process.
 Before you start, make sure you have:
 
 1. **CuratedReels License Key** - You received this when you purchased CuratedReels
-2. **Vercel Account** (free tier works)
+2. **GitHub Token** - Required to download deployment bundles
+   - Get token: https://github.com/settings/tokens
+   - Required scope: `repo` (Full control of private repositories)
+   - Set as environment variable: `export GITHUB_TOKEN=ghp_...`
+3. **Vercel Account** (free tier works)
    - Sign up: https://vercel.com
    - Get API token: https://vercel.com/account/tokens
-3. **Deno Deploy Account** (free tier works)
+4. **Deno Deploy Account** (free tier works)
    - Sign up: https://deno.com/deploy
    - Get access token: https://dash.deno.com/account/access-tokens
-4. **MongoDB Atlas** (free tier works)
+5. **MongoDB Atlas** (free tier works)
    - Sign up: https://mongodb.com/atlas
    - Create a cluster and get connection URI
-5. **Telegram Bot Token** (See detailed steps below)
+6. **Telegram Bot Token** (See detailed steps below)
    - Chat with [@BotFather](https://t.me/botfather)
    - Create a new bot and get the token
 

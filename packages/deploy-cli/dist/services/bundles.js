@@ -15,13 +15,22 @@ const GITHUB_OWNER = 'kiriti999';
 const GITHUB_REPO = 'curate-kids';
 const BUNDLES_VERSION = process.env.CURATEKIDS_VERSION || '1.0.7';
 const BUNDLES_DIR = './.curatedreels-bundles';
-const GITHUB_RELEASES_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/download`;
+const GITHUB_API_URL = 'https://api.github.com';
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 /**
  * Download deployment bundles from GitHub Releases
  */
 export async function downloadBundles(licenseKey) {
     const spinner = ora('Downloading deployment bundles...').start();
     try {
+        // Check for GitHub token (required for private repo)
+        if (!GITHUB_TOKEN) {
+            spinner.fail('GitHub token not found');
+            console.log(chalk.yellow('\n⚠️  GitHub token required to download bundles from private repository'));
+            console.log(chalk.gray('   Set GITHUB_TOKEN or GH_TOKEN environment variable'));
+            console.log(chalk.gray('   Example: export GITHUB_TOKEN=ghp_...'));
+            throw new Error('GITHUB_TOKEN environment variable is required');
+        }
         // Create bundles directory
         await mkdir(BUNDLES_DIR, { recursive: true });
         // Get manifest from GitHub Release
@@ -63,43 +72,89 @@ export async function downloadBundles(licenseKey) {
     }
 }
 /**
- * Fetch manifest from GitHub Release
+ * Get GitHub API headers with authentication
  */
-async function fetchManifestFromGitHub() {
-    const url = `${GITHUB_RELEASES_URL}/v${BUNDLES_VERSION}/manifest.json`;
-    const response = await fetch(url, {
-        headers: {
-            'User-Agent': 'curatedreels-deploy/1.0.0'
-        },
-        redirect: 'follow'
-    });
-    if (!response.ok) {
-        if (response.status === 404) {
-            throw new Error(`Release v${BUNDLES_VERSION} not found. Check https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases`);
-        }
-        throw new Error(`Failed to fetch manifest: ${response.statusText}`);
+function getGitHubHeaders() {
+    const headers = {
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'User-Agent': 'curatedreels-deploy/1.0.0'
+    };
+    if (GITHUB_TOKEN) {
+        headers['Authorization'] = `Bearer ${GITHUB_TOKEN}`;
     }
-    return await response.json();
+    return headers;
 }
 /**
- * Download a file from GitHub Release
+ * Fetch manifest from GitHub Release using API
+ */
+async function fetchManifestFromGitHub() {
+    // First, get the release
+    const releaseUrl = `${GITHUB_API_URL}/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/tags/v${BUNDLES_VERSION}`;
+    const releaseResponse = await fetch(releaseUrl, {
+        headers: getGitHubHeaders()
+    });
+    if (!releaseResponse.ok) {
+        if (releaseResponse.status === 404) {
+            throw new Error(`Release v${BUNDLES_VERSION} not found. Check https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases`);
+        }
+        if (releaseResponse.status === 401) {
+            throw new Error(`Authentication required. Set GITHUB_TOKEN environment variable.`);
+        }
+        throw new Error(`Failed to fetch release: ${releaseResponse.statusText}`);
+    }
+    const release = await releaseResponse.json();
+    // Find manifest.json asset
+    const manifestAsset = release.assets?.find((a) => a.name === 'manifest.json');
+    if (!manifestAsset) {
+        throw new Error('manifest.json not found in release assets');
+    }
+    // Download manifest
+    const manifestResponse = await fetch(manifestAsset.url, {
+        headers: {
+            ...getGitHubHeaders(),
+            'Accept': 'application/octet-stream'
+        }
+    });
+    if (!manifestResponse.ok) {
+        throw new Error(`Failed to download manifest: ${manifestResponse.statusText}`);
+    }
+    return await manifestResponse.json();
+}
+/**
+ * Download a file from GitHub Release using authenticated API
  */
 async function downloadFromGitHub(version, filename, destPath) {
-    const url = `${GITHUB_RELEASES_URL}/${version}/${filename}`;
-    const response = await fetch(url, {
+    // Get release assets
+    const releaseUrl = `${GITHUB_API_URL}/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/tags/${version}`;
+    const releaseResponse = await fetch(releaseUrl, {
+        headers: getGitHubHeaders()
+    });
+    if (!releaseResponse.ok) {
+        throw new Error(`Failed to fetch release ${version}: ${releaseResponse.statusText}`);
+    }
+    const release = await releaseResponse.json();
+    // Find the asset
+    const asset = release.assets?.find((a) => a.name === filename);
+    if (!asset) {
+        throw new Error(`Asset ${filename} not found in release ${version}`);
+    }
+    // Download the asset
+    const assetResponse = await fetch(asset.url, {
         headers: {
-            'User-Agent': 'curatedreels-deploy/1.0.0'
+            ...getGitHubHeaders(),
+            'Accept': 'application/octet-stream'
         },
         redirect: 'follow'
     });
-    if (!response.ok) {
-        throw new Error(`Failed to download ${filename}: ${response.statusText}`);
+    if (!assetResponse.ok) {
+        throw new Error(`Failed to download ${filename}: ${assetResponse.statusText}`);
     }
-    if (!response.body) {
+    if (!assetResponse.body) {
         throw new Error('No response body');
     }
     const fileStream = createWriteStream(destPath);
-    await pipeline(response.body, fileStream);
+    await pipeline(assetResponse.body, fileStream);
 }
 /**
  * Mock bundle download for development/testing

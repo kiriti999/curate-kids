@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { getVideos } from "@/lib/payloadcms";
 import VideoGallery from "@/components/VideoGallery";
 import Header from "@/components/Header";
@@ -8,6 +9,23 @@ import { logger } from "../../../utils/logger";
 
 // Enable ISR (Incremental Static Regeneration) for better Vercel performance
 export const revalidate = 300; // 5 minutes
+
+export const metadata: Metadata = {
+  title: "CurateKids | Curated Educational Videos for Kids",
+  description: "Discover a safe, curated collection of educational and entertaining videos for children. Hand-picked content organized by categories and age groups.",
+  keywords: ["kids videos", "educational videos", "children's content", "curated videos", "safe for kids", "video gallery"],
+  openGraph: {
+    title: "CurateKids | Curated Educational Videos for Kids",
+    description: "Discover a safe, curated collection of educational and entertaining videos for children.",
+    type: "website",
+    siteName: "CurateKids",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CurateKids | Curated Educational Videos for Kids",
+    description: "Discover a safe, curated collection of educational and entertaining videos for children.",
+  },
+};
 
 function VideoGallerySkeleton() {
   return (

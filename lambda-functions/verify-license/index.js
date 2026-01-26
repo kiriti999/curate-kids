@@ -35,8 +35,12 @@ exports.handler = async (event) => {
         // Connect to MongoDB
         const { db } = await connectToDatabase();
 
+        console.log('Looking for license with key:', key);
+
         // Find license by key field
         const license = await db.collection('licenses').findOne({ key });
+        
+        console.log('License found:', license ? 'YES' : 'NO');
 
         // License not found
         if (!license) {

@@ -345,8 +345,7 @@ Next steps:
 2. Login to admin: https://your-project-cms.vercel.app/admin
 3. Configure groups
 
-Documentation: https://docs.curatedreels.com
-Support: support@curatedreels.com
+Support: support@whatsnxt.in
 ```
 
 ## Monetization Model

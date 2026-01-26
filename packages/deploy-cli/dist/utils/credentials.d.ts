@@ -11,6 +11,9 @@ export interface DeploymentCredentials {
     mongodbUri: string;
     telegramBotToken: string;
     telegramGroupId?: string;
+    adminEmail: string;
+    adminPassword: string;
+    adminName?: string;
     cloudinaryCloudName?: string;
     cloudinaryApiKey?: string;
     cloudinaryApiSecret?: string;

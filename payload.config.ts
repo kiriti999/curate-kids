@@ -94,18 +94,22 @@ export default buildConfig({
     })
 
     if (users.docs.length === 0) {
+      const adminEmail = process.env.ADMIN_EMAIL || 'admin@curatedreels.com'
+      const adminPassword = process.env.ADMIN_PASSWORD || 'admin123'
+      const adminName = process.env.ADMIN_NAME || 'Admin User'
+
       await payload.create({
         collection: 'users',
         data: {
-          name: 'Admin User',
-          email: 'admin@curatedreels.com',
-          password: 'admin123',
+          name: adminName,
+          email: adminEmail,
+          password: adminPassword,
           role: 'superadmin',
           status: 'active',
         },
         draft: false,
       })
-      payload.logger.info('✅ Default admin user created: admin@curatedreels.com / admin123')
+      payload.logger.info(`✅ Default admin user created: ${adminEmail}`)
       payload.logger.warn('⚠️  IMPORTANT: Change the default password immediately!')
     }
   },

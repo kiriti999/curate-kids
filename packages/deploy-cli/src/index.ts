@@ -166,9 +166,9 @@ async function main() {
         console.log(chalk.cyan(`  🤖 Bot:      ${orchestrator.botUrl}\n`))
 
         console.log(chalk.white('Next steps:'))
-        console.log(chalk.gray('  1. Add bot to Telegram: t.me/YourBotName'))
-        console.log(chalk.gray('  2. Login to admin panel'))
-        console.log(chalk.gray('  3. Configure your groups\n'))
+        console.log(chalk.gray('  1. Configure bot environment variables (see instructions above)'))
+        console.log(chalk.gray('  2. Login to admin panel and create your first user'))
+        console.log(chalk.gray('  3. Add your Telegram bot to a group to start curating\n'))
 
         console.log(chalk.white('Resources:'))
         console.log(chalk.gray('  💬 Support: support@whatsnxt.in\n'))

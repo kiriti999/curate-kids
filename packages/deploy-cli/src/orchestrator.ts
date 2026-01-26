@@ -73,21 +73,18 @@ export class DeploymentOrchestrator {
             
             // Display manual setup instructions if needed
             if (this.manualSetupRequired) {
-                console.log(chalk.yellow('\n⚠️  Manual Setup Required:\n'))
-                console.log(`Deno Deploy does not support programmatic environment variable setup.`)
-                console.log(`Please configure the following environment variables in the dashboard:\n`)
+                console.log(chalk.yellow('\n📋 Post-Deployment Setup Required:\n'))
+                console.log(`The bot has been deployed successfully, but requires environment variable configuration.`)
+                console.log(`\nPlease configure the following environment variables in the Deno Deploy dashboard:\n`)
                 console.log(chalk.cyan(`   ${this.manualSetupRequired.settingsUrl}\n`))
-                console.log(chalk.gray('Environment variables to set:\n'))
+                console.log(chalk.gray('Environment variables to configure:\n'))
                 
                 for (const [key, value] of Object.entries(this.manualSetupRequired.envVars || {})) {
-                    // Show first 20 chars of sensitive values
-                    const displayValue = value.length > 50 
-                        ? `${value.substring(0, 20)}...${value.substring(value.length - 10)}`
-                        : value
-                    console.log(chalk.gray(`   ${key}=${displayValue}`))
+                    console.log(chalk.gray(`   ${key}=${value}`))
                 }
                 
-                console.log(chalk.yellow(`\n⚠️  The bot will not work until environment variables are set!\n`))
+                console.log(chalk.yellow(`\n⚠️  After setting environment variables, the bot will automatically redeploy and start working.\n`))
+                console.log(chalk.gray(`💡 Tip: You can visit ${this.botUrl} to check if env vars are configured.\n`))
             }
 
         } catch (error) {

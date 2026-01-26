@@ -152,6 +152,10 @@ After deployment completes, add your bot to a Telegram group:
 4. **Add it to the group**
 5. **Make it admin** (optional, but recommended for full functionality)
 
+✅ **Test it:** Post a YouTube/Instagram/Facebook video link in the group. The bot should respond with age range options!
+
+⚠️ **Not working?** Make sure you disabled privacy mode in STEP 1. If you skipped it, go back to @BotFather, send `/setprivacy`, select your bot, and choose `Disable`. Then **remove and re-add** the bot to your group.
+
 ## 🎨 Next Steps
 
 1. **Open your admin panel** - Visit the CMS URL and create your admin account

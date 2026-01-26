@@ -40,3 +40,4 @@ bot/.env
 
 node_modules
 *.map
+packages/*/dist/

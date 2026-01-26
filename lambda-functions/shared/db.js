@@ -1,6 +1,8 @@
 /**
  * Shared MongoDB Connection
- * Used by all Lambda functions
+ * Used by all Lambda functions for license management
+ * 
+ * Uses company MongoDB (not customer's)
  */
 
 const { MongoClient } = require('mongodb');
@@ -14,9 +16,10 @@ async function connectToDatabase() {
         return { client: cachedClient, db: cachedDb };
     }
 
-    const uri = process.env.MONGODB_URI;
+    // Company MongoDB for license management
+    const uri = process.env.LICENSE_MONGODB_URI || process.env.MONGODB_URI;
     if (!uri) {
-        throw new Error('MONGODB_URI environment variable not set');
+        throw new Error('LICENSE_MONGODB_URI or MONGODB_URI environment variable not set');
     }
 
     const client = new MongoClient(uri);

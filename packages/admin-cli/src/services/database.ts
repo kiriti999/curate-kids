@@ -48,6 +48,9 @@ export async function connect(): Promise<Db> {
     await client.connect()
     db = client.db()
     
+    // Debug: log the actual database name being used
+    console.log('[DEBUG] Admin CLI connected to database:', db.databaseName)
+    
     // Create indexes
     await db.collection('licenses').createIndex({ key: 1 }, { unique: true })
     await db.collection('licenses').createIndex({ customerId: 1 })

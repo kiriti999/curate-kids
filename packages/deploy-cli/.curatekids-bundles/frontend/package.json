@@ -28,7 +28,7 @@
   "dependencies": {
     "@payloadcms/db-mongodb": "3.72.0",
     "@payloadcms/email-nodemailer": "^3.72.0",
-    "@payloadcms/next": "3.72.0",
+    "@payloadcms/next": "3.73.0",
     "@payloadcms/richtext-lexical": "3.72.0",
     "@payloadcms/ui": "3.72.0",
     "@radix-ui/react-slot": "^1.2.4",

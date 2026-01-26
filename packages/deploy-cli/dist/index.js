@@ -146,13 +146,12 @@ async function main() {
         console.log(chalk.gray('  2. Login to admin panel'));
         console.log(chalk.gray('  3. Configure your groups\n'));
         console.log(chalk.white('Resources:'));
-        console.log(chalk.gray('  📚 Documentation: https://docs.curatedreels.com'));
-        console.log(chalk.gray('  💬 Support: support@curatedreels.com\n'));
+        console.log(chalk.gray('  💬 Support: support@whatsnxt.in\n'));
     }
     catch (error) {
         console.error(chalk.red(`\n❌ Deployment failed:`));
         console.error(chalk.red(`   ${error instanceof Error ? error.message : String(error)}\n`));
-        console.log(chalk.yellow('💡 Need help? Contact support@curatedreels.com\n'));
+        console.log(chalk.yellow('💡 Need help? Contact support@whatsnxt.in\n'));
         process.exit(1);
     }
 }

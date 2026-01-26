@@ -65,8 +65,8 @@ export class VercelClient {
         // Build command if no .next exists
         let buildCmd = ''
         if (!hasNextBuild) {
-            // Need to build first
-            buildCmd = `cd "${bundlePath}" && npm install && npm run build && `
+            // Need to build first - use legacy-peer-deps to handle PayloadCMS version conflicts
+            buildCmd = `cd "${bundlePath}" && npm install --legacy-peer-deps && npm run build && `
         }
 
         // Deploy using Vercel CLI
@@ -141,17 +141,41 @@ export class VercelClient {
     private async createProject(name: string): Promise<string> {
         const url = this.buildUrl('/v10/projects')
 
+        const body: any = {
+            name,
+            framework: 'nextjs'
+        }
+
+        // If no team ID, explicitly set buildCommand and outputDirectory
+        if (!this.teamId) {
+            body.buildCommand = 'npm run build'
+            body.outputDirectory = '.next'
+        }
+
         const response = await fetch(url, {
             method: 'POST',
             headers: this.getHeaders(),
-            body: JSON.stringify({
-                name,
-                framework: 'nextjs'
-            })
+            body: JSON.stringify(body)
         })
 
         if (!response.ok) {
             const error = await response.text()
+            let errorObj;
+            try {
+                errorObj = JSON.parse(error);
+            } catch {
+                errorObj = { message: error };
+            }
+            
+            // Better error message for auth issues
+            if (errorObj.error?.invalidToken || errorObj.error?.code === 'forbidden') {
+                throw new Error(`Vercel authentication failed. Please check:\n` +
+                    `  1. Your token is valid (check at https://vercel.com/account/tokens)\n` +
+                    `  2. The token has not expired\n` +
+                    `  3. If using a team, provide the Team ID\n` +
+                    `  Error: ${errorObj.error?.message || error}`)
+            }
+            
             throw new Error(`Failed to create project: ${error}`)
         }
 

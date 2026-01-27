@@ -86,19 +86,26 @@ export default buildConfig({
     url: process.env.MONGODB_URI || 'mongodb://localhost:27017/curatedreels',
   }),
 
-  // Create default admin on first init if no users exist
+  // Create default admin on first init if no admin users exist
   onInit: async (payload) => {
     try {
       console.log('[PayloadCMS] onInit hook started')
       
-      const users = await payload.find({
+      // Check if any admin/superadmin users exist (not just any user)
+      const adminUsers = await payload.find({
         collection: 'users',
+        where: {
+          or: [
+            { role: { equals: 'admin' } },
+            { role: { equals: 'superadmin' } }
+          ]
+        },
         limit: 1,
       })
 
-      console.log(`[PayloadCMS] Found ${users.docs.length} existing users`)
+      console.log(`[PayloadCMS] Found ${adminUsers.docs.length} admin users`)
 
-      if (users.docs.length === 0) {
+      if (adminUsers.docs.length === 0) {
         const adminEmail = process.env.ADMIN_EMAIL || 'admin@curatedreels.com'
         const adminPassword = process.env.ADMIN_PASSWORD || 'admin123'
         const adminName = process.env.ADMIN_NAME || 'Admin User'

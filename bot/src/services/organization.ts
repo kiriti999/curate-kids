@@ -521,7 +521,8 @@ export function generateLinkUrl(params: {
     groupId: string;
     isOwner: boolean;
 }): string {
-    const frontendUrl = Deno.env.get("FRONTEND_URL") || "http://localhost:3000";
+    // Use CMS_URL for authentication/linking, fallback to FRONTEND_URL for backward compatibility
+    const cmsUrl = Deno.env.get("CMS_URL") || Deno.env.get("FRONTEND_URL") || "http://localhost:3000";
 
     const queryParams = new URLSearchParams({
         tg: params.telegramId,
@@ -536,7 +537,7 @@ export function generateLinkUrl(params: {
         queryParams.append("name", params.firstName);
     }
 
-    return `${frontendUrl}/link?${queryParams.toString()}`;
+    return `${cmsUrl}/link?${queryParams.toString()}`;
 }
 
 /**

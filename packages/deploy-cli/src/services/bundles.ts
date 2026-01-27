@@ -43,7 +43,7 @@ export interface BundleManifest {
 /**
  * Download deployment bundles from GitHub Releases
  */
-export async function downloadBundles(licenseKey: string): Promise<void> {
+export async function downloadBundles(licenseKey: string): Promise<BundleManifest> {
     const spinner = ora('Downloading deployment bundles...').start()
 
     try {
@@ -66,25 +66,40 @@ export async function downloadBundles(licenseKey: string): Promise<void> {
         // Download each bundle from GitHub Release
         const version = `v${manifest.version}`
 
-        spinner.text = 'Downloading frontend bundle...'
-        await downloadFromGitHub(version, 'frontend.tar.gz', `${BUNDLES_DIR}/frontend.tar.gz`)
+        // Check if unified architecture or legacy
+        if (manifest.architecture === 'unified') {
+            // Download unified app bundle
+            spinner.text = 'Downloading unified app bundle...'
+            await downloadFromGitHub(version, 'app.tar.gz', `${BUNDLES_DIR}/app.tar.gz`)
 
-        spinner.text = 'Extracting frontend bundle...'
-        await mkdir(`${BUNDLES_DIR}/frontend`, { recursive: true })
-        await extract({
-            file: `${BUNDLES_DIR}/frontend.tar.gz`,
-            cwd: `${BUNDLES_DIR}/frontend`
-        })
+            spinner.text = 'Extracting unified app bundle...'
+            await mkdir(`${BUNDLES_DIR}/app`, { recursive: true })
+            await extract({
+                file: `${BUNDLES_DIR}/app.tar.gz`,
+                cwd: `${BUNDLES_DIR}/app`
+            })
+        } else {
+            // Legacy: Download frontend and CMS separately
+            spinner.text = 'Downloading frontend bundle...'
+            await downloadFromGitHub(version, 'frontend.tar.gz', `${BUNDLES_DIR}/frontend.tar.gz`)
 
-        spinner.text = 'Downloading CMS bundle...'
-        await downloadFromGitHub(version, 'cms.tar.gz', `${BUNDLES_DIR}/cms.tar.gz`)
+            spinner.text = 'Extracting frontend bundle...'
+            await mkdir(`${BUNDLES_DIR}/frontend`, { recursive: true })
+            await extract({
+                file: `${BUNDLES_DIR}/frontend.tar.gz`,
+                cwd: `${BUNDLES_DIR}/frontend`
+            })
 
-        spinner.text = 'Extracting CMS bundle...'
-        await mkdir(`${BUNDLES_DIR}/cms`, { recursive: true })
-        await extract({
-            file: `${BUNDLES_DIR}/cms.tar.gz`,
-            cwd: `${BUNDLES_DIR}/cms`
-        })
+            spinner.text = 'Downloading CMS bundle...'
+            await downloadFromGitHub(version, 'cms.tar.gz', `${BUNDLES_DIR}/cms.tar.gz`)
+
+            spinner.text = 'Extracting CMS bundle...'
+            await mkdir(`${BUNDLES_DIR}/cms`, { recursive: true })
+            await extract({
+                file: `${BUNDLES_DIR}/cms.tar.gz`,
+                cwd: `${BUNDLES_DIR}/cms`
+            })
+        }
 
         spinner.text = 'Downloading bot bundle...'
         await downloadFromGitHub(version, 'bot.tar.gz', `${BUNDLES_DIR}/bot.tar.gz`)
@@ -99,7 +114,9 @@ export async function downloadBundles(licenseKey: string): Promise<void> {
         spinner.text = 'Downloading database schema...'
         await downloadFromGitHub(version, 'schema.json', `${BUNDLES_DIR}/schema.json`)
 
-        spinner.succeed('Bundles downloaded and extracted')
+        const arch = manifest.architecture === 'unified' ? 'unified app' : 'frontend + CMS'
+        spinner.succeed(`Bundles downloaded and extracted (${arch})`)
+        return manifest
     } catch (error) {
         spinner.fail('Failed to download bundles')
         throw error

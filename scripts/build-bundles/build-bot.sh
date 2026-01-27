@@ -8,7 +8,7 @@ set -e
 echo "🏗️  Building Bot Bundle..."
 
 # Configuration
-BOT_DIR="../../curatedreels-bot"
+BOT_DIR="/Users/arjun/curatekids-bot"
 OUTPUT_DIR="./output/bot"
 BUNDLE_NAME="bot.js"
 

@@ -6,20 +6,15 @@
 export interface BundleManifest {
     version: string;
     releaseDate: string;
-    architecture: 'unified' | 'legacy';
     bundles: {
-        app?: string;
-        frontend?: string;
-        cms?: string;
+        app: string;
         bot: string;
         schema: string;
     };
-    checksums: {
+    checksums?: {
         app?: string;
-        frontend?: string;
-        cms?: string;
-        bot: string;
-        schema: string;
+        bot?: string;
+        schema?: string;
     };
 }
 /**

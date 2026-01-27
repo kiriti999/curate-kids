@@ -47,7 +47,7 @@ async function showWelcome() {
     console.log(chalk.cyan.bold('\n🎯 CuratedReels Deployment CLI'));
     console.log(chalk.gray(`   Version ${VERSION}\n`));
     console.log(chalk.white('   Deploy CuratedReels to your infrastructure'));
-    console.log(chalk.gray('   - Vercel (Frontend + CMS)'));
+    console.log(chalk.gray('   - Vercel (App)'));
     console.log(chalk.gray('   - Deno Deploy (Bot)'));
     console.log(chalk.gray('   - MongoDB Atlas (Database)\n'));
 }
@@ -130,35 +130,24 @@ async function main() {
         console.log(chalk.bold('\n📦 Step 3: Downloading Deployment Bundles'));
         // Use mock bundles only if explicitly set, otherwise download real bundles
         const useMockBundles = process.env.MOCK_BUNDLES === 'true';
-        let manifest;
         if (useMockBundles) {
             await mockDownloadBundles(licenseKey);
-            manifest = { architecture: 'legacy' }; // Mock always uses legacy
         }
         else {
-            manifest = await downloadBundles(licenseKey);
+            await downloadBundles(licenseKey);
         }
         // Step 4: Confirm deployment
         await confirmDeployment();
         // Step 5: Deploy
         console.log(chalk.bold('\n🚀 Step 4: Deploying to Your Infrastructure\n'));
-        const orchestrator = new DeploymentOrchestrator(credentials, licenseKey, manifest);
+        const orchestrator = new DeploymentOrchestrator(credentials, licenseKey);
         await orchestrator.deploy();
         // Success!
         console.log(chalk.green.bold('\n✅ Deployment Complete!\n'));
         console.log(chalk.white('Your CuratedReels instance is live:\n'));
-        if (manifest.architecture === 'unified') {
-            // Unified architecture: Single URL for everything
-            console.log(chalk.cyan(`  📱 App:      ${orchestrator.appUrl}`));
-            console.log(chalk.cyan(`  ⚙️  Admin:    ${orchestrator.appUrl}/admin`));
-            console.log(chalk.cyan(`  🤖 Bot:      ${orchestrator.botUrl}\n`));
-        }
-        else {
-            // Legacy architecture: Separate URLs
-            console.log(chalk.cyan(`  📱 Frontend: ${orchestrator.frontendUrl}`));
-            console.log(chalk.cyan(`  ⚙️  Admin:    ${orchestrator.cmsUrl}/admin`));
-            console.log(chalk.cyan(`  🤖 Bot:      ${orchestrator.botUrl}\n`));
-        }
+        console.log(chalk.cyan(`  📱 App:      ${orchestrator.appUrl}`));
+        console.log(chalk.cyan(`  ⚙️  Admin:    ${orchestrator.appUrl}/admin`));
+        console.log(chalk.cyan(`  🤖 Bot:      ${orchestrator.botUrl}\n`));
         // Generate webhook setup URL
         const webhookSetupUrl = `https://api.telegram.org/bot${credentials.telegramBotToken}/setWebhook?url=${orchestrator.botUrl}/webhook`;
         console.log(chalk.yellow.bold('⚠️  IMPORTANT: Set up Telegram Webhook\n'));
@@ -168,8 +157,7 @@ async function main() {
         // Call setup endpoint to create admin user (with retries and wait)
         console.log(chalk.white('🔧 Setting up admin user...'));
         console.log(chalk.gray('   Waiting for CMS to be ready...\n'));
-        // Use the appropriate URL based on architecture
-        const appBaseUrl = manifest.architecture === 'unified' ? orchestrator.appUrl : orchestrator.cmsUrl;
+        const appBaseUrl = orchestrator.appUrl;
         let setupSuccess = false;
         const maxRetries = 10;
         const retryDelay = 10000; // 10 seconds

@@ -13,7 +13,7 @@ import chalk from 'chalk';
 // GitHub Releases configuration
 const GITHUB_OWNER = 'kiriti999';
 const GITHUB_REPO = 'curate-kids';
-const BUNDLES_VERSION = process.env.CURATEKIDS_VERSION || '1.0.14';
+const BUNDLES_VERSION = process.env.CURATEKIDS_VERSION || '1.2.3';
 const BUNDLES_DIR = './.curatedreels-bundles';
 const GITHUB_API_URL = 'https://api.github.com';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
@@ -38,37 +38,15 @@ export async function downloadBundles(licenseKey) {
         const manifest = await fetchManifestFromGitHub();
         // Download each bundle from GitHub Release
         const version = `v${manifest.version}`;
-        // Check if unified architecture or legacy
-        if (manifest.architecture === 'unified') {
-            // Download unified app bundle
-            spinner.text = 'Downloading unified app bundle...';
-            await downloadFromGitHub(version, 'app.tar.gz', `${BUNDLES_DIR}/app.tar.gz`);
-            spinner.text = 'Extracting unified app bundle...';
-            await mkdir(`${BUNDLES_DIR}/app`, { recursive: true });
-            await extract({
-                file: `${BUNDLES_DIR}/app.tar.gz`,
-                cwd: `${BUNDLES_DIR}/app`
-            });
-        }
-        else {
-            // Legacy: Download frontend and CMS separately
-            spinner.text = 'Downloading frontend bundle...';
-            await downloadFromGitHub(version, 'frontend.tar.gz', `${BUNDLES_DIR}/frontend.tar.gz`);
-            spinner.text = 'Extracting frontend bundle...';
-            await mkdir(`${BUNDLES_DIR}/frontend`, { recursive: true });
-            await extract({
-                file: `${BUNDLES_DIR}/frontend.tar.gz`,
-                cwd: `${BUNDLES_DIR}/frontend`
-            });
-            spinner.text = 'Downloading CMS bundle...';
-            await downloadFromGitHub(version, 'cms.tar.gz', `${BUNDLES_DIR}/cms.tar.gz`);
-            spinner.text = 'Extracting CMS bundle...';
-            await mkdir(`${BUNDLES_DIR}/cms`, { recursive: true });
-            await extract({
-                file: `${BUNDLES_DIR}/cms.tar.gz`,
-                cwd: `${BUNDLES_DIR}/cms`
-            });
-        }
+        // Download unified app bundle
+        spinner.text = 'Downloading app bundle...';
+        await downloadFromGitHub(version, 'app.tar.gz', `${BUNDLES_DIR}/app.tar.gz`);
+        spinner.text = 'Extracting app bundle...';
+        await mkdir(`${BUNDLES_DIR}/app`, { recursive: true });
+        await extract({
+            file: `${BUNDLES_DIR}/app.tar.gz`,
+            cwd: `${BUNDLES_DIR}/app`
+        });
         spinner.text = 'Downloading bot bundle...';
         await downloadFromGitHub(version, 'bot.tar.gz', `${BUNDLES_DIR}/bot.tar.gz`);
         spinner.text = 'Extracting bot bundle...';
@@ -79,8 +57,7 @@ export async function downloadBundles(licenseKey) {
         });
         spinner.text = 'Downloading database schema...';
         await downloadFromGitHub(version, 'schema.json', `${BUNDLES_DIR}/schema.json`);
-        const arch = manifest.architecture === 'unified' ? 'unified app' : 'frontend + CMS';
-        spinner.succeed(`Bundles downloaded and extracted (${arch})`);
+        spinner.succeed('Bundles downloaded and extracted');
         return manifest;
     }
     catch (error) {
@@ -183,27 +160,19 @@ export async function mockDownloadBundles(_licenseKey) {
         console.log(chalk.yellow('\n⚠️  Using mock bundle download (development mode)'));
         // Create bundles directory
         await mkdir(BUNDLES_DIR, { recursive: true });
-        await mkdir(`${BUNDLES_DIR}/cms`, { recursive: true });
-        await mkdir(`${BUNDLES_DIR}/frontend`, { recursive: true });
-        // Create mock CMS bundle directory with minimal Next.js structure
-        spinner.text = 'Creating mock CMS bundle...';
-        await fs.writeFile(`${BUNDLES_DIR}/cms/package.json`, JSON.stringify({
-            name: 'mock-cms',
+        await mkdir(`${BUNDLES_DIR}/app`, { recursive: true });
+        await mkdir(`${BUNDLES_DIR}/bot`, { recursive: true });
+        // Create mock unified app bundle
+        spinner.text = 'Creating mock app bundle...';
+        await fs.writeFile(`${BUNDLES_DIR}/app/package.json`, JSON.stringify({
+            name: 'mock-app',
             version: '1.0.0',
             scripts: { build: 'echo mock build', start: 'echo mock start' }
         }, null, 2));
-        await fs.writeFile(`${BUNDLES_DIR}/cms/next.config.mjs`, 'export default {}');
-        // Create mock frontend bundle directory
-        spinner.text = 'Creating mock frontend bundle...';
-        await fs.writeFile(`${BUNDLES_DIR}/frontend/package.json`, JSON.stringify({
-            name: 'mock-frontend',
-            version: '1.0.0',
-            scripts: { build: 'echo mock build', start: 'echo mock start' }
-        }, null, 2));
-        await fs.writeFile(`${BUNDLES_DIR}/frontend/next.config.mjs`, 'export default {}');
+        await fs.writeFile(`${BUNDLES_DIR}/app/next.config.mjs`, 'export default {}');
         // Create mock bot bundle
         spinner.text = 'Creating mock bot bundle...';
-        await fs.writeFile(`${BUNDLES_DIR}/bot.js`, '// Mock bot bundle\nexport default {}');
+        await fs.writeFile(`${BUNDLES_DIR}/bot/main.ts`, '// Mock bot bundle\nexport default {}');
         // Create mock database schema
         spinner.text = 'Creating mock database schema...';
         const mockSchema = {
@@ -245,17 +214,17 @@ export async function mockDownloadBundles(_licenseKey) {
 export async function extractBundles() {
     const spinner = ora('Extracting bundles...').start();
     try {
-        await mkdir(`${BUNDLES_DIR}/frontend`, { recursive: true });
-        await mkdir(`${BUNDLES_DIR}/cms`, { recursive: true });
-        // Extract frontend
+        await mkdir(`${BUNDLES_DIR}/app`, { recursive: true });
+        await mkdir(`${BUNDLES_DIR}/bot`, { recursive: true });
+        // Extract app
         await extract({
-            file: `${BUNDLES_DIR}/frontend.tar.gz`,
-            cwd: `${BUNDLES_DIR}/frontend`
+            file: `${BUNDLES_DIR}/app.tar.gz`,
+            cwd: `${BUNDLES_DIR}/app`
         });
-        // Extract CMS
+        // Extract bot
         await extract({
-            file: `${BUNDLES_DIR}/cms.tar.gz`,
-            cwd: `${BUNDLES_DIR}/cms`
+            file: `${BUNDLES_DIR}/bot.tar.gz`,
+            cwd: `${BUNDLES_DIR}/bot`
         });
         spinner.succeed('Bundles extracted');
     }

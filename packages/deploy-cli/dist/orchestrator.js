@@ -16,21 +16,17 @@ import { getBundlesDir } from './services/bundles.js';
 export class DeploymentOrchestrator {
     credentials;
     licenseKey;
-    manifest;
     vercel;
     deno;
-    frontendUrl = '';
-    cmsUrl = '';
+    appUrl = '';
     botUrl = '';
-    appUrl = ''; // For unified architecture
     // Track deployed resources for rollback
     deployedResources = {};
     // Track manual setup instructions
     manualSetupRequired = null;
-    constructor(credentials, licenseKey, manifest) {
+    constructor(credentials, licenseKey) {
         this.credentials = credentials;
         this.licenseKey = licenseKey;
-        this.manifest = manifest;
         this.vercel = new VercelClient(credentials.vercelToken, credentials.vercelTeamId);
         this.deno = new DenoClient(credentials.denoToken, credentials.denoOrg);
     }
@@ -42,24 +38,11 @@ export class DeploymentOrchestrator {
         try {
             // Step 1: Setup MongoDB
             await this.deployMongoDB();
-            // Step 2: Deploy Vercel app(s) - unified or legacy
-            if (this.manifest.architecture === 'unified') {
-                // New unified architecture: deploy single app
-                await this.deployApp();
-                // Set legacy URLs to app URL for backward compatibility
-                this.frontendUrl = this.appUrl;
-                this.cmsUrl = this.appUrl;
-            }
-            else {
-                // Legacy architecture: deploy CMS and Frontend separately
-                // Step 2: Deploy CMS (needs to be first so frontend can reference its URL)
-                await this.deployCMS();
-                // Step 3: Deploy Frontend
-                await this.deployFrontend();
-            }
-            // Step 4: Deploy Bot
+            // Step 2: Deploy unified app to Vercel (Frontend + CMS)
+            await this.deployApp();
+            // Step 3: Deploy Bot
             await this.deployBot();
-            // Step 5: Register deployment with license server
+            // Step 4: Register deployment with license server
             await this.registerDeployment();
             // Success metrics
             const duration = Math.round((Date.now() - startTime) / 1000);
@@ -92,14 +75,10 @@ export class DeploymentOrchestrator {
         console.log(chalk.yellow('\n🔄 Rolling back deployed resources...\n'));
         const rollbackSpinner = ora('Cleaning up...').start();
         try {
-            // Delete Vercel projects
-            if (this.deployedResources.cms) {
-                rollbackSpinner.text = `Deleting CMS project: ${this.deployedResources.cms}...`;
-                await this.vercel.deleteProject(this.deployedResources.cms).catch(() => { });
-            }
-            if (this.deployedResources.frontend) {
-                rollbackSpinner.text = `Deleting Frontend project: ${this.deployedResources.frontend}...`;
-                await this.vercel.deleteProject(this.deployedResources.frontend).catch(() => { });
+            // Delete Vercel project
+            if (this.deployedResources.app) {
+                rollbackSpinner.text = `Deleting app project: ${this.deployedResources.app}...`;
+                await this.vercel.deleteProject(this.deployedResources.app).catch(() => { });
             }
             // Delete Deno Deploy project
             if (this.deployedResources.bot) {
@@ -182,107 +161,6 @@ export class DeploymentOrchestrator {
         }
     }
     /**
-     * Deploy CMS to Vercel (Legacy architecture)
-     */
-    async deployCMS() {
-        const spinner = ora('Deploying CMS to Vercel...').start();
-        try {
-            const projectName = `${this.credentials.projectName}-cms`;
-            this.deployedResources.cms = projectName;
-            const bundlePath = `${getBundlesDir()}/cms`;
-            // Generate a random secret for Payload CMS
-            const payloadSecret = Array.from(crypto.getRandomValues(new Uint8Array(32)))
-                .map(b => b.toString(16).padStart(2, '0')).join('');
-            const envVars = {
-                MONGODB_URI: this.credentials.mongodbUri,
-                PAYLOAD_SECRET: payloadSecret,
-                TELEGRAM_BOT_TOKEN: this.credentials.telegramBotToken,
-                ADMIN_EMAIL: this.credentials.adminEmail,
-                ADMIN_PASSWORD: this.credentials.adminPassword,
-                ADMIN_NAME: this.credentials.adminName || 'Admin User',
-                ...(this.credentials.telegramGroupId && {
-                    TELEGRAM_GROUP: this.credentials.telegramGroupId
-                }),
-                ...(this.credentials.cloudinaryCloudName && {
-                    CLOUDINARY_CLOUD_NAME: this.credentials.cloudinaryCloudName,
-                    CLOUDINARY_API_KEY: this.credentials.cloudinaryApiKey,
-                    CLOUDINARY_API_SECRET: this.credentials.cloudinaryApiSecret,
-                }),
-                ...(this.credentials.youtubeApiKey && {
-                    YOUTUBE_API_KEY: this.credentials.youtubeApiKey
-                }),
-                NODE_ENV: 'production',
-            };
-            this.cmsUrl = await this.vercel.deploy({
-                projectName,
-                bundlePath,
-                envVars,
-                framework: 'nextjs'
-            });
-            spinner.succeed(`CMS deployed: ${chalk.cyan(this.cmsUrl)}`);
-        }
-        catch (error) {
-            spinner.fail('CMS deployment failed');
-            throw new Error(`Vercel CMS: ${error instanceof Error ? error.message : String(error)}`);
-        }
-    }
-    /**
-     * Deploy Frontend to Vercel
-     */
-    async deployFrontend() {
-        const spinner = ora('Deploying Frontend to Vercel...').start();
-        try {
-            const projectName = `${this.credentials.projectName}-frontend`;
-            this.deployedResources.frontend = projectName;
-            const bundlePath = `${getBundlesDir()}/frontend`;
-            // Generate a random secret for Payload CMS
-            const payloadSecret = Array.from(crypto.getRandomValues(new Uint8Array(32)))
-                .map(b => b.toString(16).padStart(2, '0')).join('');
-            // Frontend bundle includes Payload CMS, so needs all CMS env vars
-            const envVars = {
-                MONGODB_URI: this.credentials.mongodbUri,
-                PAYLOAD_SECRET: payloadSecret,
-                TELEGRAM_BOT_TOKEN: this.credentials.telegramBotToken,
-                NEXT_PUBLIC_PAYLOAD_API_URL: `${this.cmsUrl}/api`,
-                ADMIN_EMAIL: this.credentials.adminEmail,
-                ADMIN_PASSWORD: this.credentials.adminPassword,
-                ADMIN_NAME: this.credentials.adminName || 'Admin User',
-                ...(this.credentials.telegramGroupId && {
-                    TELEGRAM_GROUP: this.credentials.telegramGroupId
-                }),
-                ...(this.credentials.cloudinaryCloudName && {
-                    CLOUDINARY_CLOUD_NAME: this.credentials.cloudinaryCloudName,
-                    CLOUDINARY_API_KEY: this.credentials.cloudinaryApiKey,
-                    CLOUDINARY_API_SECRET: this.credentials.cloudinaryApiSecret,
-                }),
-                ...(this.credentials.youtubeApiKey && {
-                    YOUTUBE_API_KEY: this.credentials.youtubeApiKey
-                }),
-                NODE_ENV: 'production',
-            };
-            this.frontendUrl = await this.vercel.deploy({
-                projectName,
-                bundlePath,
-                envVars,
-                framework: 'nextjs'
-            });
-            // Update CMS with frontend URL
-            spinner.text = 'Linking frontend to CMS...';
-            await this.vercel.updateEnvironmentVariables(`${this.credentials.projectName}-cms`, { NEXT_PUBLIC_FRONTEND_URL: this.frontendUrl });
-            // Add custom domain if specified
-            if (this.credentials.customDomain) {
-                spinner.text = 'Adding custom domain...';
-                await this.vercel.addDomain(projectName, this.credentials.customDomain);
-                this.frontendUrl = `https://${this.credentials.customDomain}`;
-            }
-            spinner.succeed(`Frontend deployed: ${chalk.cyan(this.frontendUrl)}`);
-        }
-        catch (error) {
-            spinner.fail('Frontend deployment failed');
-            throw new Error(`Vercel Frontend: ${error instanceof Error ? error.message : String(error)}`);
-        }
-    }
-    /**
      * Deploy Bot to Deno Deploy
      */
     async deployBot() {
@@ -294,9 +172,9 @@ export class DeploymentOrchestrator {
             const envVars = {
                 TELEGRAM_BOT_TOKEN: this.credentials.telegramBotToken,
                 MONGODB_URI: this.credentials.mongodbUri,
-                CMS_URL: this.cmsUrl,
-                PAYLOAD_CMS_URL: this.cmsUrl,
-                FRONTEND_URL: this.frontendUrl,
+                CMS_URL: this.appUrl,
+                PAYLOAD_CMS_URL: this.appUrl,
+                FRONTEND_URL: this.appUrl,
                 WEBHOOK_URL: `https://${projectName}.deno.dev/webhook`,
                 ...(this.credentials.telegramGroupId && {
                     TELEGRAM_GROUP: this.credentials.telegramGroupId
@@ -336,8 +214,8 @@ export class DeploymentOrchestrator {
         try {
             await registerDeployment(this.licenseKey, {
                 projectName: this.credentials.projectName,
-                frontendUrl: this.frontendUrl,
-                cmsUrl: this.cmsUrl,
+                frontendUrl: this.appUrl,
+                cmsUrl: this.appUrl,
                 botUrl: this.botUrl
             });
             spinner.succeed('Deployment registered');

@@ -23,15 +23,18 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN
 export interface BundleManifest {
     version: string
     releaseDate: string
+    architecture: 'unified' | 'legacy'  // Track if using new unified structure
     bundles: {
-        frontend: string
-        cms: string
+        app?: string          // New unified app bundle
+        frontend?: string     // Legacy - kept for backward compatibility
+        cms?: string          // Legacy - kept for backward compatibility
         bot: string
         schema: string
     }
     checksums: {
-        frontend: string
-        cms: string
+        app?: string
+        frontend?: string
+        cms?: string
         bot: string
         schema: string
     }

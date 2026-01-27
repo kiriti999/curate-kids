@@ -21,7 +21,7 @@ export declare class VercelClient {
     deploy(options: VercelDeploymentOptions): Promise<string>;
     /**
      * Get the stable production URL for a project
-     * Prefers custom domain, falls back to .vercel.app domain
+     * Gets the actual production domain from the latest production deployment
      */
     private getProductionUrl;
     /**

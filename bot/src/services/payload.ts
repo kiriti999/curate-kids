@@ -289,7 +289,7 @@ async function attemptInsert(
     throw new Error("MongoDB client not available");
   }
 
-  const db = client.db("curatekids");
+  const db = client.db("curatedreels");
   const videos = db.collection<VideoDocument>("videos");
 
   // Check for duplicate video
@@ -375,14 +375,14 @@ export async function validateConnection(): Promise<boolean> {
       return false;
     }
 
-    const db = client.db("curatekids");
+    const db = client.db("curatedreels");
     const videos = db.collection<VideoDocument>("videos");
 
     // Test connection by counting documents
     const count = await videos.countDocuments();
 
     logger.info("✅ MongoDB connection validated", {
-      database: "curatekids",
+      database: "curatedreels",
       collection: "videos",
       totalDocs: count,
     });

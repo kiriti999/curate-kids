@@ -11,18 +11,18 @@ import { logger } from '@/utils/logger';
 export const revalidate = 300; // 5 minutes
 
 export const metadata: Metadata = {
-  title: "CurateKids | Curated Educational Videos for Kids",
+  title: "CuratedReels | Curated Educational Videos for Kids",
   description: "Discover a safe, curated collection of educational and entertaining videos for children. Hand-picked content organized by categories and age groups.",
   keywords: ["kids videos", "educational videos", "children's content", "curated videos", "safe for kids", "video gallery"],
   openGraph: {
-    title: "CurateKids | Curated Educational Videos for Kids",
+    title: "CuratedReels | Curated Educational Videos for Kids",
     description: "Discover a safe, curated collection of educational and entertaining videos for children.",
     type: "website",
-    siteName: "CurateKids",
+    siteName: "CuratedReels",
   },
   twitter: {
     card: "summary_large_image",
-    title: "CurateKids | Curated Educational Videos for Kids",
+    title: "CuratedReels | Curated Educational Videos for Kids",
     description: "Discover a safe, curated collection of educational and entertaining videos for children.",
   },
 };

@@ -141,6 +141,7 @@ async function sendOwnerWelcome(
     groupId: chatId,
     isOwner: true,
   });
+  console.log('🚀 :: sendOwnerWelcome :: linkUrl:', linkUrl)
 
   await sendMessageWithLink(ctx, WELCOME_OWNER_MSG, linkUrl, "🔗 Register as Admin");
 }

@@ -6,15 +6,18 @@
 export interface BundleManifest {
     version: string;
     releaseDate: string;
+    architecture: 'unified' | 'legacy';
     bundles: {
-        frontend: string;
-        cms: string;
+        app?: string;
+        frontend?: string;
+        cms?: string;
         bot: string;
         schema: string;
     };
     checksums: {
-        frontend: string;
-        cms: string;
+        app?: string;
+        frontend?: string;
+        cms?: string;
         bot: string;
         schema: string;
     };
@@ -22,7 +25,7 @@ export interface BundleManifest {
 /**
  * Download deployment bundles from GitHub Releases
  */
-export declare function downloadBundles(licenseKey: string): Promise<void>;
+export declare function downloadBundles(licenseKey: string): Promise<BundleManifest>;
 /**
  * Mock bundle download for development/testing
  */

@@ -14,7 +14,7 @@ import { VercelClient } from './clients/vercel.js'
 import { DenoClient } from './clients/deno.js'
 import { setupMongoDB } from './services/mongodb.js'
 import { registerDeployment } from './services/license.js'
-import { getBundlesDir } from './services/bundles.js'
+import { getBundlesDir, type BundleManifest } from './services/bundles.js'
 
 export class DeploymentOrchestrator {
     private vercel: VercelClient
@@ -23,11 +23,13 @@ export class DeploymentOrchestrator {
     public frontendUrl: string = ''
     public cmsUrl: string = ''
     public botUrl: string = ''
+    public appUrl: string = ''  // For unified architecture
 
     // Track deployed resources for rollback
     private deployedResources: {
-        cms?: string
-        frontend?: string
+        app?: string       // Unified app
+        cms?: string       // Legacy
+        frontend?: string  // Legacy
         bot?: string
     } = {}
 
@@ -39,7 +41,8 @@ export class DeploymentOrchestrator {
 
     constructor(
         private credentials: DeploymentCredentials,
-        private licenseKey: string
+        private licenseKey: string,
+        private manifest: { architecture?: 'unified' | 'legacy' }
     ) {
         this.vercel = new VercelClient(credentials.vercelToken, credentials.vercelTeamId)
         this.deno = new DenoClient(credentials.denoToken, credentials.denoOrg)
@@ -55,11 +58,21 @@ export class DeploymentOrchestrator {
             // Step 1: Setup MongoDB
             await this.deployMongoDB()
 
-            // Step 2: Deploy CMS (needs to be first so frontend can reference its URL)
-            await this.deployCMS()
+            // Step 2: Deploy Vercel app(s) - unified or legacy
+            if (this.manifest.architecture === 'unified') {
+                // New unified architecture: deploy single app
+                await this.deployApp()
+                // Set legacy URLs to app URL for backward compatibility
+                this.frontendUrl = this.appUrl
+                this.cmsUrl = this.appUrl
+            } else {
+                // Legacy architecture: deploy CMS and Frontend separately
+                // Step 2: Deploy CMS (needs to be first so frontend can reference its URL)
+                await this.deployCMS()
 
-            // Step 3: Deploy Frontend
-            await this.deployFrontend()
+                // Step 3: Deploy Frontend
+                await this.deployFrontend()
+            }
 
             // Step 4: Deploy Bot
             await this.deployBot()
@@ -130,7 +143,7 @@ export class DeploymentOrchestrator {
     }
 
     /**
-     * Deploy and configure MongoDB
+     * Deploy MongoDB and configure
      */
     private async deployMongoDB(): Promise<void> {
         const spinner = ora('Setting up MongoDB...').start()
@@ -145,7 +158,69 @@ export class DeploymentOrchestrator {
     }
 
     /**
-     * Deploy CMS to Vercel
+     * Deploy unified App to Vercel (Frontend + CMS in one)
+     */
+    private async deployApp(): Promise<void> {
+        const spinner = ora('Deploying unified app to Vercel...').start()
+
+        try {
+            const projectName = this.credentials.projectName
+            this.deployedResources.app = projectName
+
+            const bundlePath = `${getBundlesDir()}/app`
+
+            // Generate a random secret for Payload CMS
+            const payloadSecret = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+                .map(b => b.toString(16).padStart(2, '0')).join('')
+
+            const envVars = {
+                MONGODB_URI: this.credentials.mongodbUri,
+                PAYLOAD_SECRET: payloadSecret,
+                TELEGRAM_BOT_TOKEN: this.credentials.telegramBotToken,
+                ADMIN_EMAIL: this.credentials.adminEmail,
+                ADMIN_PASSWORD: this.credentials.adminPassword,
+                ADMIN_NAME: this.credentials.adminName || 'Admin User',
+                // Unified app: All URLs point to same domain
+                NEXT_PUBLIC_FRONTEND_URL: '', // Will be set to deployment URL after deploy
+                PAYLOAD_PUBLIC_SERVER_URL: '', // Will be set to deployment URL after deploy
+                NEXT_PUBLIC_PAYLOAD_API_URL: '', // Will be set to deployment URL/api after deploy
+                ...(this.credentials.telegramGroupId && {
+                    TELEGRAM_GROUP: this.credentials.telegramGroupId
+                }),
+                ...(this.credentials.cloudinaryCloudName && {
+                    CLOUDINARY_CLOUD_NAME: this.credentials.cloudinaryCloudName,
+                    CLOUDINARY_API_KEY: this.credentials.cloudinaryApiKey!,
+                    CLOUDINARY_API_SECRET: this.credentials.cloudinaryApiSecret!,
+                }),
+                ...(this.credentials.youtubeApiKey && {
+                    YOUTUBE_API_KEY: this.credentials.youtubeApiKey
+                }),
+                NODE_ENV: 'production',
+            }
+
+            this.appUrl = await this.vercel.deploy({
+                projectName,
+                bundlePath,
+                envVars,
+                framework: 'nextjs'
+            })
+
+            // Update environment variables with the actual deployment URL
+            await this.vercel.updateEnvironmentVariables(projectName, {
+                NEXT_PUBLIC_FRONTEND_URL: this.appUrl,
+                PAYLOAD_PUBLIC_SERVER_URL: this.appUrl,
+                NEXT_PUBLIC_PAYLOAD_API_URL: `${this.appUrl}/api`,
+            })
+
+            spinner.succeed(`Unified app deployed: ${chalk.cyan(this.appUrl)}`)
+        } catch (error) {
+            spinner.fail('Unified app deployment failed')
+            throw new Error(`Vercel App: ${error instanceof Error ? error.message : String(error)}`)
+        }
+    }
+
+    /**
+     * Deploy CMS to Vercel (Legacy architecture)
      */
     private async deployCMS(): Promise<void> {
         const spinner = ora('Deploying CMS to Vercel...').start()

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Build All Bundles
-# Creates production-ready bundles for Frontend, CMS, and Bot
+# Creates production-ready bundles for Unified App and Bot
 
 set -e
 
@@ -18,9 +18,9 @@ if ! command -v node &> /dev/null; then
     exit 1
 fi
 
-# Check npm
-if ! command -v npm &> /dev/null; then
-    echo "❌ npm is required"
+# Check pnpm
+if ! command -v pnpm &> /dev/null; then
+    echo "❌ pnpm is required"
     exit 1
 fi
 
@@ -28,18 +28,6 @@ fi
 if ! command -v deno &> /dev/null; then
     echo "❌ Deno is required"
     exit 1
-fi
-
-# Check terser
-if ! npm list -g terser &> /dev/null; then
-    echo "📦 Installing terser globally..."
-    npm install -g terser
-fi
-
-# Check javascript-obfuscator
-if ! npm list -g javascript-obfuscator &> /dev/null; then
-    echo "📦 Installing javascript-obfuscator globally..."
-    npm install -g javascript-obfuscator
 fi
 
 echo "✅ All requirements met"
@@ -53,18 +41,13 @@ echo ""
 # Track start time
 START_TIME=$(date +%s)
 
-# Build frontend
-echo "1️⃣  Building Frontend..."
-bash ./build-frontend.sh
-echo ""
-
-# Build CMS
-echo "2️⃣  Building CMS..."
-bash ./build-cms.sh
+# Build unified app (frontend + CMS merged)
+echo "1️⃣  Building Unified App (Frontend + CMS)..."
+bash ./build-app.sh
 echo ""
 
 # Build bot
-echo "3️⃣  Building Bot..."
+echo "2️⃣  Building Bot..."
 bash ./build-bot.sh
 echo ""
 
@@ -74,38 +57,38 @@ RELEASE_DIR="./releases/v$VERSION"
 mkdir -p "$RELEASE_DIR"
 
 # Copy bundles
-cp frontend.zip "$RELEASE_DIR/"
-cp cms.zip "$RELEASE_DIR/"
+cp app.zip "$RELEASE_DIR/"
 cp bot.js "$RELEASE_DIR/"
 
 # Copy schema
-cp ../../packages/deploy-cli/schema.json "$RELEASE_DIR/"
+cp ../../packages/deploy-cli/schema.json "$RELEASE_DIR/" 2>/dev/null || echo "⚠️  schema.json not found"
 
 # Generate manifest
-FRONTEND_CHECKSUM=$(shasum -a 256 frontend.zip | awk '{print $1}')
-CMS_CHECKSUM=$(shasum -a 256 cms.zip | awk '{print $1}')
+APP_CHECKSUM=$(shasum -a 256 app.zip | awk '{print $1}')
 BOT_CHECKSUM=$(shasum -a 256 bot.js | awk '{print $1}')
-SCHEMA_CHECKSUM=$(shasum -a 256 "$RELEASE_DIR/schema.json" | awk '{print $1}')
+SCHEMA_CHECKSUM=$(shasum -a 256 "$RELEASE_DIR/schema.json" 2>/dev/null | awk '{print $1}' || echo "N/A")
 
 cat > "$RELEASE_DIR/manifest.json" << EOF
 {
   "version": "$VERSION",
   "releaseDate": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "architecture": "unified",
   "bundles": {
-    "frontend": "frontend.zip",
-    "cms": "cms.zip",
+    "app": "app.zip",
     "bot": "bot.js",
     "schema": "schema.json"
   },
   "checksums": {
-    "frontend": "$FRONTEND_CHECKSUM",
-    "cms": "$CMS_CHECKSUM",
+    "app": "$APP_CHECKSUM",
     "bot": "$BOT_CHECKSUM",
     "schema": "$SCHEMA_CHECKSUM"
   },
   "requirements": {
     "node": ">=18.0.0",
     "deno": ">=1.40.0"
+  },
+  "changes": {
+    "v1.0.0": "Merged frontend and CMS into unified app. Single deployment for both admin and user-facing pages."
   }
 }
 EOF
@@ -131,6 +114,7 @@ echo "✅ Build Complete!"
 echo "============================"
 echo ""
 echo "📦 Release: v$VERSION"
+echo "🏗️  Architecture: Unified App (Frontend + CMS)"
 echo "📏 Total Size: $TOTAL_SIZE"
 echo "🗜️  Archive Size: $ARCHIVE_SIZE"
 echo "⏱️  Duration: ${DURATION}s"
@@ -139,15 +123,22 @@ echo "📂 Release Location:"
 echo "   $RELEASE_DIR/"
 echo ""
 echo "📋 Files Created:"
-echo "   ✓ frontend.zip ($FRONTEND_CHECKSUM)"
-echo "   ✓ cms.zip ($CMS_CHECKSUM)"
+echo "   ✓ app.zip ($APP_CHECKSUM)"
 echo "   ✓ bot.js ($BOT_CHECKSUM)"
-echo "   ✓ schema.json ($SCHEMA_CHECKSUM)"
+if [ -f "$RELEASE_DIR/schema.json" ]; then
+    echo "   ✓ schema.json ($SCHEMA_CHECKSUM)"
+fi
 echo "   ✓ manifest.json"
 echo "   ✓ curatedreels-v$VERSION.tar.gz"
 echo ""
+echo "⚠️  IMPORTANT CHANGES:"
+echo "   • Frontend and CMS are now merged into a single 'app.zip'"
+echo "   • Only ONE deployment needed (not two separate deployments)"
+echo "   • All routes (/admin, /, /login, etc.) are in one app"
+echo ""
 echo "🚀 Next Steps:"
 echo "   1. Upload to CDN: ./upload-to-cdn.sh v$VERSION"
-echo "   2. Test deployment with CLI"
-echo "   3. Update version in deploy-cli/package.json"
+echo "   2. Update deploy-cli to use new 'app' bundle"
+echo "   3. Test deployment with CLI"
 echo ""
+

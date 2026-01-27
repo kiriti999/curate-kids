@@ -11,48 +11,47 @@ VERSION=${1:-"v1.0.0"}
 RELEASE_DIR="./release-bundles"
 STAGING_DIR="./release-staging"
 
-echo "📦 Creating release bundles for $VERSION"
+echo "📦 Creating release bundles for $VERSION (UNIFIED ARCHITECTURE)"
 
 # Clean up previous release
 rm -rf "$RELEASE_DIR" "$STAGING_DIR"
-mkdir -p "$RELEASE_DIR" "$STAGING_DIR/cms" "$STAGING_DIR/frontend"
+mkdir -p "$RELEASE_DIR" "$STAGING_DIR/app"
 
-# --- CMS Bundle (source only) ---
-echo "📦 Packaging CMS source bundle..."
+# --- Unified App Bundle (CMS + Frontend merged) ---
+echo "📦 Packaging unified app source bundle..."
 
 # Copy only source files needed for Vercel build
-cp package.json "$STAGING_DIR/cms/"
-cp pnpm-lock.yaml "$STAGING_DIR/cms/" 2>/dev/null || true
-cp next.config.mjs "$STAGING_DIR/cms/"
-cp payload.config.ts "$STAGING_DIR/cms/"
-cp tsconfig.json "$STAGING_DIR/cms/"
-cp postcss.config.mjs "$STAGING_DIR/cms/" 2>/dev/null || true
-cp .npmrc "$STAGING_DIR/cms/" 2>/dev/null || true
-cp vercel.json "$STAGING_DIR/cms/" 2>/dev/null || true
-cp tailwind.config.ts "$STAGING_DIR/cms/" 2>/dev/null || true
-cp tailwind.config.js "$STAGING_DIR/cms/" 2>/dev/null || true
+cp package.json "$STAGING_DIR/app/"
+cp pnpm-lock.yaml "$STAGING_DIR/app/" 2>/dev/null || true
+cp next.config.mjs "$STAGING_DIR/app/"
+cp payload.config.ts "$STAGING_DIR/app/"
+cp tsconfig.json "$STAGING_DIR/app/"
+cp postcss.config.mjs "$STAGING_DIR/app/" 2>/dev/null || true
+cp .npmrc "$STAGING_DIR/app/" 2>/dev/null || true
+cp vercel.json "$STAGING_DIR/app/" 2>/dev/null || true
+cp tailwind.config.ts "$STAGING_DIR/app/" 2>/dev/null || true
+cp tailwind.config.js "$STAGING_DIR/app/" 2>/dev/null || true
+cp middleware.ts "$STAGING_DIR/app/" 2>/dev/null || true
 
 # Copy source directories
-[ -d "app" ] && cp -r app "$STAGING_DIR/cms/"
-[ -d "components" ] && cp -r components "$STAGING_DIR/cms/"
-[ -d "lib" ] && cp -r lib "$STAGING_DIR/cms/"
-[ -d "utils" ] && cp -r utils "$STAGING_DIR/cms/"
-[ -d "types" ] && cp -r types "$STAGING_DIR/cms/"
-[ -d "config" ] && cp -r config "$STAGING_DIR/cms/"
-[ -d "public" ] && cp -r public "$STAGING_DIR/cms/"
-[ -d "static" ] && cp -r static "$STAGING_DIR/cms/"
-[ -d "payload-cms" ] && cp -r payload-cms "$STAGING_DIR/cms/"
+[ -d "app" ] && cp -r app "$STAGING_DIR/app/"
+[ -d "components" ] && cp -r components "$STAGING_DIR/app/"
+[ -d "lib" ] && cp -r lib "$STAGING_DIR/app/"
+[ -d "utils" ] && cp -r utils "$STAGING_DIR/app/"
+[ -d "types" ] && cp -r types "$STAGING_DIR/app/"
+[ -d "config" ] && cp -r config "$STAGING_DIR/app/"
+[ -d "public" ] && cp -r public "$STAGING_DIR/app/"
+[ -d "static" ] && cp -r static "$STAGING_DIR/app/"
+[ -d "payload-cms" ] && cp -r payload-cms "$STAGING_DIR/app/"
 
 # Remove any .next or node_modules that might have been copied
-rm -rf "$STAGING_DIR/cms/.next" "$STAGING_DIR/cms/node_modules"
+rm -rf "$STAGING_DIR/app/.next" "$STAGING_DIR/app/node_modules"
 
-# Create CMS tarball (exclude macOS resource fork files)
+# Create app tarball (exclude macOS resource fork files)
 export COPYFILE_DISABLE=1
-(cd "$STAGING_DIR/cms" && tar --exclude='._*' -czf "../../$RELEASE_DIR/cms.tar.gz" .)
+(cd "$STAGING_DIR/app" && tar --exclude='._*' -czf "../../$RELEASE_DIR/app.tar.gz" .)
 
-# --- Frontend Bundle (same source for now) ---
-echo "📋 Creating frontend bundle..."
-cp "$RELEASE_DIR/cms.tar.gz" "$RELEASE_DIR/frontend.tar.gz"
+echo "✅ Unified app bundle created (includes frontend + CMS)"
 
 # Cleanup staging
 rm -rf "$STAGING_DIR"
@@ -135,12 +134,13 @@ cat > "$RELEASE_DIR/manifest.json" << EOF
 {
   "version": "${VERSION#v}",
   "releaseDate": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+  "architecture": "unified",
   "bundles": {
-    "frontend": "frontend.tar.gz",
-    "cms": "cms.tar.gz",
+    "app": "app.tar.gz",
     "bot": "bot.tar.gz",
     "schema": "schema.json"
-  }
+  },
+  "notes": "Unified architecture: Frontend and CMS merged into single app"
 }
 EOF
 
@@ -148,5 +148,11 @@ echo ""
 echo "✅ Release bundles created in $RELEASE_DIR/"
 echo ""
 echo "Files:"
+ls -lh "$RELEASE_DIR"
+echo ""
+echo "📦 Architecture: UNIFIED (Frontend + CMS in one app)"
+echo "📦 App bundle: app.tar.gz (includes all routes)"
+echo "📦 Bot bundle: bot.tar.gz"
+echo ""
 ls -lh "$RELEASE_DIR/"
 echo ""

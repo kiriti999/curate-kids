@@ -10,14 +10,18 @@ import type { DeploymentCredentials } from './utils/credentials.js';
 export declare class DeploymentOrchestrator {
     private credentials;
     private licenseKey;
+    private manifest;
     private vercel;
     private deno;
     frontendUrl: string;
     cmsUrl: string;
     botUrl: string;
+    appUrl: string;
     private deployedResources;
     private manualSetupRequired;
-    constructor(credentials: DeploymentCredentials, licenseKey: string);
+    constructor(credentials: DeploymentCredentials, licenseKey: string, manifest: {
+        architecture?: 'unified' | 'legacy';
+    });
     /**
      * Main deployment flow
      */
@@ -27,11 +31,15 @@ export declare class DeploymentOrchestrator {
      */
     private rollback;
     /**
-     * Deploy and configure MongoDB
+     * Deploy MongoDB and configure
      */
     private deployMongoDB;
     /**
-     * Deploy CMS to Vercel
+     * Deploy unified App to Vercel (Frontend + CMS in one)
+     */
+    private deployApp;
+    /**
+     * Deploy CMS to Vercel (Legacy architecture)
      */
     private deployCMS;
     /**

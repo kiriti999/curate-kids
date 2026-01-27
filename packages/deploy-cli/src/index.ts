@@ -13,7 +13,7 @@ import ora from 'ora'
 import { DeploymentOrchestrator } from './orchestrator.js'
 import { verifyLicense, mockVerifyLicense } from './services/license.js'
 import { collectCredentials, DeploymentCredentials } from './utils/credentials.js'
-import { downloadBundles, mockDownloadBundles } from './services/bundles.js'
+import { downloadBundles, mockDownloadBundles, type BundleManifest } from './services/bundles.js'
 
 const VERSION = '1.0.0'
 
@@ -150,23 +150,37 @@ async function main() {
         console.log(chalk.bold('\n📦 Step 3: Downloading Deployment Bundles'))
         // Use mock bundles only if explicitly set, otherwise download real bundles
         const useMockBundles = process.env.MOCK_BUNDLES === 'true'
-        const download = useMockBundles ? mockDownloadBundles : downloadBundles
-        await download(licenseKey)
+        let manifest: BundleManifest | { architecture: 'legacy' }
+        if (useMockBundles) {
+            await mockDownloadBundles(licenseKey)
+            manifest = { architecture: 'legacy' } // Mock always uses legacy
+        } else {
+            manifest = await downloadBundles(licenseKey)
+        }
 
         // Step 4: Confirm deployment
         await confirmDeployment()
 
         // Step 5: Deploy
         console.log(chalk.bold('\n🚀 Step 4: Deploying to Your Infrastructure\n'))
-        const orchestrator = new DeploymentOrchestrator(credentials, licenseKey)
+        const orchestrator = new DeploymentOrchestrator(credentials, licenseKey, manifest)
         await orchestrator.deploy()
 
         // Success!
         console.log(chalk.green.bold('\n✅ Deployment Complete!\n'))
         console.log(chalk.white('Your CuratedReels instance is live:\n'))
-        console.log(chalk.cyan(`  📱 Frontend: ${orchestrator.frontendUrl}`))
-        console.log(chalk.cyan(`  ⚙️  Admin:    ${orchestrator.cmsUrl}/admin`))
-        console.log(chalk.cyan(`  🤖 Bot:      ${orchestrator.botUrl}\n`))
+        
+        if (manifest.architecture === 'unified') {
+            // Unified architecture: Single URL for everything
+            console.log(chalk.cyan(`  📱 App:      ${orchestrator.appUrl}`))
+            console.log(chalk.cyan(`  ⚙️  Admin:    ${orchestrator.appUrl}/admin`))
+            console.log(chalk.cyan(`  🤖 Bot:      ${orchestrator.botUrl}\n`))
+        } else {
+            // Legacy architecture: Separate URLs
+            console.log(chalk.cyan(`  📱 Frontend: ${orchestrator.frontendUrl}`))
+            console.log(chalk.cyan(`  ⚙️  Admin:    ${orchestrator.cmsUrl}/admin`))
+            console.log(chalk.cyan(`  🤖 Bot:      ${orchestrator.botUrl}\n`))
+        }
 
         // Generate webhook setup URL
         const webhookSetupUrl = `https://api.telegram.org/bot${credentials.telegramBotToken}/setWebhook?url=${orchestrator.botUrl}/webhook`
@@ -180,6 +194,9 @@ async function main() {
         console.log(chalk.white('🔧 Setting up admin user...'))
         console.log(chalk.gray('   Waiting for CMS to be ready...\n'))
         
+        // Use the appropriate URL based on architecture
+        const appBaseUrl = manifest.architecture === 'unified' ? orchestrator.appUrl : orchestrator.cmsUrl
+        
         let setupSuccess = false
         const maxRetries = 10
         const retryDelay = 10000 // 10 seconds
@@ -187,7 +204,7 @@ async function main() {
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
                 // First check if CMS is responding
-                const healthCheck = await fetch(`${orchestrator.cmsUrl}/api/health`, { 
+                const healthCheck = await fetch(`${appBaseUrl}/api/health`, { 
                     method: 'GET',
                     signal: AbortSignal.timeout(8000)
                 }).catch(() => null)
@@ -201,7 +218,7 @@ async function main() {
                 }
                 
                 // Try to create admin user
-                const setupResponse = await fetch(`${orchestrator.cmsUrl}/api/setup`, {
+                const setupResponse = await fetch(`${appBaseUrl}/api/setup`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     signal: AbortSignal.timeout(15000)
@@ -234,7 +251,7 @@ async function main() {
                     await new Promise(resolve => setTimeout(resolve, retryDelay))
                 } else {
                     console.log(chalk.yellow(`⚠️  Could not auto-create admin user: ${error.message}`))
-                    console.log(chalk.cyan(`\n   Manual setup: POST ${orchestrator.cmsUrl}/api/setup\n`))
+                    console.log(chalk.cyan(`\n   Manual setup: POST ${appBaseUrl}/api/setup\n`))
                 }
             }
         }

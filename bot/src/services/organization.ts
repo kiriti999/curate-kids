@@ -39,7 +39,7 @@ async function getMongoClient(): Promise<MongoClient | null> {
 async function getDatabase() {
     const client = await getMongoClient();
     if (!client) return null;
-    return client.db();
+    return client.db("curatedreels");
 }
 
 // ============================================================================
@@ -165,45 +165,45 @@ export async function createOrganization(params: {
  * Build unlink query for organization members
  */
 function buildUnlinkQuery(org: any): any {
-  const orgIdString = org._id.toString();
-  const baseConditions: any[] = [
-    { organization: org._id },
-    { organization: orgIdString },
-  ];
-  
-  if (org.ownerTelegramId) {
-    baseConditions.push({ telegramId: org.ownerTelegramId });
-  }
-  
-  return { $or: baseConditions };
+    const orgIdString = org._id.toString();
+    const baseConditions: any[] = [
+        { organization: org._id },
+        { organization: orgIdString },
+    ];
+
+    if (org.ownerTelegramId) {
+        baseConditions.push({ telegramId: org.ownerTelegramId });
+    }
+
+    return { $or: baseConditions };
 }
 
 /**
  * Unlink users from organization
  */
 async function unlinkOrganizationUsers(db: any, org: any): Promise<void> {
-  const orgIdString = org._id.toString();
-  const query = buildUnlinkQuery(org);
-  
-  const unlinkResult = await db.collection("users").updateMany(
-    query,
-    {
-      $set: {
-        organization: null,
-        telegramId: null,
-        telegramUsername: null,
-        telegramFirstName: null
-      }
-    }
-  );
+    const orgIdString = org._id.toString();
+    const query = buildUnlinkQuery(org);
 
-  logger.info("Users unlink attempt", {
-    telegramGroupId: org.telegramGroupId,
-    orgId: orgIdString,
-    ownerTelegramId: org.ownerTelegramId,
-    matchedCount: unlinkResult.matchedCount,
-    modifiedCount: unlinkResult.modifiedCount
-  });
+    const unlinkResult = await db.collection("users").updateMany(
+        query,
+        {
+            $set: {
+                organization: null,
+                telegramId: null,
+                telegramUsername: null,
+                telegramFirstName: null
+            }
+        }
+    );
+
+    logger.info("Users unlink attempt", {
+        telegramGroupId: org.telegramGroupId,
+        orgId: orgIdString,
+        ownerTelegramId: org.ownerTelegramId,
+        matchedCount: unlinkResult.matchedCount,
+        modifiedCount: unlinkResult.modifiedCount
+    });
 }
 
 /**
@@ -451,18 +451,18 @@ function buildContributorDocument(params: {
     firstName?: string;
     organizationId?: string;
 }): any {
-  return {
-    email: `telegram-${params.telegramId}@contributor.local`,
-    name: params.firstName || `Telegram User ${params.telegramId}`,
-    telegramId: params.telegramId,
-    telegramUsername: params.telegramUsername,
-    telegramFirstName: params.firstName,
-    telegramLinkedAt: new Date(),
-    role: "contributor",
-    organization: params.organizationId ? new ObjectId(params.organizationId) : undefined,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+    return {
+        email: `telegram-${params.telegramId}@contributor.local`,
+        name: params.firstName || `Telegram User ${params.telegramId}`,
+        telegramId: params.telegramId,
+        telegramUsername: params.telegramUsername,
+        telegramFirstName: params.firstName,
+        telegramLinkedAt: new Date(),
+        role: "contributor",
+        organization: params.organizationId ? new ObjectId(params.organizationId) : undefined,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    };
 }
 
 /**

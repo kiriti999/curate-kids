@@ -24,7 +24,8 @@
     "release": "./scripts/publish-release.sh auto patch",
     "release:minor": "./scripts/publish-release.sh auto minor",
     "release:major": "./scripts/publish-release.sh auto major",
-    "release:version": "./scripts/publish-release.sh"
+    "release:version": "./scripts/publish-release.sh",
+    "deploy:bot": "./scripts/deploy-bot.sh"
   },
   "keywords": [
     "payloadcms"

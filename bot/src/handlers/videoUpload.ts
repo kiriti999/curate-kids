@@ -141,7 +141,7 @@ async function uploadToCloudinary(
   logger.info("Got Telegram file URL", { filePath: file.file_path });
 
   return await uploadVideoFromUrl(telegramUrl, {
-    folder: "curatekids/telegram-videos",
+    folder: "curatedreels/telegram-videos",
   });
 }
 

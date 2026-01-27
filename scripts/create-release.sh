@@ -59,7 +59,7 @@ rm -rf "$STAGING_DIR"
 
 # Copy bot bundle (entire Deno project)
 echo "📋 Packaging bot..."
-BOT_SOURCE_DIR="${BOT_SOURCE_DIR:-../curatedreels-bot}"
+BOT_SOURCE_DIR="${BOT_SOURCE_DIR:-./bot}"
 if [ -d "$BOT_SOURCE_DIR/src" ]; then
     mkdir -p "$STAGING_DIR/bot"
     # Copy bot source files

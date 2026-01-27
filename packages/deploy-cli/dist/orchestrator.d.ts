@@ -10,18 +10,13 @@ import type { DeploymentCredentials } from './utils/credentials.js';
 export declare class DeploymentOrchestrator {
     private credentials;
     private licenseKey;
-    private manifest;
     private vercel;
     private deno;
-    frontendUrl: string;
-    cmsUrl: string;
-    botUrl: string;
     appUrl: string;
+    botUrl: string;
     private deployedResources;
     private manualSetupRequired;
-    constructor(credentials: DeploymentCredentials, licenseKey: string, manifest: {
-        architecture?: 'unified' | 'legacy';
-    });
+    constructor(credentials: DeploymentCredentials, licenseKey: string);
     /**
      * Main deployment flow
      */
@@ -38,14 +33,6 @@ export declare class DeploymentOrchestrator {
      * Deploy unified App to Vercel (Frontend + CMS in one)
      */
     private deployApp;
-    /**
-     * Deploy CMS to Vercel (Legacy architecture)
-     */
-    private deployCMS;
-    /**
-     * Deploy Frontend to Vercel
-     */
-    private deployFrontend;
     /**
      * Deploy Bot to Deno Deploy
      */

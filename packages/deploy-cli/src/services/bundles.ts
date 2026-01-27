@@ -15,7 +15,7 @@ import chalk from 'chalk'
 // GitHub Releases configuration
 const GITHUB_OWNER = 'kiriti999'
 const GITHUB_REPO = 'curate-kids'
-const BUNDLES_VERSION = process.env.CURATEKIDS_VERSION || '1.0.14'
+const BUNDLES_VERSION = process.env.CURATEKIDS_VERSION || '1.2.3'
 const BUNDLES_DIR = './.curatedreels-bundles'
 const GITHUB_API_URL = 'https://api.github.com'
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN
@@ -23,20 +23,15 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN
 export interface BundleManifest {
     version: string
     releaseDate: string
-    architecture: 'unified' | 'legacy'  // Track if using new unified structure
     bundles: {
-        app?: string          // New unified app bundle
-        frontend?: string     // Legacy - kept for backward compatibility
-        cms?: string          // Legacy - kept for backward compatibility
+        app: string
         bot: string
         schema: string
     }
-    checksums: {
+    checksums?: {
         app?: string
-        frontend?: string
-        cms?: string
-        bot: string
-        schema: string
+        bot?: string
+        schema?: string
     }
 }
 
@@ -66,40 +61,16 @@ export async function downloadBundles(licenseKey: string): Promise<BundleManifes
         // Download each bundle from GitHub Release
         const version = `v${manifest.version}`
 
-        // Check if unified architecture or legacy
-        if (manifest.architecture === 'unified') {
-            // Download unified app bundle
-            spinner.text = 'Downloading unified app bundle...'
-            await downloadFromGitHub(version, 'app.tar.gz', `${BUNDLES_DIR}/app.tar.gz`)
+        // Download unified app bundle
+        spinner.text = 'Downloading app bundle...'
+        await downloadFromGitHub(version, 'app.tar.gz', `${BUNDLES_DIR}/app.tar.gz`)
 
-            spinner.text = 'Extracting unified app bundle...'
-            await mkdir(`${BUNDLES_DIR}/app`, { recursive: true })
-            await extract({
-                file: `${BUNDLES_DIR}/app.tar.gz`,
-                cwd: `${BUNDLES_DIR}/app`
-            })
-        } else {
-            // Legacy: Download frontend and CMS separately
-            spinner.text = 'Downloading frontend bundle...'
-            await downloadFromGitHub(version, 'frontend.tar.gz', `${BUNDLES_DIR}/frontend.tar.gz`)
-
-            spinner.text = 'Extracting frontend bundle...'
-            await mkdir(`${BUNDLES_DIR}/frontend`, { recursive: true })
-            await extract({
-                file: `${BUNDLES_DIR}/frontend.tar.gz`,
-                cwd: `${BUNDLES_DIR}/frontend`
-            })
-
-            spinner.text = 'Downloading CMS bundle...'
-            await downloadFromGitHub(version, 'cms.tar.gz', `${BUNDLES_DIR}/cms.tar.gz`)
-
-            spinner.text = 'Extracting CMS bundle...'
-            await mkdir(`${BUNDLES_DIR}/cms`, { recursive: true })
-            await extract({
-                file: `${BUNDLES_DIR}/cms.tar.gz`,
-                cwd: `${BUNDLES_DIR}/cms`
-            })
-        }
+        spinner.text = 'Extracting app bundle...'
+        await mkdir(`${BUNDLES_DIR}/app`, { recursive: true })
+        await extract({
+            file: `${BUNDLES_DIR}/app.tar.gz`,
+            cwd: `${BUNDLES_DIR}/app`
+        })
 
         spinner.text = 'Downloading bot bundle...'
         await downloadFromGitHub(version, 'bot.tar.gz', `${BUNDLES_DIR}/bot.tar.gz`)
@@ -114,8 +85,7 @@ export async function downloadBundles(licenseKey: string): Promise<BundleManifes
         spinner.text = 'Downloading database schema...'
         await downloadFromGitHub(version, 'schema.json', `${BUNDLES_DIR}/schema.json`)
 
-        const arch = manifest.architecture === 'unified' ? 'unified app' : 'frontend + CMS'
-        spinner.succeed(`Bundles downloaded and extracted (${arch})`)
+        spinner.succeed('Bundles downloaded and extracted')
         return manifest
     } catch (error) {
         spinner.fail('Failed to download bundles')
@@ -132,11 +102,11 @@ function getGitHubHeaders(): Record<string, string> {
         'X-GitHub-Api-Version': '2022-11-28',
         'User-Agent': 'curatedreels-deploy/1.0.0'
     }
-    
+
     if (GITHUB_TOKEN) {
         headers['Authorization'] = `Bearer ${GITHUB_TOKEN}`
     }
-    
+
     return headers
 }
 
@@ -146,7 +116,7 @@ function getGitHubHeaders(): Record<string, string> {
 async function fetchManifestFromGitHub(): Promise<BundleManifest> {
     // First, get the release
     const releaseUrl = `${GITHUB_API_URL}/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/tags/v${BUNDLES_VERSION}`
-    
+
     const releaseResponse = await fetch(releaseUrl, {
         headers: getGitHubHeaders()
     })
@@ -162,7 +132,7 @@ async function fetchManifestFromGitHub(): Promise<BundleManifest> {
     }
 
     const release = await releaseResponse.json() as any
-    
+
     // Find manifest.json asset
     const manifestAsset = release.assets?.find((a: any) => a.name === 'manifest.json')
     if (!manifestAsset) {
@@ -190,7 +160,7 @@ async function fetchManifestFromGitHub(): Promise<BundleManifest> {
 async function downloadFromGitHub(version: string, filename: string, destPath: string): Promise<void> {
     // Get release assets
     const releaseUrl = `${GITHUB_API_URL}/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/tags/${version}`
-    
+
     const releaseResponse = await fetch(releaseUrl, {
         headers: getGitHubHeaders()
     })
@@ -200,7 +170,7 @@ async function downloadFromGitHub(version: string, filename: string, destPath: s
     }
 
     const release = await releaseResponse.json() as any
-    
+
     // Find the asset
     const asset = release.assets?.find((a: any) => a.name === filename)
     if (!asset) {
@@ -240,30 +210,21 @@ export async function mockDownloadBundles(_licenseKey: string): Promise<void> {
 
         // Create bundles directory
         await mkdir(BUNDLES_DIR, { recursive: true })
-        await mkdir(`${BUNDLES_DIR}/cms`, { recursive: true })
-        await mkdir(`${BUNDLES_DIR}/frontend`, { recursive: true })
+        await mkdir(`${BUNDLES_DIR}/app`, { recursive: true })
+        await mkdir(`${BUNDLES_DIR}/bot`, { recursive: true })
 
-        // Create mock CMS bundle directory with minimal Next.js structure
-        spinner.text = 'Creating mock CMS bundle...'
-        await fs.writeFile(`${BUNDLES_DIR}/cms/package.json`, JSON.stringify({
-            name: 'mock-cms',
+        // Create mock unified app bundle
+        spinner.text = 'Creating mock app bundle...'
+        await fs.writeFile(`${BUNDLES_DIR}/app/package.json`, JSON.stringify({
+            name: 'mock-app',
             version: '1.0.0',
             scripts: { build: 'echo mock build', start: 'echo mock start' }
         }, null, 2))
-        await fs.writeFile(`${BUNDLES_DIR}/cms/next.config.mjs`, 'export default {}')
-
-        // Create mock frontend bundle directory
-        spinner.text = 'Creating mock frontend bundle...'
-        await fs.writeFile(`${BUNDLES_DIR}/frontend/package.json`, JSON.stringify({
-            name: 'mock-frontend',
-            version: '1.0.0',
-            scripts: { build: 'echo mock build', start: 'echo mock start' }
-        }, null, 2))
-        await fs.writeFile(`${BUNDLES_DIR}/frontend/next.config.mjs`, 'export default {}')
+        await fs.writeFile(`${BUNDLES_DIR}/app/next.config.mjs`, 'export default {}')
 
         // Create mock bot bundle
         spinner.text = 'Creating mock bot bundle...'
-        await fs.writeFile(`${BUNDLES_DIR}/bot.js`, '// Mock bot bundle\nexport default {}')
+        await fs.writeFile(`${BUNDLES_DIR}/bot/main.ts`, '// Mock bot bundle\nexport default {}')
 
         // Create mock database schema
         spinner.text = 'Creating mock database schema...'
@@ -308,19 +269,19 @@ export async function extractBundles(): Promise<void> {
     const spinner = ora('Extracting bundles...').start()
 
     try {
-        await mkdir(`${BUNDLES_DIR}/frontend`, { recursive: true })
-        await mkdir(`${BUNDLES_DIR}/cms`, { recursive: true })
+        await mkdir(`${BUNDLES_DIR}/app`, { recursive: true })
+        await mkdir(`${BUNDLES_DIR}/bot`, { recursive: true })
 
-        // Extract frontend
+        // Extract app
         await extract({
-            file: `${BUNDLES_DIR}/frontend.tar.gz`,
-            cwd: `${BUNDLES_DIR}/frontend`
+            file: `${BUNDLES_DIR}/app.tar.gz`,
+            cwd: `${BUNDLES_DIR}/app`
         })
 
-        // Extract CMS
+        // Extract bot
         await extract({
-            file: `${BUNDLES_DIR}/cms.tar.gz`,
-            cwd: `${BUNDLES_DIR}/cms`
+            file: `${BUNDLES_DIR}/bot.tar.gz`,
+            cwd: `${BUNDLES_DIR}/bot`
         })
 
         spinner.succeed('Bundles extracted')

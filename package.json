@@ -20,7 +20,11 @@
     "migrate:import": "tsx migration/import-to-payloadcms.ts",
     "migrate:import:dry-run": "tsx migration/import-to-payloadcms.ts --dry-run",
     "migrate:verify": "tsx migration/verify-migration.ts",
-    "migrate:all": "npm run migrate:export && npm run migrate:transform && npm run migrate:import && npm run migrate:verify"
+    "migrate:all": "npm run migrate:export && npm run migrate:transform && npm run migrate:import && npm run migrate:verify",
+    "release": "./scripts/publish-release.sh auto patch",
+    "release:minor": "./scripts/publish-release.sh auto minor",
+    "release:major": "./scripts/publish-release.sh auto major",
+    "release:version": "./scripts/publish-release.sh"
   },
   "keywords": [
     "payloadcms"

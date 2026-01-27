@@ -53,43 +53,79 @@ export class VercelClient {
 
     /**
      * Get the stable production URL for a project
-     * Prefers custom domain, falls back to .vercel.app domain
+     * Gets the actual production domain from the latest production deployment
      */
     private async getProductionUrl(projectName: string): Promise<string> {
         try {
             const project = await this.getProject(projectName)
 
-            // Check for custom domains first
-            if (project.alias && project.alias.length > 0) {
-                // Find the production domain (not a vercel.app one if possible)
-                const customDomain = project.alias.find((d: string) => !d.includes('.vercel.app'))
-                if (customDomain) {
-                    return `https://${customDomain}`
-                }
-                // Otherwise use the first alias (should be the .vercel.app production domain)
-                return `https://${project.alias[0]}`
-            }
+            // Method 1: Get the production deployment URL directly
+            // This is the most reliable way to get the actual production URL
+            const deploymentsUrl = this.buildUrl(`/v6/deployments?projectId=${project.id}&target=production&limit=1`)
+            const deploymentsResponse = await fetch(deploymentsUrl, {
+                headers: this.getHeaders()
+            })
 
-            // Fallback: construct URL from project name
-            // Vercel assigns domains like: projectName.vercel.app or projectName-teamname.vercel.app
-            if (this.teamId) {
-                // Try to get domains from the project
-                const domainsUrl = this.buildUrl(`/v9/projects/${project.id}/domains`)
-                const domainsResponse = await fetch(domainsUrl, {
-                    headers: this.getHeaders()
-                })
-                if (domainsResponse.ok) {
-                    const domainsData = await domainsResponse.json() as { domains: Array<{ name: string }> }
-                    if (domainsData.domains && domainsData.domains.length > 0) {
-                        return `https://${domainsData.domains[0].name}`
+            if (deploymentsResponse.ok) {
+                const deploymentsData = await deploymentsResponse.json() as {
+                    deployments: Array<{ url: string; alias?: string[] }>
+                }
+
+                if (deploymentsData.deployments && deploymentsData.deployments.length > 0) {
+                    const latestDeployment = deploymentsData.deployments[0]
+
+                    // Check if deployment has aliases (production domains)
+                    if (latestDeployment.alias && latestDeployment.alias.length > 0) {
+                        // Prefer non-unique aliases (the stable production domain)
+                        // Vercel aliases include both: deploy24-xyz-team.vercel.app (unique) 
+                        // and deploy24-lake.vercel.app (stable)
+                        const stableDomain = latestDeployment.alias.find((a: string) =>
+                            a.includes('.vercel.app') && !a.includes(project.id)
+                        ) || latestDeployment.alias[0]
+
+                        return `https://${stableDomain}`
+                    }
+
+                    // Fall back to deployment URL
+                    if (latestDeployment.url) {
+                        return `https://${latestDeployment.url}`
                     }
                 }
             }
 
-            // Final fallback: use standard pattern
+            // Method 2: Get domains from project settings
+            const domainsUrl = this.buildUrl(`/v9/projects/${project.id}/domains`)
+            const domainsResponse = await fetch(domainsUrl, {
+                headers: this.getHeaders()
+            })
+
+            if (domainsResponse.ok) {
+                const domainsData = await domainsResponse.json() as {
+                    domains: Array<{ name: string; verified: boolean }>
+                }
+
+                if (domainsData.domains && domainsData.domains.length > 0) {
+                    // Prefer verified custom domains
+                    const verifiedDomain = domainsData.domains.find(d => d.verified && !d.name.includes('.vercel.app'))
+                    if (verifiedDomain) {
+                        return `https://${verifiedDomain.name}`
+                    }
+
+                    // Otherwise use the first domain (usually the .vercel.app one)
+                    return `https://${domainsData.domains[0].name}`
+                }
+            }
+
+            // Method 3: Check project aliases
+            if (project.alias && project.alias.length > 0) {
+                return `https://${project.alias[0]}`
+            }
+
+            // Final fallback: use standard pattern (least reliable)
+            console.log(`Warning: Could not determine production URL for ${projectName}, using fallback`)
             return `https://${projectName}.vercel.app`
         } catch (error) {
-            // If all else fails, use the standard pattern
+            console.log(`Error getting production URL: ${error}`)
             return `https://${projectName}.vercel.app`
         }
     }

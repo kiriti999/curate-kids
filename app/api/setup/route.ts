@@ -10,13 +10,19 @@ export async function POST(request: Request) {
   try {
     const payload = await getPayload({ config })
 
-    // Check if any users already exist
-    const existingUsers = await payload.find({
+    // Check if any admin/superadmin users exist (not just any user)
+    const existingAdmins = await payload.find({
       collection: 'users',
+      where: {
+        or: [
+          { role: { equals: 'admin' } },
+          { role: { equals: 'superadmin' } }
+        ]
+      },
       limit: 1,
     })
 
-    if (existingUsers.docs.length > 0) {
+    if (existingAdmins.docs.length > 0) {
       return NextResponse.json(
         { 
           error: 'Setup already completed',
@@ -31,6 +37,8 @@ export async function POST(request: Request) {
     const adminPassword = process.env.ADMIN_PASSWORD || 'admin123'
     const adminName = process.env.ADMIN_NAME || 'Admin User'
 
+    console.log(`[Setup API] Creating admin user: ${adminEmail}`)
+
     // Create admin user
     const user = await payload.create({
       collection: 'users',
@@ -44,6 +52,8 @@ export async function POST(request: Request) {
       draft: false,
     })
 
+    console.log(`[Setup API] ✅ Admin user created: ${user.email} (ID: ${user.id})`)
+
     return NextResponse.json({
       success: true,
       message: 'Admin user created successfully',
@@ -54,7 +64,7 @@ export async function POST(request: Request) {
       },
     })
   } catch (error: any) {
-    console.error('Setup error:', error)
+    console.error('[Setup API] ❌ Error:', error)
     return NextResponse.json(
       {
         error: 'Setup failed',

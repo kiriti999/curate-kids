@@ -119,8 +119,10 @@ The CLI will ask for your tokens one by one:
 
 **MongoDB:**
 ```
-? MongoDB connection URI: mongodb+srv://user:pass@cluster.mongodb.net/
+? MongoDB connection URI: mongodb+srv://user:pass@cluster.mongodb.net/curatedreels
 ```
+
+⚠️ **IMPORTANT:** Always add `/curatedreels` at the end of your MongoDB URI to specify the database name. This ensures all data is stored in a dedicated database.
 
 **Telegram:**
 ```
@@ -293,7 +295,8 @@ All components connect automatically during deployment.
 
 ### "MongoDB connection failed"
 - **IP Whitelist**: Go to MongoDB Atlas → Network Access → Add IP `0.0.0.0/0` (allow all)
-- **Format**: Should look like `mongodb+srv://user:password@cluster.mongodb.net/`
+- **Format**: Should look like `mongodb+srv://user:password@cluster.mongodb.net/curatedreels` (note the `/curatedreels` at the end)
+- **Database Name**: Always append `/curatedreels` to specify the database name
 - **Permissions**: Database user needs read/write access
 
 ### "Deployment limit exceeded"

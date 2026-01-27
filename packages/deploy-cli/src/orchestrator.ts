@@ -277,6 +277,7 @@ export class DeploymentOrchestrator {
             const envVars = {
                 TELEGRAM_BOT_TOKEN: this.credentials.telegramBotToken,
                 MONGODB_URI: this.credentials.mongodbUri,
+                CMS_URL: this.cmsUrl,
                 PAYLOAD_CMS_URL: this.cmsUrl,
                 FRONTEND_URL: this.frontendUrl,
                 WEBHOOK_URL: `https://${projectName}.deno.dev/webhook`,

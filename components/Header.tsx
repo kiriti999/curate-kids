@@ -1,9 +1,19 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import ThemeToggle from './ThemeToggle'
+import { useAuth } from './AuthProvider'
 
 export default function Header() {
+    const { isAuthenticated, user, logout } = useAuth()
+    const router = useRouter()
+
+    const handleLogout = async () => {
+        await logout()
+        router.push('/login')
+    }
+
     return (
         <header className="bg-background border-b shadow-sm">
             <div className="max-w-7xl mx-auto px-4 py-4">
@@ -17,7 +27,27 @@ export default function Header() {
                         </div>
                     </Link>
                     <div className="flex items-center gap-3">
+                        {isAuthenticated && user && (
+                            <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
+                                <span>{user.name}</span>
+                            </div>
+                        )}
                         <ThemeToggle />
+                        {isAuthenticated ? (
+                            <button
+                                onClick={handleLogout}
+                                className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-full shadow-md hover:shadow-lg transition-all"
+                            >
+                                Logout
+                            </button>
+                        ) : (
+                            <Link
+                                href="/login"
+                                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-full shadow-md hover:shadow-lg transition-all"
+                            >
+                                Login
+                            </Link>
+                        )}
                         <Link
                             href="/business"
                             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-full shadow-md hover:shadow-lg transition-all hidden sm:flex items-center"

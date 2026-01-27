@@ -206,6 +206,7 @@ async function main() {
                     headers: { 'Content-Type': 'application/json' },
                     signal: AbortSignal.timeout(15000)
                 })
+                console.log('🚀 :: main :: setupResponse:', setupResponse)
                 const setupResult = await setupResponse.json() as any
                 
                 if (setupResponse.ok) {

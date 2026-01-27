@@ -28,8 +28,10 @@ export class VercelClient {
         private teamId?: string
     ) { }
 
+
     /**
      * Deploy a project to Vercel using CLI pre-built deployment
+     * Returns the stable production URL (not the unique deployment URL)
      */
     async deploy(options: VercelDeploymentOptions): Promise<string> {
         // Step 1: Create or get project and set env vars
@@ -37,13 +39,59 @@ export class VercelClient {
         await this.setEnvironmentVariables(projectId, options.envVars)
 
         // Step 2: Build the app locally and deploy using Vercel CLI
-        const deploymentUrl = await this.deployWithCLI(options)
+        await this.deployWithCLI(options)
 
-        // Step 3: Trigger redeployment to apply env vars from Vercel project settings
+        // Step 3: Get the stable production URL from project settings
+        const productionUrl = await this.getProductionUrl(options.projectName)
+
+        // Step 4: Trigger redeployment to apply env vars from Vercel project settings
         // This ensures Next.js build-time env vars (NEXT_PUBLIC_*) are properly injected
         await this.triggerRedeployment(projectId)
 
-        return deploymentUrl
+        return productionUrl
+    }
+
+    /**
+     * Get the stable production URL for a project
+     * Prefers custom domain, falls back to .vercel.app domain
+     */
+    private async getProductionUrl(projectName: string): Promise<string> {
+        try {
+            const project = await this.getProject(projectName)
+
+            // Check for custom domains first
+            if (project.alias && project.alias.length > 0) {
+                // Find the production domain (not a vercel.app one if possible)
+                const customDomain = project.alias.find((d: string) => !d.includes('.vercel.app'))
+                if (customDomain) {
+                    return `https://${customDomain}`
+                }
+                // Otherwise use the first alias (should be the .vercel.app production domain)
+                return `https://${project.alias[0]}`
+            }
+
+            // Fallback: construct URL from project name
+            // Vercel assigns domains like: projectName.vercel.app or projectName-teamname.vercel.app
+            if (this.teamId) {
+                // Try to get domains from the project
+                const domainsUrl = this.buildUrl(`/v9/projects/${project.id}/domains`)
+                const domainsResponse = await fetch(domainsUrl, {
+                    headers: this.getHeaders()
+                })
+                if (domainsResponse.ok) {
+                    const domainsData = await domainsResponse.json() as { domains: Array<{ name: string }> }
+                    if (domainsData.domains && domainsData.domains.length > 0) {
+                        return `https://${domainsData.domains[0].name}`
+                    }
+                }
+            }
+
+            // Final fallback: use standard pattern
+            return `https://${projectName}.vercel.app`
+        } catch (error) {
+            // If all else fails, use the standard pattern
+            return `https://${projectName}.vercel.app`
+        }
     }
 
     /**
@@ -51,17 +99,17 @@ export class VercelClient {
      */
     private async deployWithCLI(options: VercelDeploymentOptions): Promise<string> {
         const bundlePath = resolve(options.bundlePath)
-        
+
         // Always clean and rebuild to ensure fresh build with latest dependencies
         // This prevents issues from stale node_modules or .next folders
         const buildCmd = `cd "${bundlePath}" && rm -rf .next node_modules && npm install --legacy-peer-deps && npm run build && `
-        
+
         // Create vercel.json configuration
         const vercelConfig = {
             name: options.projectName,
             framework: options.framework === 'nextjs' ? 'nextjs' : null
         }
-        
+
         await writeFile(
             join(bundlePath, 'vercel.json'),
             JSON.stringify(vercelConfig, null, 2)
@@ -70,7 +118,7 @@ export class VercelClient {
         // Deploy using Vercel CLI
         const teamArg = this.teamId ? `--scope ${this.teamId}` : ''
         const cmd = `${buildCmd}cd "${bundlePath}" && npx vercel deploy --token ${this.token} ${teamArg} --yes --prod 2>&1`
-        
+
         try {
             const { stdout, stderr } = await execAsync(cmd, {
                 timeout: 600000, // 10 minute timeout
@@ -81,21 +129,21 @@ export class VercelClient {
                     ...options.envVars
                 }
             })
-            
+
             // Extract deployment URL from output
             const output = stdout + stderr
             const urlMatch = output.match(/https:\/\/[^\s]+\.vercel\.app/)
-            
+
             if (urlMatch) {
                 return urlMatch[0]
             }
-            
+
             // If no URL found, check for production URL
             const prodUrlMatch = output.match(/Production: (https:\/\/[^\s]+)/)
             if (prodUrlMatch) {
                 return prodUrlMatch[1]
             }
-            
+
             throw new Error(`Could not extract deployment URL from output: ${output.slice(0, 500)}`)
         } catch (error: any) {
             throw new Error(`Vercel CLI deployment failed: ${error.message}`)
@@ -164,7 +212,7 @@ export class VercelClient {
             } catch {
                 errorObj = { message: error };
             }
-            
+
             // Better error message for auth issues
             if (errorObj.error?.invalidToken || errorObj.error?.code === 'forbidden') {
                 throw new Error(`Vercel authentication failed. Please check:\n` +
@@ -173,7 +221,7 @@ export class VercelClient {
                     `  3. If using a team, provide the Team ID\n` +
                     `  Error: ${errorObj.error?.message || error}`)
             }
-            
+
             throw new Error(`Failed to create project: ${error}`)
         }
 

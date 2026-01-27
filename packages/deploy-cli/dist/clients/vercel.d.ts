@@ -16,8 +16,14 @@ export declare class VercelClient {
     constructor(token: string, teamId?: string | undefined);
     /**
      * Deploy a project to Vercel using CLI pre-built deployment
+     * Returns the stable production URL (not the unique deployment URL)
      */
     deploy(options: VercelDeploymentOptions): Promise<string>;
+    /**
+     * Get the stable production URL for a project
+     * Prefers custom domain, falls back to .vercel.app domain
+     */
+    private getProductionUrl;
     /**
      * Deploy using Vercel CLI with pre-built output
      */

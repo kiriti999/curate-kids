@@ -19,17 +19,60 @@ export class VercelClient {
     }
     /**
      * Deploy a project to Vercel using CLI pre-built deployment
+     * Returns the stable production URL (not the unique deployment URL)
      */
     async deploy(options) {
         // Step 1: Create or get project and set env vars
         const projectId = await this.ensureProject(options.projectName);
         await this.setEnvironmentVariables(projectId, options.envVars);
         // Step 2: Build the app locally and deploy using Vercel CLI
-        const deploymentUrl = await this.deployWithCLI(options);
-        // Step 3: Trigger redeployment to apply env vars from Vercel project settings
+        await this.deployWithCLI(options);
+        // Step 3: Get the stable production URL from project settings
+        const productionUrl = await this.getProductionUrl(options.projectName);
+        // Step 4: Trigger redeployment to apply env vars from Vercel project settings
         // This ensures Next.js build-time env vars (NEXT_PUBLIC_*) are properly injected
         await this.triggerRedeployment(projectId);
-        return deploymentUrl;
+        return productionUrl;
+    }
+    /**
+     * Get the stable production URL for a project
+     * Prefers custom domain, falls back to .vercel.app domain
+     */
+    async getProductionUrl(projectName) {
+        try {
+            const project = await this.getProject(projectName);
+            // Check for custom domains first
+            if (project.alias && project.alias.length > 0) {
+                // Find the production domain (not a vercel.app one if possible)
+                const customDomain = project.alias.find((d) => !d.includes('.vercel.app'));
+                if (customDomain) {
+                    return `https://${customDomain}`;
+                }
+                // Otherwise use the first alias (should be the .vercel.app production domain)
+                return `https://${project.alias[0]}`;
+            }
+            // Fallback: construct URL from project name
+            // Vercel assigns domains like: projectName.vercel.app or projectName-teamname.vercel.app
+            if (this.teamId) {
+                // Try to get domains from the project
+                const domainsUrl = this.buildUrl(`/v9/projects/${project.id}/domains`);
+                const domainsResponse = await fetch(domainsUrl, {
+                    headers: this.getHeaders()
+                });
+                if (domainsResponse.ok) {
+                    const domainsData = await domainsResponse.json();
+                    if (domainsData.domains && domainsData.domains.length > 0) {
+                        return `https://${domainsData.domains[0].name}`;
+                    }
+                }
+            }
+            // Final fallback: use standard pattern
+            return `https://${projectName}.vercel.app`;
+        }
+        catch (error) {
+            // If all else fails, use the standard pattern
+            return `https://${projectName}.vercel.app`;
+        }
     }
     /**
      * Deploy using Vercel CLI with pre-built output

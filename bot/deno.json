@@ -8,5 +8,13 @@
   },
   "imports": {
     "grammy": "npm:grammy@1.30.0"
+  },
+  "deploy": {
+    "project": "2fd004a6-e19f-4d07-994a-aa8e58c8437b",
+    "exclude": [
+      "**/node_modules"
+    ],
+    "include": [],
+    "entrypoint": "src/main.ts"
   }
 }

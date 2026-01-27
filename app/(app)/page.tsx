@@ -5,7 +5,7 @@ import VideoGallery from "@/components/VideoGallery";
 import Header from "@/components/Header";
 import AuthGate from "@/components/AuthGate";
 import { Card, CardContent } from "@/components/ui/card";
-import { logger } from "../../../utils/logger";
+import { logger } from '@/utils/logger';
 
 // Enable ISR (Incremental Static Regeneration) for better Vercel performance
 export const revalidate = 300; // 5 minutes

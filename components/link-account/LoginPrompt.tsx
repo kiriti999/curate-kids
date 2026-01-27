@@ -63,7 +63,7 @@ export function LoginPrompt({ telegramUsername, telegramName, searchParams, isOw
 
         <div className="space-y-4">
           <a
-            href={`/admin/login?redirect=${encodeURIComponent(`/link?${searchParams.toString()}`)}`}
+            href={`/admin-login?redirect=${encodeURIComponent(`/link?${searchParams.toString()}`)}`}
             className="w-full flex items-center justify-center gap-3 bg-white text-gray-800 px-6 py-3 rounded-xl font-medium hover:bg-gray-100 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

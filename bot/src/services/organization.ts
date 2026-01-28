@@ -386,17 +386,19 @@ export async function isUserLinked(telegramId: string): Promise<{
         return { linked: false };
     }
 
-    // User is linked if they have an organization that still exists
+    // User is linked if they have a telegramId in the database
+    // They are considered "linked" even without an organization
+
+    // Check if they have an organization
     if (user.organization) {
         const org = await findOrganizationById(user.organization);
-        console.log('🚀 :: isUserLinked :: org:', org)
         if (org) {
             return { linked: true, user, organization: org };
         }
     }
 
-    // User exists but has no organization (e.g., after group was deleted)
-    return { linked: false, user };
+    // User exists with telegramId but no organization - still considered linked
+    return { linked: true, user };
 }
 
 /**
@@ -523,6 +525,7 @@ export function generateLinkUrl(params: {
 }): string {
     // Use CMS_URL for authentication/linking, fallback to FRONTEND_URL for backward compatibility
     const cmsUrl = Deno.env.get("CMS_URL") || Deno.env.get("FRONTEND_URL") || "http://localhost:3000";
+    console.log('🔗 generateLinkUrl using cmsUrl:', cmsUrl);
 
     const queryParams = new URLSearchParams({
         tg: params.telegramId,

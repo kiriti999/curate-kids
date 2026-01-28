@@ -3,18 +3,17 @@
  * Displays account linking confirmation UI
  */
 
-import { useRouter } from 'next/navigation'
-
 interface LinkConfirmationProps {
-  user: any
-  telegramId?: string
-  telegramUsername?: string
-  telegramName?: string
+  user: { email: string; name?: string } | null
+  telegramId?: string | null
+  telegramUsername?: string | null
+  telegramName?: string | null
   displayRole: string
   isOwner: boolean
   error: string | null
   isLoading: boolean
-  onLinkAccount: () => void
+  handleLinkAccount: () => void
+  onCancel: () => void
 }
 
 function LinkButton({ isLoading, onLinkAccount }: { isLoading: boolean; onLinkAccount: () => void }) {
@@ -74,9 +73,9 @@ export function LinkConfirmation({
   isOwner,
   error,
   isLoading,
-  onLinkAccount,
+  handleLinkAccount,
+  onCancel,
 }: LinkConfirmationProps) {
-  const router = useRouter()
   const roleClass = isOwner
     ? 'from-yellow-500/20 to-orange-500/20 border-yellow-500/30'
     : 'from-purple-500/20 to-pink-500/20 border-purple-500/30'
@@ -128,10 +127,10 @@ export function LinkConfirmation({
 
       <ErrorMessage error={error} />
 
-      <LinkButton isLoading={isLoading} onLinkAccount={onLinkAccount} />
+      <LinkButton isLoading={isLoading} onLinkAccount={handleLinkAccount} />
 
       <button
-        onClick={() => router.push('/')}
+        onClick={onCancel}
         className="w-full mt-3 text-white/60 hover:text-white text-sm transition-colors"
       >
         Cancel

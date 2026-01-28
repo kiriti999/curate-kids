@@ -32,7 +32,7 @@ Telegram bot for curating videos from YouTube, Facebook, Instagram, and LinkedIn
 | Variable | Description |
 |----------|-------------|
 | `TELEGRAM_BOT_TOKEN` | From @BotFather |
-| `MONGODB_URI` | MongoDB Atlas connection string (e.g., mongodb+srv://user:pass@cluster.mongodb.net/curatekids) |
+| `MONGODB_URI` | MongoDB Atlas connection string (e.g., mongodb+srv://user:pass@cluster.mongodb.net/curatedreels) |
 | `YOUTUBE_API_KEY` | Google Cloud Console |
 | `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name (optional, for direct uploads) |
 | `CLOUDINARY_API_KEY` | Cloudinary API key (optional) |
@@ -48,7 +48,7 @@ Telegram bot for curating videos from YouTube, Facebook, Instagram, and LinkedIn
 2. **Create a Free Cluster**
    - Select **M0 Free Tier** (512 MB storage)
    - Choose your preferred cloud provider and region
-   - Name your cluster (e.g., "curatekids-cluster")
+   - Name your cluster (e.g., "curatedreels-cluster")
 
 3. **Configure Network Access**
    - Go to **Network Access** → **Add IP Address**
@@ -58,7 +58,7 @@ Telegram bot for curating videos from YouTube, Facebook, Instagram, and LinkedIn
 4. **Create Database User**
    - Go to **Database Access** → **Add New Database User**
    - Choose **Password** authentication
-   - Username: `curatekids_user` (or your choice)
+   - Username: `curatedreels_user` (or your choice)
    - Auto-generate a secure password
    - Database User Privileges: **Read and write to any database**
 
@@ -66,11 +66,11 @@ Telegram bot for curating videos from YouTube, Facebook, Instagram, and LinkedIn
    - Go to **Database** → **Connect** → **Connect your application**
    - Copy the connection string
    - Replace `<password>` with your database user password
-   - Replace `myFirstDatabase` with `curatekids`
+   - Replace `myFirstDatabase` with `curatedreels`
    - Add to `.env` as `MONGODB_URI`
 
 6. **Database and Collection**
-   - The bot automatically creates the `curatekids` database
+   - The bot automatically creates the `curatedreels` database
    - The bot automatically creates the `videos` collection
    - The bot automatically creates necessary indexes on first connection
 

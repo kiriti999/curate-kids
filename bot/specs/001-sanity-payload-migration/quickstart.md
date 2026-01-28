@@ -34,7 +34,7 @@ Before starting the migration, ensure you have:
    - Cloud Provider: AWS (or preferred)
    - Region: Choose closest to your users
    - Cluster Tier: M0 Sandbox (Free)
-   - Cluster Name: `curatekids-videos`
+   - Cluster Name: `curatedreels-videos`
 3. **Configure network access**:
    - Add IP: `0.0.0.0/0` (allow access from anywhere, required for PayloadCMS Cloud)
    - Or add specific IP ranges if self-hosting
@@ -44,7 +44,7 @@ Before starting the migration, ensure you have:
    - Database User Privileges: `Read and write to any database`
 5. **Get connection string**:
    - Click "Connect" → "Connect your application"
-   - Copy connection string: `mongodb+srv://payloaduser:<password>@cluster.mongodb.net/curatekids?retryWrites=true&w=majority`
+   - Copy connection string: `mongodb+srv://payloaduser:<password>@cluster.mongodb.net/curatedreels?retryWrites=true&w=majority`
    - Replace `<password>` with your actual password
 
 **Verification**: Test connection using MongoDB Compass or CLI
@@ -90,7 +90,7 @@ npm install
 # 3. Configure environment
 cp .env.example .env
 # Edit .env:
-# DATABASE_URI=mongodb+srv://payloaduser:<password>@cluster.mongodb.net/curatekids
+# DATABASE_URI=mongodb+srv://payloaduser:<password>@cluster.mongodb.net/curatedreels
 # PAYLOAD_SECRET=your-secret-key-here
 
 # 4. Create videos collection

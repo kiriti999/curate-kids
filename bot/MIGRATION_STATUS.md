@@ -40,7 +40,7 @@
 
 The current `MONGODB_URI` in `.env` is failing authentication:
 ```
-mongodb+srv://kiritik999_db_user:auqjaS5vYLZR7pYi@curatekidscluster.nolif8t.mongodb.net/curatekids
+mongodb+srv://kiritik999_db_user:auqjaS5vYLZR7pYi@curatedreelscluster.nolif8t.mongodb.net/curatedreels
 ```
 
 **Possible causes:**
@@ -66,13 +66,13 @@ Please verify/update the MongoDB Atlas credentials:
 1. Log into MongoDB Atlas
 2. Go to **Database Access** → **Add New Database User**
 3. Choose **Password** authentication
-4. Username: `curatekids_user` (or your choice)
+4. Username: `curatedreels_user` (or your choice)
 5. Auto-generate secure password (copy it!)
 6. Database User Privileges: **Read and write to any database**
 7. Click **Add User**
 8. Update `MONGODB_URI` in `.env` with new credentials:
    ```
-   MONGODB_URI=mongodb+srv://NEW_USERNAME:NEW_PASSWORD@curatekidscluster.nolif8t.mongodb.net/curatekids?retryWrites=true&w=majority
+   MONGODB_URI=mongodb+srv://kiritik999:12qwaszx@curatedreels.qoymsy.mongodb.net/curatedreels?retryWrites=true&w=majority
    ```
 
 ### Option 3: Get New Connection String
@@ -81,7 +81,7 @@ Please verify/update the MongoDB Atlas credentials:
 3. Choose **Connect your application**
 4. Copy the connection string
 5. Replace `<password>` with your database password
-6. Replace database name with `curatekids`
+6. Replace database name with `curatedreels`
 7. Update `MONGODB_URI` in `.env`
 
 ## 🧪 Testing After Credentials Update
@@ -89,7 +89,7 @@ Please verify/update the MongoDB Atlas credentials:
 Once you update the MongoDB credentials, test the connection:
 
 ```bash
-cd /Users/arjun/curatekids-bot
+cd /Users/arjun/curatedreels-bot
 deno run --allow-net --allow-env --env test-mongo-connection.ts
 ```
 

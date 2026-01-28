@@ -27,6 +27,7 @@ export interface License {
  */
 export async function verifyLicense(licenseKey: string): Promise<boolean> {
     try {
+        console.log(`[DEBUG] Verifying license at: ${VERIFY_URL}`)
         const response = await fetch(VERIFY_URL, {
             method: 'POST',
             headers: {
@@ -35,6 +36,7 @@ export async function verifyLicense(licenseKey: string): Promise<boolean> {
             },
             body: JSON.stringify({ key: licenseKey })
         })
+        console.log(`[DEBUG] Response status: ${response.status}`)
 
         if (!response.ok) {
             if (response.status === 401) {

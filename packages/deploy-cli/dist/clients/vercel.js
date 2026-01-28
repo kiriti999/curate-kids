@@ -122,16 +122,22 @@ export class VercelClient {
                     ...options.envVars
                 }
             });
+            // Log full output for debugging
+            console.log('\n--- Vercel CLI Output ---');
+            console.log(stdout);
+            console.log(stderr);
+            console.log('-------------------------\n');
             // Extract deployment URL from output
             const output = stdout + stderr;
+            // First try to find explicit Production URL
+            const prodUrlMatch = output.match(/Production: (https:\/\/[^\s]+\.vercel\.app)/);
+            if (prodUrlMatch) {
+                return prodUrlMatch[1];
+            }
+            // Fallback: Extract any deployment URL from output
             const urlMatch = output.match(/https:\/\/[^\s]+\.vercel\.app/);
             if (urlMatch) {
                 return urlMatch[0];
-            }
-            // If no URL found, check for production URL
-            const prodUrlMatch = output.match(/Production: (https:\/\/[^\s]+)/);
-            if (prodUrlMatch) {
-                return prodUrlMatch[1];
             }
             throw new Error(`Could not extract deployment URL from output: ${output.slice(0, 500)}`);
         }

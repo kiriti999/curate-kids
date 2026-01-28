@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const requireLogin = process.env.NEXT_PUBLIC_REQUIRE_LOGIN === 'true'
-  
+
   // If login is not required, allow all requests
   if (!requireLogin) {
     return NextResponse.next()
   }
 
   const { pathname } = request.nextUrl
-  
+
   // Allow access to login page, API routes, and static files
   if (
     pathname.startsWith('/login') ||
@@ -26,7 +26,7 @@ export function middleware(request: NextRequest) {
 
   // Check for authentication cookie
   const token = request.cookies.get('payload-token')
-  
+
   // If no token and trying to access protected route, redirect to login
   if (!token) {
     const loginUrl = new URL('/login', request.url)

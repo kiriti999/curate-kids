@@ -46,7 +46,8 @@ export function AuthenticatedView({
             isOwner={isOwner}
             error={error}
             isLoading={isLoading}
-            onLinkAccount={handleLinkAccount}
+            handleLinkAccount={handleLinkAccount}
+            onCancel={() => window.location.href = '/'}
           />
         )}
       </div>

@@ -46,14 +46,14 @@
       "format": "uri",
       "pattern": "^https://res\\.cloudinary\\.com/.*$",
       "examples": [
-        "https://res.cloudinary.com/demo/video/upload/curatekids/telegram-videos/story123.mp4"
+        "https://res.cloudinary.com/demo/video/upload/curatedreels/telegram-videos/story123.mp4"
       ]
     },
     "cloudinaryId": {
       "type": ["string", "null"],
       "description": "Cloudinary public ID including folder path. Required when source='telegram', null otherwise.",
       "minLength": 1,
-      "examples": ["curatekids/telegram-videos/story123"]
+      "examples": ["curatedreels/telegram-videos/story123"]
     },
     "thumbnailUrl": {
       "type": ["string", "null"],
@@ -61,7 +61,7 @@
       "format": "uri",
       "examples": [
         "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-        "https://res.cloudinary.com/demo/video/upload/c_thumb,w_400,h_225/curatekids/telegram-videos/story123.jpg"
+        "https://res.cloudinary.com/demo/video/upload/c_thumb,w_400,h_225/curatedreels/telegram-videos/story123.jpg"
       ]
     },
     "duration": {
@@ -192,9 +192,9 @@
       "slug": "bedtime-story-the-little-prince",
       "youtubeUrl": null,
       "youtubeId": null,
-      "cloudinaryUrl": "https://res.cloudinary.com/demo/video/upload/curatekids/telegram-videos/story123.mp4",
-      "cloudinaryId": "curatekids/telegram-videos/story123",
-      "thumbnailUrl": "https://res.cloudinary.com/demo/video/upload/c_thumb,w_400,h_225/curatekids/telegram-videos/story123.jpg",
+      "cloudinaryUrl": "https://res.cloudinary.com/demo/video/upload/curatedreels/telegram-videos/story123.mp4",
+      "cloudinaryId": "curatedreels/telegram-videos/story123",
+      "thumbnailUrl": "https://res.cloudinary.com/demo/video/upload/c_thumb,w_400,h_225/curatedreels/telegram-videos/story123.jpg",
       "duration": 420,
       "category": "stories",
       "ageRange": "3-5",

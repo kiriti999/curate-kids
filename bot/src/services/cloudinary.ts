@@ -41,7 +41,7 @@ export async function uploadVideoFromUrl(
 
     try {
         const timestamp = Math.floor(Date.now() / 1000);
-        const folder = options?.folder || "curatekids/telegram-videos";
+        const folder = options?.folder || "curatedreels/telegram-videos";
 
         // Build params for signature
         const params: Record<string, string> = {

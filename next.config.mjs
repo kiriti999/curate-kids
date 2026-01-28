@@ -23,7 +23,6 @@ const nextConfig = {
   },
 
   async headers() {
-    const nonce = crypto.randomBytes(16).toString('base64');
     return [
       {
         source: '/_next/image(.*)',

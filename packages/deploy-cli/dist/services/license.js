@@ -12,6 +12,7 @@ const REGISTER_URL = process.env.REGISTER_DEPLOYMENT_URL || 'https://b2wrz3at4yj
  */
 export async function verifyLicense(licenseKey) {
     try {
+        console.log(`[DEBUG] Verifying license at: ${VERIFY_URL}`);
         const response = await fetch(VERIFY_URL, {
             method: 'POST',
             headers: {
@@ -20,6 +21,7 @@ export async function verifyLicense(licenseKey) {
             },
             body: JSON.stringify({ key: licenseKey })
         });
+        console.log(`[DEBUG] Response status: ${response.status}`);
         if (!response.ok) {
             if (response.status === 401) {
                 return false; // Invalid license

@@ -15,7 +15,7 @@ import { verifyLicense, mockVerifyLicense } from './services/license.js'
 import { collectCredentials, DeploymentCredentials } from './utils/credentials.js'
 import { downloadBundles, mockDownloadBundles } from './services/bundles.js'
 
-const VERSION = '1.0.0'
+const VERSION = '1.17.2'
 
 // Check if running in CI mode with env vars
 const isEnvMode = process.env.DEPLOY_CLI_ENV_MODE === 'true'

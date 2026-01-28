@@ -45,8 +45,8 @@ mkdir -p "$OUTPUT_DIR/utils"
 cp -r "$APP_DIR/lib/"* "$OUTPUT_DIR/lib/" 2>/dev/null || true
 cp -r "$APP_DIR/utils/"* "$OUTPUT_DIR/utils/" 2>/dev/null || true
 
-# Copy middleware if exists
-cp "$APP_DIR/middleware.ts" "$OUTPUT_DIR/middleware.ts" 2>/dev/null || true
+# Copy proxy.ts if exists
+cp "$APP_DIR/proxy.ts" "$OUTPUT_DIR/proxy.ts" 2>/dev/null || true
 
 # Remove TypeScript source files (keep only .js)
 echo "🔒 Removing TypeScript source..."

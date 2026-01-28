@@ -4,8 +4,8 @@
  */
 
 interface LoginPromptProps {
-  telegramUsername?: string
-  telegramName?: string
+  telegramUsername?: string | null
+  telegramName?: string | null
   searchParams: URLSearchParams
   isOwner: boolean
 }
@@ -30,7 +30,7 @@ function RoleIcon({ isOwner }: { isOwner: boolean }) {
   )
 }
 
-function TelegramInfo({ username, name }: { username?: string; name?: string }) {
+function TelegramInfo({ username, name }: { username?: string | null; name?: string | null }) {
   if (!username) return null
 
   return (
@@ -51,32 +51,31 @@ export function LoginPrompt({ telegramUsername, telegramName, searchParams, isOw
     : 'Sign in to connect your Telegram account with CuratedReels'
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 p-4">
-      <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-8 max-w-md w-full border border-white/20 shadow-2xl">
-        <div className="text-center mb-8">
-          <RoleIcon isOwner={isOwner} />
-          <h1 className="text-2xl font-bold text-white mb-2">{title}</h1>
-          <p className="text-white/70">{description}</p>
-        </div>
-
-        <TelegramInfo username={telegramUsername} name={telegramName} />
-
-        <div className="space-y-4">
-          <a
-            href={`/admin-login?redirect=${encodeURIComponent(`/link?${searchParams.toString()}`)}`}
-            className="w-full flex items-center justify-center gap-3 bg-white text-gray-800 px-6 py-3 rounded-xl font-medium hover:bg-gray-100 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-            Log in to Link Account
-          </a>
-        </div>
-
-        <p className="text-white/50 text-sm text-center mt-6">
-          By continuing, you agree to link your Telegram account with your CuratedReels account.
-        </p>
+    <>
+      <div className="text-center mb-8">
+        <RoleIcon isOwner={isOwner} />
+        <h1 className="text-2xl font-bold text-white mb-2">{title}</h1>
+        <p className="text-white/70">{description}</p>
       </div>
-    </div>
+
+      <TelegramInfo username={telegramUsername} name={telegramName} />
+
+      <div className="space-y-4">
+        <a
+          href={`/admin-login?redirect=${encodeURIComponent(`/link?${searchParams.toString()}`)}`}
+          className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-xl font-medium hover:from-blue-600 hover:to-purple-600 transition-all"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          Sign in with Email
+        </a>
+      </div>
+
+      <p className="text-white/50 text-sm text-center mt-6">
+        By continuing, you agree to link your Telegram account with your CuratedReels account.
+      </p>
+    </>
   )
 }
+

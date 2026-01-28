@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useMemo, useRef } from 'react'
-import { useVirtualizer } from '@tanstack/react-virtual'
+import { useState, useMemo } from 'react'
 import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -168,13 +167,13 @@ function filterVideos(
 }
 
 // Sidebar filter button component
-function FilterButton({ 
-    label, 
-    count, 
-    isSelected, 
-    onClick, 
-    colorClass 
-}: { 
+function FilterButton({
+    label,
+    count,
+    isSelected,
+    onClick,
+    colorClass
+}: {
     label: string
     count: number
     isSelected: boolean
@@ -184,7 +183,7 @@ function FilterButton({
     if (count === 0) return null
     const bgClass = isSelected ? colorClass : "hover:bg-muted text-foreground"
     const badgeClass = isSelected ? `${colorClass.replace('600', '500')} text-white` : "bg-muted text-muted-foreground"
-    
+
     return (
         <button
             onClick={onClick}
@@ -337,7 +336,7 @@ function EmptyState({ hasActiveFilters }: { hasActiveFilters: boolean }) {
     const message = hasActiveFilters
         ? 'No videos match your filters. Try adjusting your selection.'
         : 'No videos published yet. Add videos via the admin panel!'
-    
+
     return (
         <Card>
             <CardContent className="p-16 text-center">
@@ -400,13 +399,13 @@ function useFilterState() {
 // Custom hook for processed video data
 function useProcessedVideos(videos: Video[], filters: ReturnType<typeof useFilterState>) {
     const normalizedVideos = useMemo(() => videos.map(normalizeVideo), [videos])
-    const filteredVideos = useMemo(() => 
+    const filteredVideos = useMemo(() =>
         filterVideos(normalizedVideos, filters.selectedCategories, filters.selectedAgeRanges, filters.searchQuery),
         [normalizedVideos, filters.selectedCategories, filters.selectedAgeRanges, filters.searchQuery]
     )
     const categoryCounts = useMemo(() => calculateCounts(normalizedVideos, 'category'), [normalizedVideos])
     const ageRangeCounts = useMemo(() => calculateCounts(normalizedVideos, 'ageRange'), [normalizedVideos])
-    
+
     return { filteredVideos, categoryCounts, ageRangeCounts }
 }
 
@@ -438,7 +437,7 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
 
             <main className="flex-1 min-w-0 pb-20 md:pb-0">
                 <ResultsHeader count={filteredVideos.length} hasActiveFilters={filters.hasActiveFilters} />
-                {filteredVideos.length === 0 
+                {filteredVideos.length === 0
                     ? <EmptyState hasActiveFilters={filters.hasActiveFilters} />
                     : <VirtualizedVideoGrid videos={filteredVideos} />
                 }
@@ -447,78 +446,15 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
     )
 }
 
-// Separate component for virtualized grid
+// Simple grid component (removed virtualization for better layout stability)
 function VirtualizedVideoGrid({ videos }: { videos: NormalizedVideo[] }) {
-    const parentRef = useRef<HTMLDivElement>(null)
-    
-    // Calculate columns based on container width
-    const getColumnCount = () => {
-        if (typeof window === 'undefined') return 3
-        const width = window.innerWidth
-        if (width < 1024) return 1  // mobile
-        if (width < 1280) return 2  // tablet
-        return 3                     // desktop
-    }
-    
-    const [columnCount, setColumnCount] = useState(getColumnCount)
-    
-    // Update columns on resize
-    useMemo(() => {
-        if (typeof window === 'undefined') return
-        const handleResize = () => setColumnCount(getColumnCount())
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-    
-    // Group videos into rows
-    const rows = useMemo(() => {
-        const result: NormalizedVideo[][] = []
-        for (let i = 0; i < videos.length; i += columnCount) {
-            result.push(videos.slice(i, i + columnCount))
-        }
-        return result
-    }, [videos, columnCount])
-    
-    const rowVirtualizer = useVirtualizer({
-        count: rows.length,
-        getScrollElement: () => parentRef.current,
-        estimateSize: () => 280, // Estimated row height (video card)
-        overscan: 3,
-    })
+    if (videos.length === 0) return null
 
     return (
-        <div 
-            ref={parentRef} 
-            className="h-[calc(100vh-200px)] overflow-auto"
-            style={{ contain: 'strict' }}
-        >
-            <div
-                style={{
-                    height: `${rowVirtualizer.getTotalSize()}px`,
-                    width: '100%',
-                    position: 'relative',
-                }}
-            >
-                {rowVirtualizer.getVirtualItems().map((virtualRow) => (
-                    <div
-                        key={virtualRow.key}
-                        style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '100%',
-                            height: `${virtualRow.size}px`,
-                            transform: `translateY(${virtualRow.start}px)`,
-                        }}
-                    >
-                        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 pb-4">
-                            {rows[virtualRow.index].map((video) => (
-                                <VideoCard key={video.id} video={video} />
-                            ))}
-                        </div>
-                    </div>
-                ))}
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 pb-20">
+            {videos.map((video) => (
+                <VideoCard key={video.id} video={video} />
+            ))}
         </div>
     )
 }

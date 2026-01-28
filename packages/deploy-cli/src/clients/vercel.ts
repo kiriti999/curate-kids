@@ -168,16 +168,16 @@ export class VercelClient {
 
             // Extract deployment URL from output
             const output = stdout + stderr
-            const urlMatch = output.match(/https:\/\/[^\s]+\.vercel\.app/)
-
-            if (urlMatch) {
-                return urlMatch[0]
-            }
-
-            // If no URL found, check for production URL
-            const prodUrlMatch = output.match(/Production: (https:\/\/[^\s]+)/)
+            // First try to find explicit Production URL
+            const prodUrlMatch = output.match(/Production: (https:\/\/[^\s]+\.vercel\.app)/)
             if (prodUrlMatch) {
                 return prodUrlMatch[1]
+            }
+
+            // Fallback: Extract any deployment URL from output
+            const urlMatch = output.match(/https:\/\/[^\s]+\.vercel\.app/)
+            if (urlMatch) {
+                return urlMatch[0]
             }
 
             throw new Error(`Could not extract deployment URL from output: ${output.slice(0, 500)}`)

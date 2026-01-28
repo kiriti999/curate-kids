@@ -130,6 +130,10 @@ curatedreels-admin stats
 
 # 5. Revoke if needed
 curatedreels-admin revoke ck_live_abc123...
+
+pnpm run license:create -n "Name" -e "email" -t starter
+pnpm run license:list
+pnpm run license:stats
 ```
 
 ## Security

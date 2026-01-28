@@ -13,7 +13,7 @@ import chalk from 'chalk';
 // GitHub Releases configuration
 const GITHUB_OWNER = 'kiriti999';
 const GITHUB_REPO = 'curate-kids';
-const BUNDLES_VERSION = process.env.CURATEKIDS_VERSION || '1.2.3';
+const BUNDLES_VERSION = process.env.CURATEDREELS_VERSION || '1.2.3';
 const BUNDLES_DIR = './.curatedreels-bundles';
 const GITHUB_API_URL = 'https://api.github.com';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;

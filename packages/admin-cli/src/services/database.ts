@@ -34,29 +34,26 @@ export interface Deployment {
     status: 'active' | 'deleted'
 }
 
-const MONGODB_URI = process.env.CURATEDREELS_ADMIN_MONGODB_URI || 
-                    process.env.MONGODB_URI ||
-                    'mongodb://localhost:27017/curatedreels-licenses'
-
-/**
- * Connect to MongoDB
- */
 export async function connect(): Promise<Db> {
     if (db) return db
+
+    const MONGODB_URI = process.env.CURATEDREELS_ADMIN_MONGODB_URI ||
+        process.env.MONGODB_URI ||
+        'mongodb://localhost:27017/curatedreels-licenses'
 
     client = new MongoClient(MONGODB_URI)
     await client.connect()
     db = client.db()
-    
+
     // Debug: log the actual database name being used
     console.log('[DEBUG] Admin CLI connected to database:', db.databaseName)
-    
+
     // Create indexes
     await db.collection('licenses').createIndex({ key: 1 }, { unique: true })
     await db.collection('licenses').createIndex({ customerId: 1 })
     await db.collection('licenses').createIndex({ customerEmail: 1 })
     await db.collection('deployments').createIndex({ licenseKey: 1 })
-    
+
     return db
 }
 

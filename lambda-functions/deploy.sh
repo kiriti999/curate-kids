@@ -24,7 +24,7 @@ if ! aws sts get-caller-identity &> /dev/null; then
 fi
 
 # Configuration
-AWS_REGION=${AWS_REGION:-"ap-south-1"}  # Mumbai
+AWS_REGION=${AWS_REGION:-"us-east-1"}  # N. Virginia
 FUNCTION_ROLE=${LAMBDA_ROLE:-""}
 MONGODB_URI=${MONGODB_URI:-""}
 RAZORPAY_SECRET=${RAZORPAY_WEBHOOK_SECRET:-""}

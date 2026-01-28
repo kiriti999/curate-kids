@@ -13,7 +13,13 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "create-license": "tsx src/index.ts create",
+    "list-licenses": "tsx src/index.ts list",
+    "verify-license": "tsx src/index.ts verify",
+    "license-info": "tsx src/index.ts info",
+    "license-stats": "tsx src/index.ts stats",
+    "revoke-license": "tsx src/index.ts revoke"
   },
   "keywords": [
     "curatedreels",

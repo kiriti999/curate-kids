@@ -25,7 +25,13 @@
     "release:minor": "./scripts/publish-release.sh auto minor",
     "release:major": "./scripts/publish-release.sh auto major",
     "release:version": "./scripts/publish-release.sh",
-    "deploy:bot": "./scripts/deploy-bot.sh"
+    "deploy:bot": "./scripts/deploy-bot.sh",
+    "license:create": "DOTENV_CONFIG_PATH=packages/admin-cli/.env tsx packages/admin-cli/src/index.ts create",
+    "license:list": "DOTENV_CONFIG_PATH=packages/admin-cli/.env tsx packages/admin-cli/src/index.ts list",
+    "license:info": "DOTENV_CONFIG_PATH=packages/admin-cli/.env tsx packages/admin-cli/src/index.ts info",
+    "license:verify": "DOTENV_CONFIG_PATH=packages/admin-cli/.env tsx packages/admin-cli/src/index.ts verify",
+    "license:stats": "DOTENV_CONFIG_PATH=packages/admin-cli/.env tsx packages/admin-cli/src/index.ts stats",
+    "license:revoke": "DOTENV_CONFIG_PATH=packages/admin-cli/.env tsx packages/admin-cli/src/index.ts revoke"
   },
   "keywords": [
     "payloadcms"

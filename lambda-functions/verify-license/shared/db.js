@@ -25,10 +25,7 @@ async function connectToDatabase() {
     const client = new MongoClient(uri);
     await client.connect();
 
-    // Use default database from connection string if not specified
-    const db = client.db();
-    
-    console.log('Connected to database:', db.databaseName);
+    const db = client.db('curatedreels-licenses');
 
     cachedClient = client;
     cachedDb = db;

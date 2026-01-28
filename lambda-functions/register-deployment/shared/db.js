@@ -17,9 +17,9 @@ async function connectToDatabase() {
     }
 
     // Company MongoDB for license management
-    const uri = process.env.LICENSE_MONGODB_URI || process.env.MONGODB_URI;
+    const uri = process.env.MONGODB_URI;
     if (!uri) {
-        throw new Error('LICENSE_MONGODB_URI or MONGODB_URI environment variable not set');
+        throw new Error('MONGODB_URI environment variable not set');
     }
 
     const client = new MongoClient(uri);

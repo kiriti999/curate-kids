@@ -5,8 +5,8 @@
  */
 import fetch from 'node-fetch';
 // Lambda Function URLs (us-east-1 region)
-const VERIFY_URL = process.env.VERIFY_LICENSE_URL || 'https://rltcg4cuhqxdap4ha2nvez5gka0dvivf.lambda-url.us-east-1.on.aws';
-const REGISTER_URL = process.env.REGISTER_DEPLOYMENT_URL || 'https://qpc4fnenqobl2s2zw44c4t7mtm0uwttj.lambda-url.us-east-1.on.aws';
+const VERIFY_URL = process.env.VERIFY_LICENSE_URL || 'https://5dyenwj7wkitpomtabzmgtlnge0fqpzb.lambda-url.us-east-1.on.aws/';
+const REGISTER_URL = process.env.REGISTER_DEPLOYMENT_URL || 'https://b2wrz3at4yj734uqd4k7pffkum0dieob.lambda-url.us-east-1.on.aws/';
 /**
  * Verify license key with Lambda
  */

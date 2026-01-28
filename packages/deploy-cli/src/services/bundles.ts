@@ -11,14 +11,29 @@ import { pipeline } from 'stream/promises'
 import { extract } from 'tar'
 import ora from 'ora'
 import chalk from 'chalk'
+import { version } from 'os'
 
 // GitHub Releases configuration
 const GITHUB_OWNER = 'kiriti999'
 const GITHUB_REPO = 'curate-kids'
-const BUNDLES_VERSION = process.env.CURATEDREELS_VERSION || '1.2.3'
 const BUNDLES_DIR = './.curatedreels-bundles'
 const GITHUB_API_URL = 'https://api.github.com'
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN
+
+/**
+ * Get the latest release version from GitHub
+ */
+async function getLatestReleaseVersion(): Promise<string> {
+    const url = `${GITHUB_API_URL}/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest`
+    const response = await fetch(url, { headers: getGitHubHeaders() })
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch latest release: ${response.statusText}`)
+    }
+
+    const release: any = await response.json()
+    return release.tag_name.replace(/^v/, '') // Remove 'v' prefix if present
+}
 
 export interface BundleManifest {
     version: string
@@ -114,8 +129,16 @@ function getGitHubHeaders(): Record<string, string> {
  * Fetch manifest from GitHub Release using API
  */
 async function fetchManifestFromGitHub(): Promise<BundleManifest> {
+    // Determine version to fetch
+    let version = process.env.CURATEDREELS_VERSION
+
+    if (!version) {
+        version = await getLatestReleaseVersion()
+        console.log(chalk.gray(`   Using latest release: v${version}`))
+    }
+
     // First, get the release
-    const releaseUrl = `${GITHUB_API_URL}/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/tags/v${BUNDLES_VERSION}`
+    const releaseUrl = `${GITHUB_API_URL}/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/tags/v${version}`
 
     const releaseResponse = await fetch(releaseUrl, {
         headers: getGitHubHeaders()
@@ -123,7 +146,7 @@ async function fetchManifestFromGitHub(): Promise<BundleManifest> {
 
     if (!releaseResponse.ok) {
         if (releaseResponse.status === 404) {
-            throw new Error(`Release v${BUNDLES_VERSION} not found. Check https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases`)
+            throw new Error(`Release v${version} not found. Check https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases`)
         }
         if (releaseResponse.status === 401) {
             throw new Error(`Authentication required. Set GITHUB_TOKEN environment variable.`)

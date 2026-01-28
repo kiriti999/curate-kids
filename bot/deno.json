@@ -1,5 +1,5 @@
 {
-  "name": "curatekids-telegram-bot",
+  "name": "curatedreels-telegram-bot",
   "version": "1.0.0",
   "exports": "./src/main.ts",
   "tasks": {

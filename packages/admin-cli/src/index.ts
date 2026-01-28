@@ -9,7 +9,28 @@
 import { program } from 'commander'
 import chalk from 'chalk'
 import ora from 'ora'
-import 'dotenv/config'
+import { config } from 'dotenv'
+import { existsSync } from 'fs'
+import { resolve, dirname } from 'path'
+import { fileURLToPath } from 'url'
+
+// Load .env from admin-cli directory
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const envPaths = [
+    process.env.DOTENV_CONFIG_PATH,
+    resolve(__dirname, '../.env'),           // When running from src/
+    resolve(__dirname, '../../.env'),         // When running from admin-cli/src/
+    resolve(process.cwd(), 'packages/admin-cli/.env'),  // When running from root
+    resolve(process.cwd(), '.env'),           // Fallback to cwd
+].filter(Boolean) as string[]
+
+for (const envPath of envPaths) {
+    if (existsSync(envPath)) {
+        // console.log(`[DEBUG] Loading env from: ${envPath}`)
+        config({ path: envPath })
+        break
+    }
+}
 
 import {
     createLicense,
@@ -39,7 +60,7 @@ program
     .option('--test', 'Create a test license')
     .action(async (options) => {
         const spinner = ora('Creating license...').start()
-        
+
         try {
             const license = await createLicense({
                 customerName: options.name,
@@ -50,7 +71,7 @@ program
             })
 
             spinner.succeed('License created!')
-            
+
             console.log('')
             console.log(chalk.bold('License Details:'))
             console.log(chalk.gray('─'.repeat(50)))
@@ -63,7 +84,7 @@ program
             console.log(`${chalk.cyan('Expires:')}      ${license.expiresAt ? license.expiresAt.toISOString() : 'Never'}`)
             console.log('')
             console.log(chalk.yellow('⚠️  Save this license key securely. It cannot be recovered.'))
-            
+
         } catch (error) {
             spinner.fail('Failed to create license')
             console.error(chalk.red(error instanceof Error ? error.message : String(error)))
@@ -80,7 +101,7 @@ program
     .option('-t, --tier <tier>', 'Filter by tier (starter, pro, enterprise)')
     .action(async (options) => {
         const spinner = ora('Fetching licenses...').start()
-        
+
         try {
             const licenses = await listLicenses({
                 status: options.status,
@@ -139,10 +160,10 @@ program
     .description('Get license details')
     .action(async (key) => {
         const spinner = ora('Fetching license...').start()
-        
+
         try {
             const result = await verifyLicense(key)
-            
+
             if (!result.valid) {
                 spinner.fail(result.error || 'License not found')
                 process.exit(1)
@@ -152,7 +173,7 @@ program
             const deployments = await listDeployments(key)
 
             spinner.succeed('License found')
-            
+
             console.log('')
             console.log(chalk.bold('License Details:'))
             console.log(chalk.gray('─'.repeat(50)))
@@ -166,7 +187,7 @@ program
             console.log(`${chalk.cyan('Used Deploys:')}  ${result.currentDeployments}`)
             console.log(`${chalk.cyan('Created:')}       ${license.createdAt.toISOString()}`)
             console.log(`${chalk.cyan('Expires:')}       ${license.expiresAt ? license.expiresAt.toISOString() : 'Never'}`)
-            
+
             if (deployments.length > 0) {
                 console.log('')
                 console.log(chalk.bold('Deployments:'))
@@ -195,10 +216,10 @@ program
     .description('Revoke a license')
     .action(async (key) => {
         const spinner = ora('Revoking license...').start()
-        
+
         try {
             const success = await revokeLicense(key)
-            
+
             if (success) {
                 spinner.succeed('License revoked')
             } else {
@@ -223,7 +244,7 @@ program
     .option('-l, --license <key>', 'Filter by license key')
     .action(async (options) => {
         const spinner = ora('Fetching deployments...').start()
-        
+
         try {
             const deployments = await listDeployments(options.license)
 
@@ -265,7 +286,7 @@ program
     .description('Show license statistics')
     .action(async () => {
         const spinner = ora('Fetching stats...').start()
-        
+
         try {
             const stats = await getStats()
 
@@ -300,7 +321,7 @@ program
     .description('Verify a license key (for testing)')
     .action(async (key) => {
         const spinner = ora('Verifying license...').start()
-        
+
         try {
             const result = await verifyLicense(key)
 

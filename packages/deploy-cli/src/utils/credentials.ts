@@ -7,6 +7,7 @@
 import prompts from 'prompts'
 import chalk from 'chalk'
 
+
 export interface DeploymentCredentials {
     // Vercel
     vercelToken: string
@@ -42,6 +43,9 @@ export interface DeploymentCredentials {
 }
 
 export async function collectCredentials(): Promise<DeploymentCredentials> {
+    // Helper for random ID
+    const randomId = () => Math.random().toString(36).substring(2, 8);
+
     console.log(chalk.gray('\nWe need your infrastructure credentials to deploy CuratedReels.\n'))
     console.log(chalk.white('Required services:'))
     console.log(chalk.gray('  • Vercel (hosting)'))
@@ -56,14 +60,16 @@ export async function collectCredentials(): Promise<DeploymentCredentials> {
             name: 'projectName',
             message: 'Project name (lowercase, no spaces):',
             validate: (value) => {
-                if (!/^[a-z0-9-]+$/.test(value)) {
+                const finalValue = value || `curated-reels-${randomId()}`
+                if (!/^[a-z0-9-]+$/.test(finalValue)) {
                     return 'Only lowercase letters, numbers, and hyphens allowed'
                 }
-                if (value.length < 3 || value.length > 32) {
+                if (finalValue.length < 3 || finalValue.length > 32) {
                     return 'Must be between 3-32 characters'
                 }
                 return true
-            }
+            },
+            initial: `curated-reels-${randomId()}`
         },
 
         // Vercel
@@ -167,6 +173,11 @@ export async function collectCredentials(): Promise<DeploymentCredentials> {
             initial: true
         }
     ])
+
+    // Set default project name if empty (user just pressed enter)
+    if (!credentials.projectName) {
+        credentials.projectName = `curated-reels-${randomId()}`
+    }
 
     // Cloudinary (conditional)
     if (credentials.enableCloudinary) {

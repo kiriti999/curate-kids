@@ -153,7 +153,7 @@ TELEGRAM_GROUP=...
 
 ## MongoDB Collection Schema
 
-### Database: `curatekids`
+### Database: `curatedreels`
 ### Collection: `videos`
 
 ```javascript
@@ -209,7 +209,7 @@ MongoError: bad auth : authentication failed
 
 **Connection String:**
 ```
-mongodb+srv://kiritik999_db_user:auqjaS5vYLZR7pYi@curatekidscluster.nolif8t.mongodb.net/curatekids
+MONGODB_URI=mongodb+srv://kiritik999:***REMOVED***@curatedreels.qoymsy.mongodb.net/curatedreels
 ```
 
 **Possible Causes:**

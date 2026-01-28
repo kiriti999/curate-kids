@@ -27,7 +27,7 @@
 
 **Story**: US4 - System Configuration Updated (P4)
 
-- [ ] T001 Create MongoDB Atlas free cluster (M0) named "curatekids-videos"
+- [ ] T001 Create MongoDB Atlas free cluster (M0) named "curatedreels-videos"
 - [ ] T002 Configure MongoDB Atlas network access to allow PayloadCMS Cloud connection (0.0.0.0/0)
 - [ ] T003 Create MongoDB database user with read/write permissions and save connection string
 - [ ] T004 Sign up for PayloadCMS Cloud and create new project named "CuratedReels Videos"

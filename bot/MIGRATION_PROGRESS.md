@@ -62,7 +62,7 @@ You need to complete these tasks before migration:
 ### Option 1: PayloadCMS Cloud (Recommended)
 1. Sign up at https://payloadcms.com/cloud
 2. Create project "CuratedReels Videos"
-3. Connect to MongoDB: `mongodb+srv://kiritik999_db_user:auqjaS5vYLZR7pYi@curatekidscluster.nolif8t.mongodb.net/curatekids`
+3. Connect to MongoDB: `mongodb+srv://kiritik999_db_user:auqjaS5vYLZR7pYi@curatedreelscluster.nolif8t.mongodb.net/curatedreels`
 4. Define "videos" collection using schema: `specs/001-sanity-payload-migration/contracts/payloadcms-videos-schema.json`
 5. Generate API key
 6. Provide API URL and key
@@ -127,8 +127,8 @@ Once you provide `PAYLOAD_API_URL` and `PAYLOAD_API_KEY`, I can:
 
 3. **MongoDB Credentials**: Currently in .env
    - User: kiritik999_db_user
-   - Cluster: curatekidscluster.nolif8t.mongodb.net
-   - Database: curatekids
+   - Cluster: curatedreelscluster.nolif8t.mongodb.net
+   - Database: curatedreels
 
 4. **Sanity Backup**: Created and safe
    - Can rollback if issues arise

@@ -1,6 +1,6 @@
 {
   "name": "curatedreels-deploy",
-  "version": "1.24.0",
+  "version": "1.25.0",
   "description": "White-label deployment CLI for CuratedReels",
   "type": "module",
   "bin": {

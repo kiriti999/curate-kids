@@ -180,7 +180,7 @@ aws iam get-role --role-name curatedreels-lambda-role --query 'Role.Arn'
 ### Step 3: Set Environment Variables
 
 ```bash
-export MONGODB_URI='mongodb+srv://user:pass@cluster.mongodb.net/curatedreels-licenses'
+export MONGODB_URI='mongodb+srv://user:pass@cluster.mongodb.net/curatedreels'
 export LAMBDA_ROLE='arn:aws:iam::123456789:role/curatedreels-lambda-role'
 export AWS_REGION='ap-south-1'
 export RAZORPAY_WEBHOOK_SECRET='your-webhook-secret-from-razorpay'
@@ -256,7 +256,7 @@ ROOT_ID=$(aws apigateway get-resources \
 
 ```javascript
 // Connect to your MongoDB cluster
-use curatedreels-licenses
+use curatedreels
 
 // Create indexes
 db.licenses.createIndex({ licenseKey: 1 }, { unique: true })

@@ -39,7 +39,7 @@ export async function connect(): Promise<Db> {
 
     const MONGODB_URI = process.env.CURATEDREELS_ADMIN_MONGODB_URI ||
         process.env.MONGODB_URI ||
-        'mongodb://localhost:27017/curatedreels-licenses'
+        'mongodb://localhost:27017/curatedreels'
 
     client = new MongoClient(MONGODB_URI)
     await client.connect()

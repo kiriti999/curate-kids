@@ -83,7 +83,7 @@ const REGISTER_URL = 'https://def456xyz.lambda-url.ap-south-1.on.aws'  // paste 
 # Create test license in MongoDB
 mongosh "your-connection-string"
 
-use curatedreels-licenses
+use curatedreels
 
 db.licenses.insertOne({
   licenseKey: "ck_test_12345",

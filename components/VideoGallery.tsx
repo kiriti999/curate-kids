@@ -126,12 +126,13 @@ const AGE_RANGES = [
     { value: '13+', label: '13+ years' },
 ]
 
-function VideoThumbnail({ video, isTheatre, onToggleTheatre }: {
+function VideoThumbnail({ video, isTheatre, showVideo, onPlay, onToggleTheatre }: {
     video: NormalizedVideo
     isTheatre: boolean
+    showVideo: boolean
+    onPlay: () => void
     onToggleTheatre: () => void
 }) {
-    const [showVideo, setShowVideo] = useState(false)
     const [isPausedOrEnded, setIsPausedOrEnded] = useState(false)
     const playerRef = useRef<YTPlayer | null>(null)
     const playerElId = useRef(`yt-${video.id}-${Math.random().toString(36).slice(2, 8)}`).current
@@ -245,7 +246,7 @@ function VideoThumbnail({ video, isTheatre, onToggleTheatre }: {
 
     return (
         <button
-            onClick={() => { setShowVideo(true); onToggleTheatre() }}
+            onClick={onPlay}
             className="relative w-full h-full group"
             aria-label={`Play ${video.title}`}
         >
@@ -596,6 +597,17 @@ function VirtualizedVideoGrid({ videos }: { videos: NormalizedVideo[] }) {
 // Extracted video card component for cleaner code
 function VideoCard({ video }: { video: NormalizedVideo }) {
     const [isTheatre, setIsTheatre] = useState(false)
+    const [showVideo, setShowVideo] = useState(false)
+
+    const handlePlay = useCallback(() => {
+        setShowVideo(true)
+        setIsTheatre(true)
+    }, [])
+
+    const handleCloseTheatre = useCallback(() => {
+        setIsTheatre(false)
+        setShowVideo(false)
+    }, [])
 
     if (isTheatre) {
         return (
@@ -605,7 +617,9 @@ function VideoCard({ video }: { video: NormalizedVideo }) {
                         <VideoThumbnail
                             video={video}
                             isTheatre={isTheatre}
-                            onToggleTheatre={() => setIsTheatre(false)}
+                            showVideo={showVideo}
+                            onPlay={handlePlay}
+                            onToggleTheatre={handleCloseTheatre}
                         />
                     </div>
                     <div className="mt-3 px-1">
@@ -617,7 +631,7 @@ function VideoCard({ video }: { video: NormalizedVideo }) {
                     </div>
                 </div>
                 <button
-                    onClick={() => setIsTheatre(false)}
+                    onClick={handleCloseTheatre}
                     className="absolute top-4 right-4 text-white/70 hover:text-white p-2 transition-colors"
                     aria-label="Close theatre mode"
                 >
@@ -635,6 +649,8 @@ function VideoCard({ video }: { video: NormalizedVideo }) {
                 <VideoThumbnail
                     video={video}
                     isTheatre={isTheatre}
+                    showVideo={showVideo}
+                    onPlay={handlePlay}
                     onToggleTheatre={() => setIsTheatre(true)}
                 />
             </div>

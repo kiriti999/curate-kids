@@ -34,7 +34,8 @@
     "license:revoke": "DOTENV_CONFIG_PATH=packages/admin-cli/.env tsx packages/admin-cli/src/index.ts revoke"
   },
   "keywords": [
-    "payloadcms"
+    "payloadcms",
+    "nextjs"
   ],
   "dependencies": {
     "@builder.io/partytown": "0.10.2",

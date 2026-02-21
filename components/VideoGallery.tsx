@@ -1,12 +1,59 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+
+// ─── YouTube IFrame Player API Types ───────────────────────────────────────
+interface YTPlayerConfig {
+    videoId: string
+    host?: string
+    width?: string | number
+    height?: string | number
+    playerVars?: Record<string, number | string>
+    events?: { onStateChange?: (event: YTPlayerEvent) => void }
+}
+
+interface YTPlayer {
+    destroy: () => void
+    playVideo: () => void
+    seekTo: (seconds: number, allowSeekAhead: boolean) => void
+    getPlayerState: () => number
+}
+
+interface YTPlayerEvent {
+    data: number
+}
+
+declare global {
+    interface Window {
+        onYouTubeIframeAPIReady?: () => void
+        YT?: { Player: new (id: string, config: YTPlayerConfig) => YTPlayer }
+    }
+}
+
+const YT_ENDED = 0
+const YT_PLAYING = 1
+const YT_PAUSED = 2
+
+/** Load YouTube IFrame API script (singleton) */
+let ytApiReady: Promise<void> | null = null
+
+function loadYouTubeIframeAPI(): Promise<void> {
+    if (ytApiReady) return ytApiReady
+    ytApiReady = new Promise<void>((resolve) => {
+        if (window.YT?.Player) { resolve(); return }
+        window.onYouTubeIframeAPIReady = () => resolve()
+        const s = document.createElement('script')
+        s.src = 'https://www.youtube.com/iframe_api'
+        document.head.appendChild(s)
+    })
+    return ytApiReady
+}
 
 /**
  * Check if a string is a valid YouTube video ID (11 alphanumeric characters)
@@ -79,19 +126,106 @@ const AGE_RANGES = [
     { value: '13+', label: '13+ years' },
 ]
 
-function VideoThumbnail({ video }: { video: NormalizedVideo }) {
+function VideoThumbnail({ video, isTheatre, onToggleTheatre }: {
+    video: NormalizedVideo
+    isTheatre: boolean
+    onToggleTheatre: () => void
+}) {
     const [showVideo, setShowVideo] = useState(false)
+    const [isPausedOrEnded, setIsPausedOrEnded] = useState(false)
+    const playerRef = useRef<YTPlayer | null>(null)
+    const playerElId = useRef(`yt-${video.id}-${Math.random().toString(36).slice(2, 8)}`).current
     const hasValidYoutubeId = isValidYoutubeId(video.youtubeId)
+
+    // Create YouTube player via IFrame API to intercept pause/end events
+    useEffect(() => {
+        if (!showVideo || !hasValidYoutubeId) return
+
+        let cancelled = false
+
+        loadYouTubeIframeAPI().then(() => {
+            if (cancelled || !document.getElementById(playerElId)) return
+
+            const player = new window.YT!.Player(playerElId, {
+                host: 'https://www.youtube-nocookie.com',
+                width: '100%',
+                height: '100%',
+                videoId: video.youtubeId,
+                playerVars: {
+                    autoplay: 1, fs: 0, rel: 0,
+                    modestbranding: 1, loop: 1,
+                    playlist: video.youtubeId, disablekb: 0,
+                },
+                events: {
+                    onStateChange: (e: YTPlayerEvent) => {
+                        if (cancelled) return
+                        if (e.data === YT_PAUSED || e.data === YT_ENDED) {
+                            setIsPausedOrEnded(true)
+                        } else if (e.data === YT_PLAYING) {
+                            setIsPausedOrEnded(false)
+                        }
+                    },
+                },
+            })
+            playerRef.current = player
+        })
+
+        return () => {
+            cancelled = true
+            playerRef.current?.destroy()
+            playerRef.current = null
+        }
+    }, [showVideo, video.youtubeId, hasValidYoutubeId, playerElId])
+
+    const handleResume = useCallback(() => {
+        const player = playerRef.current
+        if (!player) return
+        try {
+            if (player.getPlayerState() === YT_ENDED) {
+                player.seekTo(0, true)
+            }
+            player.playVideo()
+        } catch { /* player may not be ready */ }
+        setIsPausedOrEnded(false)
+    }, [])
 
     if (showVideo && hasValidYoutubeId) {
         return (
-            <iframe
-                className="w-full h-full"
-                src={`https://www.youtube.com/embed/${video.youtubeId}?autoplay=1`}
-                title={video.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-            />
+            <div className="relative w-full h-full overflow-hidden">
+                <div id={playerElId} className="w-full h-full" />
+
+                {/* Overlay hides YouTube "More videos" panel on pause / end */}
+                {isPausedOrEnded && (
+                    <button
+                        type="button"
+                        onClick={handleResume}
+                        className="absolute inset-0 z-[2] bg-black/60 flex items-center justify-center border-0 cursor-pointer"
+                        aria-label="Resume video"
+                    >
+                        <svg className="w-16 h-16 text-white/90 drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                        </svg>
+                    </button>
+                )}
+
+                {/* Block YouTube logo + branding links at bottom */}
+                <div className="absolute bottom-0 right-0 w-36 h-10 z-[1]" />
+                <button
+                    type="button"
+                    onClick={onToggleTheatre}
+                    className="absolute top-2 right-2 z-10 bg-black/70 hover:bg-black/90 text-white p-1.5 rounded transition-colors"
+                    aria-label={isTheatre ? 'Exit theatre mode' : 'Theatre mode'}
+                    title={isTheatre ? 'Exit theatre mode' : 'Theatre mode'}
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                        {isTheatre ? (
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 9V4.5M9 9H4.5M9 9 3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5 5.25 5.25" />
+                        ) : (
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+                        )}
+                    </svg>
+                </button>
+            </div>
         )
     }
 
@@ -111,7 +245,7 @@ function VideoThumbnail({ video }: { video: NormalizedVideo }) {
 
     return (
         <button
-            onClick={() => setShowVideo(true)}
+            onClick={() => { setShowVideo(true); onToggleTheatre() }}
             className="relative w-full h-full group"
             aria-label={`Play ${video.title}`}
         >
@@ -461,10 +595,48 @@ function VirtualizedVideoGrid({ videos }: { videos: NormalizedVideo[] }) {
 
 // Extracted video card component for cleaner code
 function VideoCard({ video }: { video: NormalizedVideo }) {
+    const [isTheatre, setIsTheatre] = useState(false)
+
+    if (isTheatre) {
+        return (
+            <div className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center">
+                <div className="w-full max-w-5xl px-4">
+                    <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                        <VideoThumbnail
+                            video={video}
+                            isTheatre={isTheatre}
+                            onToggleTheatre={() => setIsTheatre(false)}
+                        />
+                    </div>
+                    <div className="mt-3 px-1">
+                        <h2 className="font-medium text-white text-lg">{video.title}</h2>
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                            <Badge variant="outline" className="text-xs text-white border-white/30">{video.category}</Badge>
+                            <Badge variant="secondary" className="text-xs">{video.ageRange}</Badge>
+                        </div>
+                    </div>
+                </div>
+                <button
+                    onClick={() => setIsTheatre(false)}
+                    className="absolute top-4 right-4 text-white/70 hover:text-white p-2 transition-colors"
+                    aria-label="Close theatre mode"
+                >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        )
+    }
+
     return (
         <Card className="overflow-hidden p-0">
             <div className="aspect-video bg-black">
-                <VideoThumbnail video={video} />
+                <VideoThumbnail
+                    video={video}
+                    isTheatre={isTheatre}
+                    onToggleTheatre={() => setIsTheatre(true)}
+                />
             </div>
             <CardContent className="p-3 space-y-2">
                 <h2 className="font-medium text-sm line-clamp-2">

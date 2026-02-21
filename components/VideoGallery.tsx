@@ -153,9 +153,9 @@ function VideoThumbnail({ video, isTheatre, showVideo, onPlay, onToggleTheatre }
                 height: '100%',
                 videoId: video.youtubeId,
                 playerVars: {
-                    autoplay: 1, fs: 0, rel: 0,
+                    autoplay: 1, fs: 1, rel: 0,
                     modestbranding: 1, loop: 1,
-                    playlist: video.youtubeId, disablekb: 0,
+                    playlist: video.youtubeId, disablekb: 1,
                 },
                 events: {
                     onStateChange: (e: YTPlayerEvent) => {
@@ -611,9 +611,9 @@ function VideoCard({ video }: { video: NormalizedVideo }) {
 
     if (isTheatre) {
         return (
-            <div className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center">
-                <div className="w-full max-w-5xl px-4">
-                    <div className="aspect-video bg-black rounded-lg overflow-hidden">
+            <div className="fixed inset-0 z-50 bg-black flex flex-col">
+                <div className="w-full h-full">
+                    <div className="w-full h-full bg-black overflow-hidden">
                         <VideoThumbnail
                             video={video}
                             isTheatre={isTheatre}
@@ -621,13 +621,6 @@ function VideoCard({ video }: { video: NormalizedVideo }) {
                             onPlay={handlePlay}
                             onToggleTheatre={handleCloseTheatre}
                         />
-                    </div>
-                    <div className="mt-3 px-1">
-                        <h2 className="font-medium text-white text-lg">{video.title}</h2>
-                        <div className="flex flex-wrap gap-1.5 mt-2">
-                            <Badge variant="outline" className="text-xs text-white border-white/30">{video.category}</Badge>
-                            <Badge variant="secondary" className="text-xs">{video.ageRange}</Badge>
-                        </div>
                     </div>
                 </div>
                 <button

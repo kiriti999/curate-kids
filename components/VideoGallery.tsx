@@ -326,7 +326,7 @@ function FilterButton({
             className={cn(
                 "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all",
                 isEmpty
-                    ? "opacity-35 cursor-not-allowed text-muted-foreground"
+                    ? "opacity-60 cursor-not-allowed text-muted-foreground"
                     : isSelected ? `${colorClass} text-white` : bgClass
             )}
         >

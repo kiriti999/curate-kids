@@ -315,20 +315,23 @@ function FilterButton({
     onClick: () => void
     colorClass: string
 }) {
-    if (count === 0) return null
+    const isEmpty = count === 0
     const bgClass = isSelected ? colorClass : "hover:bg-muted text-foreground"
     const badgeClass = isSelected ? `${colorClass.replace('600', '500')} text-white` : "bg-muted text-muted-foreground"
 
     return (
         <button
-            onClick={onClick}
+            onClick={isEmpty ? undefined : onClick}
+            disabled={isEmpty}
             className={cn(
                 "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all",
-                isSelected ? `${colorClass} text-white` : bgClass
+                isEmpty
+                    ? "opacity-35 cursor-not-allowed text-muted-foreground"
+                    : isSelected ? `${colorClass} text-white` : bgClass
             )}
         >
             <span>{label}</span>
-            <span className={cn("text-xs px-1.5 py-0.5 rounded-full", badgeClass)}>
+            <span className={cn("text-xs px-1.5 py-0.5 rounded-full", isEmpty ? "bg-muted text-muted-foreground" : badgeClass)}>
                 {count}
             </span>
         </button>

@@ -3,7 +3,7 @@
 # Usage: ./scripts/deploy-bot.sh [project-name]
 # Example: ./scripts/deploy-bot.sh deploy24-bot
 
-PROJECT_NAME="${1:-deploy24-bot}"
+PROJECT_NAME="${1:-curated-reels-bot}"
 
 echo "🤖 Deploying bot to Deno Deploy..."
 echo "   Project: $PROJECT_NAME"

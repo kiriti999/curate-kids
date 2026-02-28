@@ -38,7 +38,6 @@ async function createCategory(
       data: {
         name: ageRange.name,
         slug: ageRange.slug,
-        ageRange: ageRange.ageRange,
         isAgeRangeRoot: true,
         depth: 0,
         fullPath: [

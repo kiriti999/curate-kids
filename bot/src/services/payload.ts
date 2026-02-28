@@ -3,10 +3,10 @@
  * Direct MongoDB Atlas connection (no PayloadCMS)
  */
 
-import * as logger from "../utils/logger.ts";
-import type { VideoCategory } from "../utils/keyboard.ts";
-import type { AgeRange } from "../types/state.ts";
 import { MongoClient, ObjectId } from "npm:mongodb@6.3.0";
+import type { AgeRange } from "../types/state.ts";
+import type { VideoCategory } from "../utils/keyboard.ts";
+import * as logger from "../utils/logger.ts";
 
 // Video submission types
 export interface VideoSubmission {
@@ -69,9 +69,9 @@ interface VideoDocument {
   source: "url" | "telegram";
   createdAt: Date;
   updatedAt: Date;
-  // Organization/multi-tenant fields
-  organization?: string;
-  submittedBy?: string;
+  // Organization/multi-tenant fields (stored as ObjectId for PayloadCMS compatibility)
+  organization?: ObjectId;
+  submittedBy?: ObjectId;
   submitterTelegramId?: string;
   submitterTelegramUsername?: string;
   status: "pending" | "approved" | "rejected";
@@ -132,24 +132,35 @@ async function getMongoClient(): Promise<MongoClient | null> {
  * @param submission - Video submission data
  * @returns Document ID or null on failure
  */
-export async function createVideo(submission: VideoSubmission): Promise<string | null> {
+export async function createVideo(
+  submission: VideoSubmission,
+): Promise<string | null> {
   const document: VideoDocument = {
     title: submission.title,
     slug: submission.slug,
-    youtubeUrl: submission.platform === "youtube" ? submission.videoUrl : undefined,
-    youtubeId: submission.platform === "youtube" ? submission.videoId : undefined,
-    facebookId: submission.platform === "facebook" ? submission.videoId : undefined,
-    instagramId: submission.platform === "instagram" ? submission.videoId : undefined,
-    linkedInId: submission.platform === "linkedin" ? submission.videoId : undefined,
+    youtubeUrl:
+      submission.platform === "youtube" ? submission.videoUrl : undefined,
+    youtubeId:
+      submission.platform === "youtube" ? submission.videoId : undefined,
+    facebookId:
+      submission.platform === "facebook" ? submission.videoId : undefined,
+    instagramId:
+      submission.platform === "instagram" ? submission.videoId : undefined,
+    linkedInId:
+      submission.platform === "linkedin" ? submission.videoId : undefined,
     category: submission.category,
     ageRange: submission.ageRange,
     tags: submission.tags,
     source: submission.source,
     createdAt: new Date(),
     updatedAt: new Date(),
-    // Organization/multi-tenant fields
-    organization: submission.organizationId,
-    submittedBy: submission.submittedByUserId,
+    // Organization/multi-tenant fields (ObjectId for PayloadCMS compatibility)
+    organization: submission.organizationId
+      ? new ObjectId(submission.organizationId)
+      : undefined,
+    submittedBy: submission.submittedByUserId
+      ? new ObjectId(submission.submittedByUserId)
+      : undefined,
     submitterTelegramId: submission.submitterTelegramId,
     submitterTelegramUsername: submission.submitterTelegramUsername,
     status: submission.autoApprove ? "approved" : "pending", // Auto-approve based on org settings or env var
@@ -164,7 +175,7 @@ export async function createVideo(submission: VideoSubmission): Promise<string |
  * @returns Document ID or null on failure
  */
 export async function createTelegramVideo(
-  submission: TelegramVideoSubmission
+  submission: TelegramVideoSubmission,
 ): Promise<string | null> {
   const document: VideoDocument = {
     title: submission.title,
@@ -179,9 +190,13 @@ export async function createTelegramVideo(
     source: submission.source,
     createdAt: new Date(),
     updatedAt: new Date(),
-    // Organization/multi-tenant fields
-    organization: submission.organizationId,
-    submittedBy: submission.submittedByUserId,
+    // Organization/multi-tenant fields (ObjectId for PayloadCMS compatibility)
+    organization: submission.organizationId
+      ? new ObjectId(submission.organizationId)
+      : undefined,
+    submittedBy: submission.submittedByUserId
+      ? new ObjectId(submission.submittedByUserId)
+      : undefined,
     submitterTelegramId: submission.submitterTelegramId,
     submitterTelegramUsername: submission.submitterTelegramUsername,
     status: submission.autoApprove ? "approved" : "pending", // Auto-approve based on org settings or env var
@@ -195,7 +210,7 @@ export async function createTelegramVideo(
  */
 function addPlatformIdConditions(document: VideoDocument): any[] {
   const conditions: any[] = [];
-  
+
   if (document.youtubeId) {
     conditions.push({ youtubeId: document.youtubeId });
   }
@@ -211,7 +226,7 @@ function addPlatformIdConditions(document: VideoDocument): any[] {
   if (document.instagramId) {
     conditions.push({ instagramId: document.instagramId });
   }
-  
+
   return conditions;
 }
 
@@ -223,7 +238,7 @@ function addPlatformIdConditions(document: VideoDocument): any[] {
  */
 async function findDuplicateVideo(
   collection: any,
-  document: VideoDocument
+  document: VideoDocument,
 ): Promise<VideoDocument | null> {
   const baseQuery: any = {
     category: document.category,
@@ -245,7 +260,7 @@ async function findDuplicateVideo(
  */
 async function handleDuplicate(
   duplicate: VideoDocument,
-  identifier: string
+  identifier: string,
 ): Promise<string> {
   logger.warn("Duplicate video detected", {
     existingId: duplicate._id?.toString(),
@@ -262,15 +277,15 @@ async function handleDuplicate(
  */
 async function ensureUniqueSlug(
   videos: any,
-  document: VideoDocument
+  document: VideoDocument,
 ): Promise<void> {
   const existing = await videos.findOne({ slug: document.slug });
   if (!existing) return;
-  
+
   const timestamp = Date.now();
   const originalSlug = document.slug;
   document.slug = `${document.slug}-${timestamp}`;
-  
+
   logger.warn("Duplicate slug detected, appending timestamp", {
     originalSlug,
     newSlug: document.slug,
@@ -282,7 +297,7 @@ async function ensureUniqueSlug(
  */
 async function attemptInsert(
   document: VideoDocument,
-  identifier: string
+  identifier: string,
 ): Promise<string | null> {
   const client = await getMongoClient();
   if (!client) {
@@ -317,7 +332,7 @@ async function attemptInsert(
  */
 async function insertVideo(
   document: VideoDocument,
-  identifier: string
+  identifier: string,
 ): Promise<string | null> {
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
@@ -371,7 +386,9 @@ export async function validateConnection(): Promise<boolean> {
 
     const client = await getMongoClient();
     if (!client) {
-      logger.error("MongoDB connection validation failed - client not available");
+      logger.error(
+        "MongoDB connection validation failed - client not available",
+      );
       return false;
     }
 
@@ -405,16 +422,34 @@ export async function validateConnection(): Promise<boolean> {
  */
 async function ensureIndexes(collection: any): Promise<void> {
   try {
-    await collection.createIndex({ slug: 1 }, { unique: true, name: "slug_unique" });
+    await collection.createIndex(
+      { slug: 1 },
+      { unique: true, name: "slug_unique" },
+    );
     await collection.createIndex({ category: 1 }, { name: "category_index" });
     await collection.createIndex({ ageRange: 1 }, { name: "ageRange_index" });
-    await collection.createIndex({ createdAt: -1 }, { name: "createdAt_index" });
-    await collection.createIndex({ category: 1, ageRange: 1 }, { name: "category_ageRange_compound" });
+    await collection.createIndex(
+      { createdAt: -1 },
+      { name: "createdAt_index" },
+    );
+    await collection.createIndex(
+      { category: 1, ageRange: 1 },
+      { name: "category_ageRange_compound" },
+    );
     // Multi-tenant indexes
-    await collection.createIndex({ organization: 1 }, { name: "organization_index" });
+    await collection.createIndex(
+      { organization: 1 },
+      { name: "organization_index" },
+    );
     await collection.createIndex({ status: 1 }, { name: "status_index" });
-    await collection.createIndex({ organization: 1, status: 1 }, { name: "org_status_compound" });
-    await collection.createIndex({ submittedBy: 1 }, { name: "submittedBy_index" });
+    await collection.createIndex(
+      { organization: 1, status: 1 },
+      { name: "org_status_compound" },
+    );
+    await collection.createIndex(
+      { submittedBy: 1 },
+      { name: "submittedBy_index" },
+    );
     logger.info("✅ MongoDB indexes created/verified");
   } catch (error) {
     logger.warn("Index creation warning (may already exist)", {
@@ -422,4 +457,3 @@ async function ensureIndexes(collection: any): Promise<void> {
     });
   }
 }
-

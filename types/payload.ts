@@ -75,6 +75,7 @@ export interface Config {
     'ad-placements': AdPlacement;
     'affiliate-partners': AffiliatePartner;
     media: Media;
+    'terms-acceptances': TermsAcceptance;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -90,6 +91,7 @@ export interface Config {
     'ad-placements': AdPlacementsSelect<false> | AdPlacementsSelect<true>;
     'affiliate-partners': AffiliatePartnersSelect<false> | AffiliatePartnersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    'terms-acceptances': TermsAcceptancesSelect<false> | TermsAcceptancesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -299,13 +301,13 @@ export interface Video {
    */
   duration?: number | null;
   /**
-   * Video category (linked to admin categories)
+   * Video category
    */
-  category: string | Category;
+  category: 'education' | 'entertainment' | 'music' | 'science' | 'arts-crafts' | 'sports' | 'nature' | 'stories';
   /**
    * Target age range for this video
    */
-  ageRange: '0-2' | '3-5' | '6-8' | '9-12' | '13+';
+  ageRange: '1-2' | '2-3' | '3-4' | '4-5' | '5-8' | '9-12' | '12-15' | '16-18' | '18+';
   /**
    * Searchable tags (max 20)
    */
@@ -579,7 +581,7 @@ export interface AdPlacement {
   /**
    * Target age ranges (empty = all ages)
    */
-  ageRanges?: ('0-2' | '3-5' | '6-8' | '9-12' | '13+')[] | null;
+  ageRanges?: ('1-2' | '2-3' | '3-4' | '4-5' | '5-8' | '9-12' | '12-15' | '16-18' | '18+')[] | null;
   /**
    * Ad priority (1-100, higher = shown first)
    */
@@ -697,6 +699,53 @@ export interface AffiliatePartner {
   createdAt: string;
 }
 /**
+ * Customer Terms & Conditions acceptance records
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "terms-acceptances".
+ */
+export interface TermsAcceptance {
+  id: string;
+  /**
+   * Customer full name
+   */
+  name: string;
+  /**
+   * Customer email address
+   */
+  email: string;
+  /**
+   * Selected pricing plan
+   */
+  plan: 'starter' | 'pro' | 'enterprise';
+  /**
+   * Version of terms accepted
+   */
+  termsVersion: string;
+  /**
+   * When terms were accepted
+   */
+  acceptedAt: string;
+  /**
+   * IP address at time of acceptance
+   */
+  ipAddress?: string | null;
+  /**
+   * Browser user agent at time of acceptance
+   */
+  userAgent?: string | null;
+  /**
+   * Privacy policy was also accepted
+   */
+  privacyPolicyAccepted: boolean;
+  /**
+   * Customer expressed interest in custom domain add-on
+   */
+  customDomainInterest?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -751,6 +800,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: string | Media;
+      } | null)
+    | ({
+        relationTo: 'terms-acceptances';
+        value: string | TermsAcceptance;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1037,6 +1090,23 @@ export interface MediaSelect<T extends boolean = true> {
               filename?: T;
             };
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "terms-acceptances_select".
+ */
+export interface TermsAcceptancesSelect<T extends boolean = true> {
+  name?: T;
+  email?: T;
+  plan?: T;
+  termsVersion?: T;
+  acceptedAt?: T;
+  ipAddress?: T;
+  userAgent?: T;
+  privacyPolicyAccepted?: T;
+  customDomainInterest?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

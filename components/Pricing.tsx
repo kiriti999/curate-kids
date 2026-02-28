@@ -1,8 +1,6 @@
-/** biome-ignore-all lint/a11y/useButtonType: <explanation> */
-/** biome-ignore-all lint/a11y/noLabelWithoutControl: <explanation> */
 "use client";
 
-import { Check, ExternalLink } from "lucide-react";
+import { Check, ExternalLink, Loader2, Mail, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -72,6 +70,12 @@ export default function Pricing() {
         text: string;
     } | null>(null);
 
+    // OTP verification state
+    const [otpSent, setOtpSent] = useState(false);
+    const [otpCode, setOtpCode] = useState("");
+    const [emailVerified, setEmailVerified] = useState(false);
+    const [otpLoading, setOtpLoading] = useState(false);
+
     const getPaymentUrl = () => {
         if (typeof window === "undefined")
             return "https://www.whatsnxt.in/curatedreels/pricing";
@@ -88,6 +92,98 @@ export default function Pricing() {
         setMessage(null);
         setTermsAccepted(false);
         setPrivacyAccepted(false);
+        setOtpSent(false);
+        setOtpCode("");
+        setEmailVerified(false);
+    };
+
+    // Send OTP to email
+    const sendOtp = async () => {
+        if (!customerDetails.name || !customerDetails.email) {
+            setMessage({ type: "error", text: "Please enter your name and email" });
+            return;
+        }
+
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(customerDetails.email)) {
+            setMessage({ type: "error", text: "Please enter a valid email address" });
+            return;
+        }
+
+        setOtpLoading(true);
+        setMessage(null);
+
+        try {
+            const response = await fetch("/api/otp/send", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: customerDetails.email,
+                    name: customerDetails.name,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to send OTP");
+            }
+
+            setOtpSent(true);
+            setMessage({
+                type: "success",
+                text: `Verification code sent to ${customerDetails.email}`,
+            });
+        } catch (error) {
+            setMessage({
+                type: "error",
+                text: error instanceof Error ? error.message : "Failed to send OTP",
+            });
+        } finally {
+            setOtpLoading(false);
+        }
+    };
+
+    // Verify OTP
+    const verifyOtp = async () => {
+        if (!otpCode || otpCode.length !== 6) {
+            setMessage({ type: "error", text: "Please enter the 6-digit code" });
+            return;
+        }
+
+        setOtpLoading(true);
+        setMessage(null);
+
+        try {
+            const response = await fetch("/api/otp/verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: customerDetails.email,
+                    otp: otpCode,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Invalid OTP");
+            }
+
+            setEmailVerified(true);
+            setMessage({
+                type: "success",
+                text: "Email verified successfully!",
+            });
+        } catch (error) {
+            setMessage({
+                type: "error",
+                text: error instanceof Error ? error.message : "Invalid OTP",
+            });
+        } finally {
+            setOtpLoading(false);
+        }
     };
 
     const initiatePurchase = async (tier: string) => {
@@ -205,8 +301,11 @@ export default function Pricing() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-xl font-bold">Enter Details</h3>
+                            <h3 className="text-xl font-bold">
+                                {emailVerified ? "Almost There!" : otpSent ? "Verify Email" : "Enter Details"}
+                            </h3>
                             <button
+                                type="button"
                                 onClick={() => setShowModal(null)}
                                 className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                             >
@@ -215,97 +314,209 @@ export default function Pricing() {
                         </div>
 
                         <div className="space-y-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Name</label>
-                                <Input
-                                    placeholder="Your Name"
-                                    value={customerDetails.name}
-                                    onChange={(e) =>
-                                        setCustomerDetails({
-                                            ...customerDetails,
-                                            name: e.target.value,
-                                        })
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Email</label>
-                                <Input
-                                    placeholder="your@email.com"
-                                    type="email"
-                                    value={customerDetails.email}
-                                    onChange={(e) =>
-                                        setCustomerDetails({
-                                            ...customerDetails,
-                                            email: e.target.value,
-                                        })
-                                    }
-                                />
-                            </div>
+                            {/* Step 1: Name and Email */}
+                            {!emailVerified && (
+                                <>
+                                    <div className="space-y-2">
+                                        <label htmlFor="name" className="text-sm font-medium">Name</label>
+                                        <Input
+                                            id="name"
+                                            placeholder="Your Name"
+                                            value={customerDetails.name}
+                                            onChange={(e) =>
+                                                setCustomerDetails({
+                                                    ...customerDetails,
+                                                    name: e.target.value,
+                                                })
+                                            }
+                                            disabled={otpSent}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label htmlFor="email" className="text-sm font-medium">Email</label>
+                                        <div className="relative">
+                                            <Input
+                                                id="email"
+                                                placeholder="your@email.com"
+                                                type="email"
+                                                value={customerDetails.email}
+                                                onChange={(e) =>
+                                                    setCustomerDetails({
+                                                        ...customerDetails,
+                                                        email: e.target.value,
+                                                    })
+                                                }
+                                                disabled={otpSent}
+                                            />
+                                            {otpSent && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setOtpSent(false);
+                                                        setOtpCode("");
+                                                        setMessage(null);
+                                                    }}
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-blue-600 hover:underline"
+                                                >
+                                                    Change
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
 
-                            {/* Terms & Conditions */}
-                            <div className="space-y-3 pt-2 border-t border-gray-200 dark:border-gray-700">
-                                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                                    Please review and accept:
-                                </p>
-
-                                <label className="flex items-start gap-3 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={termsAccepted}
-                                        onChange={(e) => setTermsAccepted(e.target.checked)}
-                                        className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            {/* Step 2: OTP Input (shown after OTP sent) */}
+                            {otpSent && !emailVerified && (
+                                <div className="space-y-3 pt-2 border-t border-gray-200 dark:border-gray-700">
+                                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                        <Mail className="h-4 w-4" />
+                                        <span>Enter the 6-digit code sent to <strong>{customerDetails.email}</strong></span>
+                                    </div>
+                                    <Input
+                                        placeholder="Enter 6-digit code"
+                                        value={otpCode}
+                                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                                        className="text-center text-lg tracking-widest"
+                                        maxLength={6}
                                     />
-                                    <span className="text-sm text-gray-700 dark:text-gray-300">
-                                        I have read and agree to the{" "}
-                                        <Link
-                                            href="/terms"
-                                            target="_blank"
-                                            className="text-blue-600 hover:underline inline-flex items-center gap-1"
-                                        >
-                                            Terms & Conditions
-                                            <ExternalLink className="h-3 w-3" />
-                                        </Link>
-                                        , including the no-refund policy and custom domain add-on pricing.
-                                    </span>
-                                </label>
+                                    <button
+                                        type="button"
+                                        onClick={sendOtp}
+                                        disabled={otpLoading}
+                                        className="text-xs text-blue-600 hover:underline disabled:opacity-50"
+                                    >
+                                        Didn&apos;t receive code? Resend
+                                    </button>
+                                </div>
+                            )}
 
-                                <label className="flex items-start gap-3 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={privacyAccepted}
-                                        onChange={(e) => setPrivacyAccepted(e.target.checked)}
-                                        className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                    />
-                                    <span className="text-sm text-gray-700 dark:text-gray-300">
-                                        I have read and agree to the{" "}
-                                        <Link
-                                            href="/privacy"
-                                            target="_blank"
-                                            className="text-blue-600 hover:underline inline-flex items-center gap-1"
-                                        >
-                                            Privacy Policy
-                                            <ExternalLink className="h-3 w-3" />
-                                        </Link>
-                                    </span>
-                                </label>
-                            </div>
+                            {/* Step 3: Email Verified Badge + T&C (shown after verification) */}
+                            {emailVerified && (
+                                <>
+                                    <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                                        <ShieldCheck className="h-5 w-5 text-green-600" />
+                                        <div>
+                                            <p className="text-sm font-medium text-green-700 dark:text-green-400">Email Verified</p>
+                                            <p className="text-xs text-green-600 dark:text-green-500">{customerDetails.email}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Terms & Conditions */}
+                                    <div className="space-y-3 pt-2 border-t border-gray-200 dark:border-gray-700">
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                                            Please review and accept:
+                                        </p>
+
+                                        <label className="flex items-start gap-3 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={termsAccepted}
+                                                onChange={(e) => setTermsAccepted(e.target.checked)}
+                                                className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm text-gray-700 dark:text-gray-300">
+                                                I have read and agree to the{" "}
+                                                <Link
+                                                    href="/terms"
+                                                    target="_blank"
+                                                    className="text-blue-600 hover:underline inline-flex items-center gap-1"
+                                                >
+                                                    Terms & Conditions
+                                                    <ExternalLink className="h-3 w-3" />
+                                                </Link>
+                                                , including the no-refund policy and custom domain add-on pricing.
+                                            </span>
+                                        </label>
+
+                                        <label className="flex items-start gap-3 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={privacyAccepted}
+                                                onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                                                className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm text-gray-700 dark:text-gray-300">
+                                                I have read and agree to the{" "}
+                                                <Link
+                                                    href="/privacy"
+                                                    target="_blank"
+                                                    className="text-blue-600 hover:underline inline-flex items-center gap-1"
+                                                >
+                                                    Privacy Policy
+                                                    <ExternalLink className="h-3 w-3" />
+                                                </Link>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </>
+                            )}
 
                             {message && (
                                 <div
-                                    className={`p-3 rounded-md text-sm ${message.type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+                                    className={`p-3 rounded-md text-sm ${message.type === "success" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"}`}
                                 >
                                     {message.text}
                                 </div>
                             )}
 
-                            <Button
-                                className="w-full mt-4"
-                                onClick={() => showModal && initiatePurchase(showModal)}
-                                disabled={loading === showModal || !termsAccepted || !privacyAccepted}
-                            >
-                                {loading === showModal ? "Processing..." : "Proceed to Payment"}
-                            </Button>
+                            {/* Action Buttons */}
+                            {!otpSent && !emailVerified && (
+                                <Button
+                                    className="w-full mt-4"
+                                    onClick={sendOtp}
+                                    disabled={otpLoading}
+                                >
+                                    {otpLoading ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            Sending...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Mail className="h-4 w-4 mr-2" />
+                                            Verify Email
+                                        </>
+                                    )}
+                                </Button>
+                            )}
+
+                            {otpSent && !emailVerified && (
+                                <Button
+                                    className="w-full mt-4"
+                                    onClick={verifyOtp}
+                                    disabled={otpLoading || otpCode.length !== 6}
+                                >
+                                    {otpLoading ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            Verifying...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <ShieldCheck className="h-4 w-4 mr-2" />
+                                            Verify Code
+                                        </>
+                                    )}
+                                </Button>
+                            )}
+
+                            {emailVerified && (
+                                <Button
+                                    className="w-full mt-4"
+                                    onClick={() => showModal && initiatePurchase(showModal)}
+                                    disabled={loading === showModal || !termsAccepted || !privacyAccepted}
+                                >
+                                    {loading === showModal ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        "Proceed to Payment"
+                                    )}
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </div>

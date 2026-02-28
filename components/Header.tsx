@@ -18,7 +18,7 @@ export default function Header() {
         <header className="bg-background border-b shadow-sm">
             <div className="max-w-7xl mx-auto px-4 py-4">
                 <div className="flex justify-between items-center">
-                    <Link href="/" className="hover:opacity-80 transition-opacity">
+                    <Link href={isAuthenticated ? "/content" : "/"} className="hover:opacity-80 transition-opacity">
                         <div>
                             <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                                 CuratedReels

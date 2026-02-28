@@ -1,6 +1,9 @@
+/** biome-ignore-all lint/a11y/useButtonType: <explanation> */
+/** biome-ignore-all lint/a11y/noLabelWithoutControl: <explanation> */
 "use client";
 
-import { Check } from "lucide-react";
+import { Check, ExternalLink } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -62,6 +65,8 @@ export default function Pricing() {
         email: "",
     });
     const [showModal, setShowModal] = useState<string | null>(null); // tier name
+    const [termsAccepted, setTermsAccepted] = useState(false);
+    const [privacyAccepted, setPrivacyAccepted] = useState(false);
     const [message, setMessage] = useState<{
         type: "success" | "error";
         text: string;
@@ -81,27 +86,56 @@ export default function Pricing() {
     const handleBuyClick = (tier: string) => {
         setShowModal(tier);
         setMessage(null);
+        setTermsAccepted(false);
+        setPrivacyAccepted(false);
     };
 
-    const initiatePurchase = (tier: string) => {
+    const initiatePurchase = async (tier: string) => {
         if (!customerDetails.name || !customerDetails.email) {
             setMessage({ type: "error", text: "Please enter your name and email" });
+            return;
+        }
+
+        if (!termsAccepted || !privacyAccepted) {
+            setMessage({ type: "error", text: "Please accept Terms & Conditions and Privacy Policy to continue" });
             return;
         }
 
         setLoading(tier);
         setMessage(null);
 
-        // Build external payment URL with query parameters
-        const baseUrl = getPaymentUrl();
-        const params = new URLSearchParams({
-            tier,
-            name: customerDetails.name,
-            email: customerDetails.email,
-        });
+        try {
+            // Save terms acceptance to database
+            const acceptanceResponse = await fetch("/api/terms-acceptance", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: customerDetails.name,
+                    email: customerDetails.email,
+                    plan: tier,
+                    termsAccepted,
+                    privacyAccepted,
+                }),
+            });
 
-        // Redirect to external payment page
-        window.location.href = `${baseUrl}?${params.toString()}`;
+            if (!acceptanceResponse.ok) {
+                throw new Error("Failed to record acceptance");
+            }
+
+            // Build external payment URL with query parameters
+            const baseUrl = getPaymentUrl();
+            const params = new URLSearchParams({
+                tier,
+                name: customerDetails.name,
+                email: customerDetails.email,
+            });
+
+            // Redirect to external payment page
+            window.location.href = `${baseUrl}?${params.toString()}`;
+        } catch {
+            setMessage({ type: "error", text: "Something went wrong. Please try again." });
+            setLoading(null);
+        }
     };
 
     return (
@@ -209,6 +243,54 @@ export default function Pricing() {
                                 />
                             </div>
 
+                            {/* Terms & Conditions */}
+                            <div className="space-y-3 pt-2 border-t border-gray-200 dark:border-gray-700">
+                                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                                    Please review and accept:
+                                </p>
+
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={termsAccepted}
+                                        onChange={(e) => setTermsAccepted(e.target.checked)}
+                                        className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                                        I have read and agree to the{" "}
+                                        <Link
+                                            href="/terms"
+                                            target="_blank"
+                                            className="text-blue-600 hover:underline inline-flex items-center gap-1"
+                                        >
+                                            Terms & Conditions
+                                            <ExternalLink className="h-3 w-3" />
+                                        </Link>
+                                        , including the no-refund policy and custom domain add-on pricing.
+                                    </span>
+                                </label>
+
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={privacyAccepted}
+                                        onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                                        className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                                        I have read and agree to the{" "}
+                                        <Link
+                                            href="/privacy"
+                                            target="_blank"
+                                            className="text-blue-600 hover:underline inline-flex items-center gap-1"
+                                        >
+                                            Privacy Policy
+                                            <ExternalLink className="h-3 w-3" />
+                                        </Link>
+                                    </span>
+                                </label>
+                            </div>
+
                             {message && (
                                 <div
                                     className={`p-3 rounded-md text-sm ${message.type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
@@ -220,7 +302,7 @@ export default function Pricing() {
                             <Button
                                 className="w-full mt-4"
                                 onClick={() => showModal && initiatePurchase(showModal)}
-                                disabled={loading === showModal}
+                                disabled={loading === showModal || !termsAccepted || !privacyAccepted}
                             >
                                 {loading === showModal ? "Processing..." : "Proceed to Payment"}
                             </Button>

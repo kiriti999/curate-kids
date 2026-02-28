@@ -364,7 +364,6 @@ Support: support@whatsnxt.in
 - Custom branding
 
 **Enterprise - Custom**
-- Unlimited deployments
 - Dedicated support
 - White-label
 - Custom features

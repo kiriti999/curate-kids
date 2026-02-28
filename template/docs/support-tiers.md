@@ -121,7 +121,6 @@ Everything in Tier 2, plus:
 **Best For:**
 - Organizations wanting hands-off management
 - Growing platforms needing regular updates
-- Professional deployments with SLA requirements
 
 ---
 
@@ -139,7 +138,6 @@ Everything in Tier 2, plus:
 | Priority Support | ❌ | ❌ | ✅ |
 | Analytics | ❌ | ❌ | ✅ |
 | Monitoring | ❌ | ❌ | ✅ |
-| SLA | ❌ | ❌ | ✅ |
 
 ---
 
@@ -153,7 +151,6 @@ For large organizations or special requirements:
 - Custom integrations
 - Dedicated infrastructure
 - On-premise deployment
-- Custom SLA terms
 - Volume discounts
 
 Contact: enterprise@curatedreels.io

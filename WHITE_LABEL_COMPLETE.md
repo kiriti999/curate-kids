@@ -152,7 +152,6 @@ Your CuratedReels instance is live:
 - Dedicated support
 - White-label dashboard
 - Custom features
-- SLA
 
 ### Cost Analysis
 

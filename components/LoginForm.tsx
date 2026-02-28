@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import type React from "react";
+import { useState } from "react";
 import { useAuth } from "./AuthProvider";
-import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
+import { Card, CardContent } from "./ui/card";
 import { Input } from "./ui/input";
 
 type AuthMode = "login" | "forgot-password";
@@ -31,7 +32,7 @@ export default function LoginForm() {
         if (!result.success) {
           setError(result.message || "Login failed");
         } else {
-          router.push('/');
+          router.push("/content");
         }
       } else if (mode === "forgot-password") {
         const { forgotPassword } = await import("@/lib/auth");
@@ -50,7 +51,9 @@ export default function LoginForm() {
       <Card className="w-full max-w-md">
         <CardContent className="p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-primary mb-2">🎬 CuratedReels</h1>
+            <h1 className="text-3xl font-bold text-primary mb-2">
+              🎬 CuratedReels
+            </h1>
             <p className="text-muted-foreground">
               {mode === "login" && "Sign in to access the videos"}
               {mode === "forgot-password" && "Reset your password"}
@@ -113,7 +116,11 @@ export default function LoginForm() {
               <button
                 type="button"
                 className="text-primary hover:underline"
-                onClick={() => { setMode("forgot-password"); setError(""); setSuccess(""); }}
+                onClick={() => {
+                  setMode("forgot-password");
+                  setError("");
+                  setSuccess("");
+                }}
               >
                 Forgot password?
               </button>
@@ -122,7 +129,11 @@ export default function LoginForm() {
               <button
                 type="button"
                 className="text-primary hover:underline"
-                onClick={() => { setMode("login"); setError(""); setSuccess(""); }}
+                onClick={() => {
+                  setMode("login");
+                  setError("");
+                  setSuccess("");
+                }}
               >
                 Back to sign in
               </button>

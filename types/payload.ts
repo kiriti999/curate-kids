@@ -299,9 +299,9 @@ export interface Video {
    */
   duration?: number | null;
   /**
-   * Video category for organization
+   * Video category (linked to admin categories)
    */
-  category: 'education' | 'entertainment' | 'music' | 'science' | 'arts-crafts' | 'sports' | 'nature' | 'stories';
+  category: string | Category;
   /**
    * Target age range for this video
    */
@@ -387,10 +387,6 @@ export interface Category {
    */
   icon?: (string | null) | Media;
   /**
-   * Age range this category belongs to
-   */
-  ageRange: '0-2' | '2-4' | '5-7' | '8-9' | '10-15' | '16+' | '18+';
-  /**
    * Parent category (null for age range root categories)
    */
   parent?: (string | null) | Category;
@@ -408,7 +404,7 @@ export interface Category {
    */
   depth: number;
   /**
-   * True for predefined age range categories (immutable)
+   * Check this for top-level root categories (e.g., age range categories)
    */
   isAgeRangeRoot?: boolean | null;
   /**
@@ -899,7 +895,6 @@ export interface CategoriesSelect<T extends boolean = true> {
   slug?: T;
   description?: T;
   icon?: T;
-  ageRange?: T;
   parent?: T;
   fullPath?:
     | T

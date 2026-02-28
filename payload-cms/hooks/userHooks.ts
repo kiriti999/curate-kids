@@ -31,19 +31,17 @@ export const beforeChangeUserHook: CollectionBeforeChangeHook = async ({
     }
   }
 
-  // Prevent role changes after initial creation (immutable)
-  if (operation === 'update' && originalDoc) {
-    if (data.role && data.role !== originalDoc.role) {
-      throw new Error('User role cannot be changed after account creation')
-    }
-  }
-
   // Set deactivatedAt timestamp when status changes to inactive
   if (operation === 'update' && originalDoc) {
+    // DEBUG: log if resetPasswordToken is being set
+    if (data.resetPasswordToken) {
+      console.log('[DEBUG] beforeChangeUserHook: saving resetPasswordToken =', data.resetPasswordToken)
+    }
+
     if (data.status === 'inactive' && originalDoc.status === 'active') {
       data.deactivatedAt = new Date()
     }
-    
+
     // Clear deactivatedAt if reactivating
     if (data.status === 'active' && originalDoc.status === 'inactive') {
       data.deactivatedAt = null

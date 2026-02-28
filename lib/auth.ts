@@ -10,7 +10,7 @@ export interface User {
   id: string
   email: string
   name: string
-  role: 'admin' | 'editor' | 'viewer'
+  role: 'superadmin' | 'admin' | 'editor' | 'viewer'
   emailVerified?: boolean
   picture?: string
 }
@@ -40,14 +40,14 @@ export async function login(data: LoginData): Promise<{ success: boolean; user?:
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      return { 
-        success: false, 
-        message: errorData.errors?.[0]?.message || 'Invalid email or password' 
+      return {
+        success: false,
+        message: errorData.errors?.[0]?.message || 'Invalid email or password'
       }
     }
 
     const result: AuthResponse = await response.json()
-    
+
     // Store token in localStorage
     if (typeof window !== 'undefined') {
       localStorage.setItem('payload_token', result.token)
@@ -84,7 +84,7 @@ export async function logout(): Promise<void> {
 export async function getCurrentUser(): Promise<User | null> {
   try {
     const token = typeof window !== 'undefined' ? localStorage.getItem('payload_token') : null
-    
+
     const response = await fetch(`${API_URL}/api/users/me`, {
       method: 'GET',
       headers: {
@@ -130,14 +130,16 @@ export async function forgotPassword(email: string): Promise<{ success: boolean;
  */
 export async function resetPassword(token: string, password: string): Promise<{ success: boolean; message?: string }> {
   try {
-    const response = await fetch(`${API_URL}/api/users/reset-password`, {
+    const response = await fetch(`${API_URL}/api/custom-reset`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token, password }),
     })
 
+    const data = await response.json();
+
     if (!response.ok) {
-      return { success: false, message: 'Invalid or expired reset link' }
+      return { success: false, message: data.message || 'Invalid or expired reset link' }
     }
 
     return { success: true, message: 'Password reset successfully!' }

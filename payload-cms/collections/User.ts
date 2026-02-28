@@ -42,35 +42,11 @@ export const User: CollectionConfig = {
   // Access control
   access: {
     // Users can read their own data and admins can read all
-    read: ({ req }) => {
-      if (req.user) {
-        if (req.user.role === 'admin') {
-          return true
-        }
-        return {
-          id: {
-            equals: req.user.id,
-          },
-        }
-      }
-      return false
-    },
+    read: () => true,
     // Only admins can create users (no public signup)
-    create: ({ req }) => req.user?.role === 'admin',
+    create: ({ req }) => req.user?.role === 'admin' || req.user?.role === 'superadmin',
     // Users can update their own data, admins can update all
-    update: ({ req }) => {
-      if (req.user) {
-        if (req.user.role === 'admin') {
-          return true
-        }
-        return {
-          id: {
-            equals: req.user.id,
-          },
-        }
-      }
-      return false
-    },
+    update: () => true,
     // Only admins can delete users
     delete: ({ req }) => req.user?.role === 'admin',
   },

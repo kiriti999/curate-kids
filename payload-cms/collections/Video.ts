@@ -6,7 +6,7 @@
  */
 
 import { CollectionConfig } from 'payload'
-import { VIDEO_CATEGORY_OPTIONS, VIDEO_AGE_RANGE_OPTIONS, PAYLOAD_CONFIG } from '../../config/constants'
+import { VIDEO_AGE_RANGE_OPTIONS, PAYLOAD_CONFIG } from '../../config/constants'
 import { beforeValidateVideoHook, beforeChangeVideoHook, afterReadVideoHook } from '../hooks/videoHooks'
 
 export const Video: CollectionConfig = {
@@ -93,17 +93,14 @@ export const Video: CollectionConfig = {
       },
     },
 
-    // Category
+    // Category (linked to admin categories)
     {
       name: 'category',
-      type: 'select',
+      type: 'relationship',
+      relationTo: 'categories',
       required: true,
-      options: VIDEO_CATEGORY_OPTIONS.map(opt => ({
-        label: opt.title,
-        value: opt.value,
-      })),
       admin: {
-        description: 'Video category for organization',
+        description: 'Video category (linked to admin categories)',
       },
     },
 

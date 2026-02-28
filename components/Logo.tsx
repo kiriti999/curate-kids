@@ -8,11 +8,11 @@ interface LogoProps {
 export default function Logo({ className = "", showTagline = true }: LogoProps) {
     return (
         <div className={`flex flex-col ${className}`}>
-            <span className="text-2xl sm:text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 tracking-tight">
+            <span className="text-2xl sm:text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-500 dark:from-blue-400 dark:to-indigo-400 tracking-tight">
                 CuratedReels
             </span>
             {showTagline && (
-                <span className="text-xs sm:text-sm text-muted-foreground font-medium mt-0.5">
+                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 font-medium mt-0.5">
                     Curated videos for young learners
                 </span>
             )}

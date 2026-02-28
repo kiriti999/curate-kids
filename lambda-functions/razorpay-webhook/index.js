@@ -85,7 +85,7 @@ exports.handler = async (event) => {
             // Determine tier from notes or amount
             // Default to 'starter' if not specified
             let tier = 'starter';
-            if (payment.notes && payment.notes.tier) {
+            if (payment.notes?.tier) {
                 tier = payment.notes.tier;
             } else if (payment.amount >= 1000000) { // Example: > 10,000 INR
                 tier = 'enterprise';
@@ -100,10 +100,10 @@ exports.handler = async (event) => {
             expiresAt.setFullYear(expiresAt.getFullYear() + 100);
 
             await db.collection('licenses').insertOne({
-                licenseKey,
+                key: licenseKey,
                 customerId: payment.customer_id || 'guest',
-                email: payment.email || payment.notes?.email,
-                name: payment.notes?.name,
+                customerName: payment.notes?.name,
+                customerEmail: payment.email || payment.notes?.email,
                 tier,
                 status: 'active',
                 expiresAt,
@@ -113,6 +113,7 @@ exports.handler = async (event) => {
                 paymentAmount: payment.amount,
                 createdAt,
                 updatedAt: createdAt,
+                metadata: {},
                 type: 'lifetime'
             });
 

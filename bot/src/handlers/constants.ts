@@ -29,7 +29,7 @@ export const LOG_AGE_RANGE_SELECTED = "Age range selected";
 export const LOG_CATEGORY_SELECTED = "Category selected";
 export const LOG_VIDEO_SUBMITTED = "Video submitted";
 
-// Age range options
+// Age range options - must match PayloadCMS VIDEO_AGE_RANGE_OPTIONS
 export const AGE_RANGES = [
     { value: "1-2", label: "1-2 years" },
     { value: "2-3", label: "2-3 years" },

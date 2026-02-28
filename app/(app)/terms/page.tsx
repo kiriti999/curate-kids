@@ -282,7 +282,7 @@ export default function TermsPage() {
                         <li className="flex items-start gap-2">
                             <span className="text-blue-500 mt-1">•</span>
                             <span>
-                                Source code modification is permitted for self-hosted use
+                                Source code modification is private and belongs to the company; you may not distribute modified versions without permission.
                             </span>
                         </li>
                         <li className="flex items-start gap-2">

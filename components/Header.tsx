@@ -1,18 +1,18 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import ThemeToggle from './ThemeToggle'
-import { useAuth } from './AuthProvider'
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "./AuthProvider";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Header() {
-    const { isAuthenticated, user, logout } = useAuth()
-    const router = useRouter()
+    const { isAuthenticated, user, logout } = useAuth();
+    const router = useRouter();
 
     const handleLogout = async () => {
-        await logout()
-        router.push('/login')
-    }
+        await logout();
+        router.push("/");
+    };
 
     return (
         <header className="bg-background border-b shadow-sm">
@@ -23,14 +23,24 @@ export default function Header() {
                             <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                                 CuratedReels
                             </h1>
-                            <p className="text-muted-foreground text-sm">Curated videos for young learners</p>
+                            <p className="text-muted-foreground text-sm">
+                                Curated videos for young learners
+                            </p>
                         </div>
                     </Link>
                     <div className="flex items-center gap-3">
                         {isAuthenticated && user && (
-                            <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
-                                <span>{user.name}</span>
-                            </div>
+                            <>
+                                <Link
+                                    href="/content"
+                                    className="hidden md:flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                                >
+                                    <span>📺 My Videos</span>
+                                </Link>
+                                <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
+                                    <span>{user.name}</span>
+                                </div>
+                            </>
                         )}
                         <ThemeToggle />
                         {isAuthenticated ? (
@@ -48,15 +58,9 @@ export default function Header() {
                                 Login
                             </Link>
                         )}
-                        <Link
-                            href="/business"
-                            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-full shadow-md hover:shadow-lg transition-all hidden sm:flex items-center"
-                        >
-                            🚀 Curate for Business
-                        </Link>
                     </div>
                 </div>
             </div>
         </header>
-    )
+    );
 }

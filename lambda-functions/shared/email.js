@@ -83,24 +83,21 @@ async function sendCustomerLicenseEmail({ email, name, licenseKey, tier, maxDepl
             <div class="steps">
                 <h3>📋 Deployment Steps</h3>
                 <ol>
-                    <li><strong>Download the release bundle</strong> from the link provided separately or from your dashboard.</li>
-                    <li><strong>Extract the bundle</strong> and open the project folder.</li>
-                    <li><strong>Configure your environment:</strong>
-                        <ul>
-                            <li>Copy <code>.env.example</code> to <code>.env.local</code></li>
-                            <li>Set <code>LICENSE_KEY=${licenseKey}</code></li>
-                            <li>Configure your database (MongoDB/Payload CMS)</li>
-                            <li>Set up Cloudinary for media storage</li>
-                        </ul>
+                    <li><strong>Install the CLI globally:</strong>
+                        <br><code style="background: #333; color: #0f0; padding: 4px 8px; border-radius: 4px;">npm install -g curatedreels-deploy</code>
                     </li>
-                    <li><strong>Install dependencies:</strong> <code>pnpm install</code></li>
-                    <li><strong>Build the app:</strong> <code>pnpm build</code></li>
-                    <li><strong>Deploy to your hosting</strong> (Vercel, Railway, AWS, etc.)</li>
-                    <li><strong>Register your deployment</strong> - the app will auto-register on first start.</li>
+                    <li><strong>Run the deployment wizard:</strong>
+                        <br><code style="background: #333; color: #0f0; padding: 4px 8px; border-radius: 4px;">curatedreels-deploy</code>
+                    </li>
+                    <li><strong>Enter your license key when prompted:</strong>
+                        <br><code style="background: #333; color: #0f0; padding: 4px 8px; border-radius: 4px;">${licenseKey}</code>
+                    </li>
+                    <li><strong>Follow the interactive prompts</strong> to configure your database (MongoDB) and media storage (Cloudinary).</li>
+                    <li><strong>The CLI will automatically deploy</strong> your CuratedReels instance.</li>
                 </ol>
             </div>
 
-            <p>Need help? Check our <a href="https://github.com/yourcompany/curatedreels/docs">documentation</a> or reply to this email.</p>
+            <p>Need help? Check our <a href="https://www.npmjs.com/package/curatedreels-deploy">documentation</a> or reply to this email.</p>
             
             <div class="footer">
                 <p>© ${new Date().getFullYear()} WhatsNxt. All rights reserved.</p>

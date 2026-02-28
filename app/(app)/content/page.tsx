@@ -8,7 +8,7 @@ import { getVideos } from "@/lib/payloadcms";
 import { logger } from "@/utils/logger";
 
 // Enable ISR (Incremental Static Regeneration) for better Vercel performance
-export const revalidate = 300; // 5 minutes
+export const revalidate = 30; // 30 seconds
 
 export const metadata: Metadata = {
     title: "My Videos | CuratedReels",

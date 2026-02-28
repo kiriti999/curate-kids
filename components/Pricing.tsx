@@ -1,17 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
 import { Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
-
-declare global {
-    interface Window {
-        Razorpay: any;
-    }
-}
+import { Button } from "@/components/ui/button";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 const plans = [
     {
@@ -23,9 +24,9 @@ const plans = [
             "1 Deployment License",
             "Standard Support",
             "Lifetime Validity",
-            "Basic Updates"
+            "Basic Updates",
         ],
-        highlight: false
+        highlight: false,
     },
     {
         tier: "pro",
@@ -36,10 +37,9 @@ const plans = [
             "3 Deployment Licenses",
             "Priority Support",
             "Lifetime Validity",
-            "Advanced features",
-            "White-label options"
+            "Advanced features"
         ],
-        highlight: true
+        highlight: true,
     },
     {
         tier: "enterprise",
@@ -47,114 +47,73 @@ const plans = [
         price: 49999,
         description: "For large scale needs",
         features: [
-            "Unlimited Deployments",
             "Dedicated Support",
             "Lifetime Validity",
             "Custom Branding",
-            "SLA"
         ],
-        highlight: false
-    }
+        highlight: false,
+    },
 ];
 
 export default function Pricing() {
     const [loading, setLoading] = useState<string | null>(null);
-    const [customerDetails, setCustomerDetails] = useState({ name: "", email: "" });
+    const [customerDetails, setCustomerDetails] = useState({
+        name: "",
+        email: "",
+    });
     const [showModal, setShowModal] = useState<string | null>(null); // tier name
-    const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [message, setMessage] = useState<{
+        type: "success" | "error";
+        text: string;
+    } | null>(null);
 
-    // Proxy to backend (needs next.config.ts rewrite)
-    const API_HOST = "/api/v1";
+    const getPaymentUrl = () => {
+        if (typeof window === "undefined")
+            return "https://www.whatsnxt.in/curatedreels/pricing";
+        const isLocal =
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1";
+        return isLocal
+            ? "http://localhost:3001/curatedreels/pricing"
+            : "https://www.whatsnxt.in/curatedreels/pricing";
+    };
 
     const handleBuyClick = (tier: string) => {
         setShowModal(tier);
         setMessage(null);
     };
 
-    const initiatePurchase = async (tier: string) => {
+    const initiatePurchase = (tier: string) => {
         if (!customerDetails.name || !customerDetails.email) {
-            setMessage({ type: 'error', text: "Please enter your name and email" });
+            setMessage({ type: "error", text: "Please enter your name and email" });
             return;
         }
 
         setLoading(tier);
         setMessage(null);
-        const plan = plans.find(p => p.tier === tier);
 
-        try {
-            // 1. Initiate Order on Backend
-            const response = await fetch(`${API_HOST}/curatedreels/orders`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    amount: plan?.price,
-                    tier: tier,
-                    customerDetails
-                })
-            });
+        // Build external payment URL with query parameters
+        const baseUrl = getPaymentUrl();
+        const params = new URLSearchParams({
+            tier,
+            name: customerDetails.name,
+            email: customerDetails.email,
+        });
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText || `Error: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            if (!data.success) {
-                throw new Error(data.error || "Failed to create order");
-            }
-
-            // 2. Load Razorpay
-            if (!window.Razorpay) {
-                const script = document.createElement("script");
-                script.src = "https://checkout.razorpay.com/v1/checkout.js";
-                script.async = true;
-                document.body.appendChild(script);
-                await new Promise((resolve) => { script.onload = resolve; });
-            }
-
-            // 3. Open Razorpay
-            const options = {
-                key: data.key,
-                amount: data.order.amount,
-                currency: data.order.currency,
-                name: "CuratedReels License",
-                description: `${plan?.title} License`,
-                order_id: data.order.id,
-                prefill: {
-                    name: customerDetails.name,
-                    email: customerDetails.email
-                },
-                handler: function (response: any) {
-                    setMessage({ type: 'success', text: "Payment Successful! Your license key will be emailed to you shortly." });
-                    setTimeout(() => {
-                        setShowModal(null);
-                        setCustomerDetails({ name: "", email: "" });
-                    }, 3000);
-                },
-                theme: {
-                    color: "#2563EB" // Blue-600
-                }
-            };
-
-            const rzp1 = new window.Razorpay(options);
-            rzp1.open();
-
-        } catch (error: any) {
-            console.error("Purchase error:", error);
-            setMessage({ type: 'error', text: error.message || "Purchase failed" });
-        } finally {
-            setLoading(null);
-        }
+        // Redirect to external payment page
+        window.location.href = `${baseUrl}?${params.toString()}`;
     };
 
     return (
         <div className="py-20 bg-gray-50 dark:bg-gray-900" id="pricing">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl mb-4">CuratedReels Licenses</h2>
+                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl mb-4">
+                        CuratedReels Licenses
+                    </h2>
                     <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                        Deploy your own white-labeled CuratedReels platform. One-time payment, lifetime license.
+                        Deploy your own white-labeled CuratedReels platform. One-time
+                        payment, lifetime license.
                     </p>
                 </div>
 
@@ -162,7 +121,7 @@ export default function Pricing() {
                     {plans.map((plan) => (
                         <Card
                             key={plan.tier}
-                            className={`flex flex-col relative ${plan.highlight ? 'border-blue-600 border-2 shadow-xl scale-105 z-10' : 'border-gray-200'}`}
+                            className={`flex flex-col relative ${plan.highlight ? "border-blue-600 border-2 shadow-xl scale-105 z-10" : "border-gray-200"}`}
                         >
                             {plan.highlight && (
                                 <div className="absolute top-0 right-0 transform translate-x-2 -translate-y-2">
@@ -170,19 +129,25 @@ export default function Pricing() {
                                 </div>
                             )}
                             <CardHeader>
-                                <CardTitle className="text-2xl font-bold">{plan.title}</CardTitle>
+                                <CardTitle className="text-2xl font-bold">
+                                    {plan.title}
+                                </CardTitle>
                                 <CardDescription>{plan.description}</CardDescription>
                             </CardHeader>
                             <CardContent className="flex-grow">
                                 <div className="mb-6">
-                                    <span className="text-4xl font-bold">₹{plan.price.toLocaleString("en-IN")}</span>
+                                    <span className="text-4xl font-bold">
+                                        ₹{plan.price.toLocaleString("en-IN")}
+                                    </span>
                                     <span className="text-gray-500 ml-2">/ lifetime</span>
                                 </div>
                                 <ul className="space-y-3">
                                     {plan.features.map((feature) => (
                                         <li key={feature} className="flex items-center">
                                             <Check className="h-5 w-5 text-green-500 mr-2 shrink-0" />
-                                            <span className="text-gray-700 dark:text-gray-300">{feature}</span>
+                                            <span className="text-gray-700 dark:text-gray-300">
+                                                {feature}
+                                            </span>
                                         </li>
                                     ))}
                                 </ul>
@@ -221,7 +186,12 @@ export default function Pricing() {
                                 <Input
                                     placeholder="Your Name"
                                     value={customerDetails.name}
-                                    onChange={(e) => setCustomerDetails({ ...customerDetails, name: e.target.value })}
+                                    onChange={(e) =>
+                                        setCustomerDetails({
+                                            ...customerDetails,
+                                            name: e.target.value,
+                                        })
+                                    }
                                 />
                             </div>
                             <div className="space-y-2">
@@ -230,12 +200,19 @@ export default function Pricing() {
                                     placeholder="your@email.com"
                                     type="email"
                                     value={customerDetails.email}
-                                    onChange={(e) => setCustomerDetails({ ...customerDetails, email: e.target.value })}
+                                    onChange={(e) =>
+                                        setCustomerDetails({
+                                            ...customerDetails,
+                                            email: e.target.value,
+                                        })
+                                    }
                                 />
                             </div>
 
                             {message && (
-                                <div className={`p-3 rounded-md text-sm ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                <div
+                                    className={`p-3 rounded-md text-sm ${message.type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+                                >
                                     {message.text}
                                 </div>
                             )}

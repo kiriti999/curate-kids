@@ -157,6 +157,14 @@ export class DeploymentOrchestrator {
                 ADMIN_EMAIL: this.credentials.adminEmail,
                 ADMIN_PASSWORD: this.credentials.adminPassword,
                 ADMIN_NAME: this.credentials.adminName || 'Admin User',
+                // Email Configuration
+                SMTP_HOST: 'smtpout.secureserver.net',
+                SMTP_PORT: '465',
+                SMTP_SECURE: 'true',
+                SMTP_USER: 'support@whatsnxt.in',
+                SMTP_PASS: 'Secure@123',
+                SMTP_FROM_EMAIL: 'support@whatsnxt.in',
+                SMTP_FROM_NAME: 'WhatsNxt Support',
                 // Unified app: All URLs point to same domain
                 NEXT_PUBLIC_FRONTEND_URL: '', // Will be set to deployment URL after deploy
                 PAYLOAD_PUBLIC_SERVER_URL: '', // Will be set to deployment URL after deploy

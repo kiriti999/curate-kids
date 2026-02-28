@@ -134,6 +134,7 @@ Deploy to Vercel or any Next.js host with MongoDB.
 - `NEXT_PUBLIC_REQUIRE_LOGIN` - Set to "true" to require login for video gallery
 - `CLOUDINARY_*` - Cloudinary credentials (for media storage)
 - `YOUTUBE_API_KEY` - YouTube API key
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM_EMAIL`, `SMTP_FROM_NAME` - For password resets
 
 ### Start Server:
 ```bash

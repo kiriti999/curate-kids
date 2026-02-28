@@ -62,7 +62,7 @@ async function VideoContent() {
   try {
     const videos = await getVideos({ limit: 100 });
     logger.debug('Videos loaded for homepage', { count: videos.length });
-    return <VideoGallery videos={videos} />;
+    return <VideoGallery videos={videos as any} />;
   } catch (error) {
     logger.error('Failed to load videos', {
       error: error instanceof Error ? error.message : String(error),

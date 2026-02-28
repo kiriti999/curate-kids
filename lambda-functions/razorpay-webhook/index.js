@@ -4,6 +4,7 @@
  */
 
 const { connectToDatabase } = require('./shared/db');
+const { sendCustomerLicenseEmail, sendCompanyOrderNotification } = require('./shared/email');
 const crypto = require('crypto');
 
 // License key generation
@@ -11,14 +12,6 @@ function generateLicenseKey() {
     const prefix = 'ck';
     const random = crypto.randomBytes(16).toString('hex');
     return `${prefix}_${random}`;
-}
-
-// Determine tier from Razorpay plan
-function getTierFromPlan(planId) {
-    if (planId.includes('starter')) return 'starter';
-    if (planId.includes('pro')) return 'pro';
-    if (planId.includes('enterprise')) return 'enterprise';
-    return 'starter'; // default
 }
 
 // Get max deployments based on tier
@@ -110,6 +103,7 @@ exports.handler = async (event) => {
                 licenseKey,
                 customerId: payment.customer_id || 'guest',
                 email: payment.email || payment.notes?.email,
+                name: payment.notes?.name,
                 tier,
                 status: 'active',
                 expiresAt,
@@ -122,97 +116,36 @@ exports.handler = async (event) => {
                 type: 'lifetime'
             });
 
-            console.log('Lifetime license created:', licenseKey, 'for', payment.email);
+            const customerEmail = payment.email || payment.notes?.email;
+            const customerName = payment.notes?.name;
+            const maxDeployments = getMaxDeployments(tier);
+
+            console.log('Lifetime license created:', licenseKey, 'for', customerEmail);
+
+            // Send emails
+            if (customerEmail) {
+                await Promise.all([
+                    sendCustomerLicenseEmail({
+                        email: customerEmail,
+                        name: customerName,
+                        licenseKey,
+                        tier,
+                        maxDeployments
+                    }),
+                    sendCompanyOrderNotification({
+                        email: customerEmail,
+                        name: customerName,
+                        licenseKey,
+                        tier,
+                        amount: payment.amount
+                    })
+                ]);
+            }
 
             return {
                 statusCode: 200,
                 headers,
                 body: JSON.stringify({ success: true, licenseKey }),
-            };
-        }
-
-        // Handle subscription activated
-        if (eventType === 'subscription.activated') {
-            const subscription = webhookEvent.payload.subscription.entity;
-
-            const licenseKey = generateLicenseKey();
-            const tier = getTierFromPlan(subscription.plan_id);
-
-            await db.collection('licenses').insertOne({
-                licenseKey,
-                customerId: subscription.customer_id,
-                email: subscription.customer_email || subscription.notes?.email,
-                tier,
-                status: 'active',
-                expiresAt: new Date(subscription.current_end * 1000),
-                maxDeployments: getMaxDeployments(tier),
-                currentDeployments: 0,
-                razorpaySubscriptionId: subscription.id,
-                razorpayCustomerId: subscription.customer_id,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            });
-
-            console.log('License created:', licenseKey, 'for', subscription.customer_email);
-
-            // TODO: Send email with license key
-            // await sendEmail({
-            //   to: subscription.customer_email,
-            //   subject: 'Your CuratedReels License Key',
-            //   body: `Your license key: ${licenseKey}`
-            // });
-
-            return {
-                statusCode: 200,
-                headers,
-                body: JSON.stringify({ success: true, licenseKey }),
-            };
-        }
-
-        // Handle subscription charged (renewal)
-        if (eventType === 'subscription.charged') {
-            const subscription = webhookEvent.payload.subscription.entity;
-
-            await db.collection('licenses').updateOne(
-                { razorpaySubscriptionId: subscription.id },
-                {
-                    $set: {
-                        status: 'active',
-                        expiresAt: new Date(subscription.current_end * 1000),
-                        updatedAt: new Date(),
-                    },
-                }
-            );
-
-            console.log('License renewed:', subscription.id);
-
-            return {
-                statusCode: 200,
-                headers,
-                body: JSON.stringify({ success: true }),
-            };
-        }
-
-        // Handle subscription cancelled/paused
-        if (eventType === 'subscription.cancelled' || eventType === 'subscription.paused') {
-            const subscription = webhookEvent.payload.subscription.entity;
-
-            await db.collection('licenses').updateOne(
-                { razorpaySubscriptionId: subscription.id },
-                {
-                    $set: {
-                        status: eventType === 'subscription.cancelled' ? 'cancelled' : 'paused',
-                        updatedAt: new Date(),
-                    },
-                }
-            );
-
-            console.log('License status updated:', subscription.id, eventType);
-
-            return {
-                statusCode: 200,
-                headers,
-                body: JSON.stringify({ success: true }),
             };
         }
 

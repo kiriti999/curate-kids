@@ -11,7 +11,6 @@ import {
     Settings,
     Tag,
     Trash2,
-    Upload,
     Users,
     Video,
 } from "lucide-react";
@@ -400,11 +399,6 @@ export default function AdminPreviewPage() {
                             icon={Users}
                             title="User Management"
                             description="Invite team members, set permissions, and manage access levels for your content editors."
-                        />
-                        <FeatureCard
-                            icon={Upload}
-                            title="Bulk Import"
-                            description="Import multiple videos at once via CSV or directly from YouTube playlists."
                         />
                         <FeatureCard
                             icon={LinkIcon}

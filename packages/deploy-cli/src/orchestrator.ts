@@ -194,7 +194,7 @@ export class DeploymentOrchestrator {
             await this.vercel.updateEnvironmentVariables(projectName, {
                 NEXT_PUBLIC_FRONTEND_URL: this.appUrl,
                 PAYLOAD_PUBLIC_SERVER_URL: this.appUrl,
-                NEXT_PUBLIC_PAYLOAD_API_URL: `${this.appUrl}/api`,
+                NEXT_PUBLIC_PAYLOAD_API_URL: this.appUrl,
                 NEXT_PUBLIC_REQUIRE_LOGIN: 'true',
             })
 

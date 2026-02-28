@@ -7,18 +7,18 @@
  */
 
 import { CollectionConfig } from 'payload'
-import { CATEGORY_AGE_RANGE_OPTIONS, PAYLOAD_CONFIG } from '../../config/constants'
+import { PAYLOAD_CONFIG } from '../../config/constants'
 import { beforeValidateCategoryHook, afterChangeCategoryHook, afterDeleteCategoryHook } from '../hooks/categoryHooks'
 
 export const Category: CollectionConfig = {
   slug: 'categories',
-  
+
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'ageRange', 'depth', 'isVisible', 'videoCount'],
     description: 'Hierarchical category system for video organization',
   },
-  
+
   // Access control
   access: {
     read: () => true, // Public read access for frontend
@@ -26,7 +26,7 @@ export const Category: CollectionConfig = {
     update: ({ req }) => !!req.user,
     delete: ({ req }) => !!req.user,
   },
-  
+
   fields: [
     // Category name
     {
@@ -38,7 +38,7 @@ export const Category: CollectionConfig = {
         description: 'Category name (e.g., "Math", "Science")',
       },
     },
-    
+
     // Slug (URL-safe identifier)
     {
       name: 'slug',
@@ -51,7 +51,7 @@ export const Category: CollectionConfig = {
         description: 'URL-safe identifier (auto-generated from name)',
       },
     },
-    
+
     // Description
     {
       name: 'description',
@@ -61,7 +61,7 @@ export const Category: CollectionConfig = {
         description: 'Category description for users',
       },
     },
-    
+
     // Icon/Image
     {
       name: 'icon',
@@ -71,21 +71,9 @@ export const Category: CollectionConfig = {
         description: 'Category icon or representative image',
       },
     },
-    
-    // Age Range
-    {
-      name: 'ageRange',
-      type: 'select',
-      required: true,
-      options: CATEGORY_AGE_RANGE_OPTIONS.map(opt => ({
-        label: opt.title,
-        value: opt.value,
-      })),
-      admin: {
-        description: 'Age range this category belongs to',
-      },
-    },
-    
+
+
+
     // Parent category (for hierarchy)
     {
       name: 'parent',
@@ -97,7 +85,7 @@ export const Category: CollectionConfig = {
       },
       // Validation will be handled by beforeValidate hook
     },
-    
+
     // Full path from root (auto-calculated)
     {
       name: 'fullPath',
@@ -113,7 +101,7 @@ export const Category: CollectionConfig = {
         },
       ],
     },
-    
+
     // Depth in hierarchy (auto-calculated)
     {
       name: 'depth',
@@ -128,19 +116,18 @@ export const Category: CollectionConfig = {
         description: 'Depth in hierarchy (0 for age ranges, 1+ for content)',
       },
     },
-    
+
     // Is age range root category
     {
       name: 'isAgeRangeRoot',
       type: 'checkbox',
       defaultValue: false,
       admin: {
-        readOnly: true,
         position: 'sidebar',
-        description: 'True for predefined age range categories (immutable)',
+        description: 'Check this for top-level root categories (e.g., age range categories)',
       },
     },
-    
+
     // Sort order within siblings
     {
       name: 'sortOrder',
@@ -149,7 +136,7 @@ export const Category: CollectionConfig = {
         description: 'Custom ordering within siblings (lower = first)',
       },
     },
-    
+
     // Visibility toggle
     {
       name: 'isVisible',
@@ -159,7 +146,7 @@ export const Category: CollectionConfig = {
         description: 'Show this category in frontend navigation',
       },
     },
-    
+
     // Child count (auto-calculated)
     {
       name: 'childCount',
@@ -171,7 +158,7 @@ export const Category: CollectionConfig = {
         description: 'Number of direct child categories',
       },
     },
-    
+
     // Video count (auto-calculated)
     {
       name: 'videoCount',
@@ -183,7 +170,7 @@ export const Category: CollectionConfig = {
         description: 'Number of videos in this category',
       },
     },
-    
+
     // Admin notes
     {
       name: 'notes',
@@ -194,15 +181,15 @@ export const Category: CollectionConfig = {
       },
     },
   ],
-  
+
   // Hooks
   hooks: {
     // T021-T022: Calculate depth, fullPath, and validate hierarchy rules
     beforeValidate: [beforeValidateCategoryHook],
-    
+
     // T023: Update parent's childCount when category added/removed
     afterChange: [afterChangeCategoryHook],
     afterDelete: [afterDeleteCategoryHook],
   },
-  
+
 }

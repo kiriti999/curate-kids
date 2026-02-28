@@ -7,6 +7,10 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import dynamic from 'next/dynamic'
+import { useAuth } from '@/components/AuthProvider'
+
+const CategoryManager = dynamic(() => import('@/components/CategoryManager'), { ssr: false })
 
 // ─── YouTube IFrame Player API Types ───────────────────────────────────────
 interface YTPlayerConfig {
@@ -107,7 +111,8 @@ interface VideoGalleryProps {
     videos: Video[]
 }
 
-const CATEGORIES = [
+// Hardcoded fallback categories (used while API categories load or if collection is empty)
+const FALLBACK_CATEGORIES = [
     { value: 'education', label: 'Education' },
     { value: 'entertainment', label: 'Entertainment' },
     { value: 'music', label: 'Music' },
@@ -117,6 +122,35 @@ const CATEGORIES = [
     { value: 'nature', label: 'Nature' },
     { value: 'stories', label: 'Stories' },
 ]
+
+// Fetch categories from the Payload CMS categories collection via API
+function useFetchCategories() {
+    const [categories, setCategories] = useState<{ value: string; label: string }[]>(FALLBACK_CATEGORIES)
+    const [loaded, setLoaded] = useState(false)
+
+    useEffect(() => {
+        let cancelled = false
+        async function fetchCategories() {
+            try {
+                const res = await fetch('/api/frontend-categories')
+                if (!res.ok) throw new Error('Failed to fetch')
+                const data = await res.json()
+                if (!cancelled && data.categories && data.categories.length > 0) {
+                    setCategories(data.categories.map((c: any) => ({ value: c.value, label: c.label })))
+                }
+            } catch (err) {
+                console.error('Failed to fetch categories, using fallback:', err)
+                // Keep fallback categories
+            } finally {
+                if (!cancelled) setLoaded(true)
+            }
+        }
+        fetchCategories()
+        return () => { cancelled = true }
+    }, [])
+
+    return { categories, loaded }
+}
 
 const AGE_RANGES = [
     { value: '0-2', label: '0-2 years' },
@@ -342,6 +376,7 @@ function FilterButton({
 function Sidebar({
     searchQuery,
     setSearchQuery,
+    categories,
     categoryCounts,
     ageRangeCounts,
     selectedCategories,
@@ -350,9 +385,12 @@ function Sidebar({
     toggleAgeRange,
     hasActiveFilters,
     clearAllFilters,
+    onManageCategories,
+    isAdmin,
 }: {
     searchQuery: string
     setSearchQuery: (q: string) => void
+    categories: { value: string; label: string }[]
     categoryCounts: Record<string, number>
     ageRangeCounts: Record<string, number>
     selectedCategories: string[]
@@ -361,6 +399,8 @@ function Sidebar({
     toggleAgeRange: (a: string) => void
     hasActiveFilters: boolean
     clearAllFilters: () => void
+    onManageCategories?: () => void
+    isAdmin: boolean
 }) {
     return (
         <aside className="hidden md:block w-56 flex-shrink-0">
@@ -374,11 +414,26 @@ function Sidebar({
                 />
 
                 <div>
-                    <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
-                        Categories
-                    </h3>
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+                            Categories
+                        </h3>
+                        {isAdmin && onManageCategories && (
+                            <button
+                                onClick={onManageCategories}
+                                className="p-1 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                                title="Manage categories"
+                                aria-label="Manage categories"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </button>
+                        )}
+                    </div>
                     <div className="space-y-1">
-                        {CATEGORIES.map((category) => (
+                        {categories.map((category) => (
                             <FilterButton
                                 key={category.value}
                                 label={category.label}
@@ -388,6 +443,9 @@ function Sidebar({
                                 colorClass="bg-violet-600"
                             />
                         ))}
+                        {categories.length === 0 && (
+                            <p className="text-xs text-muted-foreground italic py-2">No categories yet</p>
+                        )}
                     </div>
                 </div>
 
@@ -423,11 +481,13 @@ function Sidebar({
 function MobileFilters({
     searchQuery,
     setSearchQuery,
+    categories,
     selectedCategories,
     toggleCategory,
 }: {
     searchQuery: string
     setSearchQuery: (q: string) => void
+    categories: { value: string; label: string }[]
     selectedCategories: string[]
     toggleCategory: (c: string) => void
 }) {
@@ -441,7 +501,7 @@ function MobileFilters({
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
                     className="w-32 flex-shrink-0"
                 />
-                {CATEGORIES.slice(0, 4).map((category) => (
+                {categories.slice(0, 4).map((category) => (
                     <button
                         key={category.value}
                         onClick={() => toggleCategory(category.value)}
@@ -550,12 +610,20 @@ function useProcessedVideos(videos: Video[], filters: ReturnType<typeof useFilte
 export default function VideoGallery({ videos }: VideoGalleryProps) {
     const filters = useFilterState()
     const { filteredVideos, categoryCounts, ageRangeCounts } = useProcessedVideos(videos, filters)
+    const [showCategoryManager, setShowCategoryManager] = useState(false)
+    const { user } = useAuth()
+
+    // Fetch categories from the Payload CMS categories collection
+    const { categories: fetchedCategories } = useFetchCategories()
+
+    const isAdmin = user?.role === 'admin' || user?.role === 'superadmin'
 
     return (
         <div className="flex gap-6">
             <Sidebar
                 searchQuery={filters.searchQuery}
                 setSearchQuery={filters.setSearchQuery}
+                categories={fetchedCategories}
                 categoryCounts={categoryCounts}
                 ageRangeCounts={ageRangeCounts}
                 selectedCategories={filters.selectedCategories}
@@ -564,11 +632,14 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
                 toggleAgeRange={filters.toggleAgeRange}
                 hasActiveFilters={filters.hasActiveFilters}
                 clearAllFilters={filters.clearAllFilters}
+                onManageCategories={() => setShowCategoryManager(true)}
+                isAdmin={isAdmin}
             />
 
             <MobileFilters
                 searchQuery={filters.searchQuery}
                 setSearchQuery={filters.setSearchQuery}
+                categories={fetchedCategories}
                 selectedCategories={filters.selectedCategories}
                 toggleCategory={filters.toggleCategory}
             />
@@ -580,6 +651,14 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
                     : <VirtualizedVideoGrid videos={filteredVideos} />
                 }
             </main>
+
+            {/* Category management modal (admin only) */}
+            {isAdmin && (
+                <CategoryManager
+                    open={showCategoryManager}
+                    onClose={() => setShowCategoryManager(false)}
+                />
+            )}
         </div>
     )
 }

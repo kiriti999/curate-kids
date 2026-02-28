@@ -90,7 +90,7 @@ export default buildConfig({
   onInit: async (payload) => {
     try {
       console.log('[PayloadCMS] onInit hook started')
-      
+
       // Check if any admin/superadmin users exist (not just any user)
       const adminUsers = await payload.find({
         collection: 'users',
@@ -123,7 +123,7 @@ export default buildConfig({
           },
           draft: false,
         })
-        
+
         console.log(`[PayloadCMS] ✅ Admin user created: ${user.email} (ID: ${user.id})`)
         payload.logger.info(`✅ Default admin user created: ${adminEmail}`)
         payload.logger.warn('⚠️  IMPORTANT: Change the default password immediately!')
@@ -140,5 +140,6 @@ export default buildConfig({
   cors: [
     process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3001',
     process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000',
+    'http://localhost:4002',
   ],
 })

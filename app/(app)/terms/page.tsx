@@ -2,6 +2,7 @@ import {
     AlertCircle,
     CreditCard,
     FileText,
+    Globe,
     HeadphonesIcon,
     Server,
     Shield,
@@ -214,6 +215,53 @@ export default function TermsPage() {
                             not offer refunds under any circumstances. Please ensure you have
                             reviewed the demo and documentation before making a purchase.
                         </p>
+                    </div>
+                </section>
+
+                {/* Custom Domain */}
+                <section className="bg-card rounded-xl p-8 border border-border mb-8">
+                    <div className="flex items-center gap-3 mb-6">
+                        <Globe className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                        <h2 className="text-2xl font-bold text-foreground">
+                            Custom Domain
+                        </h2>
+                    </div>
+                    <div className="space-y-4 text-muted-foreground">
+                        <p>
+                            By default, your CuratedReels installation will be hosted on a
+                            Vercel-provided subdomain (e.g., <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm">yourproject.vercel.app</code>).
+                        </p>
+                        <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4">
+                            <p className="text-indigo-800 dark:text-indigo-200 font-medium mb-2">
+                                Custom Domain Add-on
+                            </p>
+                            <ul className="text-indigo-700 dark:text-indigo-300 text-sm space-y-2">
+                                <li className="flex items-start gap-2">
+                                    <span className="text-indigo-500 mt-1">•</span>
+                                    <span>
+                                        Custom domains (e.g., <code className="bg-indigo-100 dark:bg-indigo-800 px-1 rounded">videos.yourbrand.com</code>) are <strong>available as a paid add-on</strong>
+                                    </span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <span className="text-indigo-500 mt-1">•</span>
+                                    <span>
+                                        You are responsible for purchasing and maintaining your own domain
+                                    </span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <span className="text-indigo-500 mt-1">•</span>
+                                    <span>
+                                        DNS configuration and SSL certificates will be handled during setup
+                                    </span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <span className="text-indigo-500 mt-1">•</span>
+                                    <span>
+                                        Contact support for custom domain pricing and setup assistance
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </section>
 

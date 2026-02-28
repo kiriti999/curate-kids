@@ -1,17 +1,17 @@
 /**
  * Organization Service
- * 
+ *
  * Handles organization (Telegram group) management:
  * - Creating organizations when bot is added to a group
  * - Linking users to organizations
  * - Checking if a user is linked
- * 
+ *
  * Uses direct MongoDB access (same as video service) because
  * Payload API requires authentication which the bot doesn't have
  */
 
-import * as logger from "../utils/logger.ts";
 import { MongoClient, ObjectId } from "npm:mongodb@6.3.0";
+import * as logger from "../utils/logger.ts";
 
 // MongoDB connection
 const MONGODB_URI = Deno.env.get("MONGODB_URI") || "";
@@ -78,14 +78,14 @@ export interface LinkedUser {
  * Find organization by Telegram group ID
  */
 export async function findOrganizationByGroupId(
-    telegramGroupId: string
+    telegramGroupId: string,
 ): Promise<Organization | null> {
     try {
         const db = await getDatabase();
         if (!db) return null;
 
         const org = await db.collection("organizations").findOne({
-            telegramGroupId: telegramGroupId
+            telegramGroupId: telegramGroupId,
         });
 
         if (!org) return null;
@@ -144,7 +144,7 @@ export async function createOrganization(params: {
         logger.info("Organization created", {
             orgId: result.insertedId.toString(),
             name: params.name,
-            autoApprove: autoApproveDefault
+            autoApprove: autoApproveDefault,
         });
 
         return {
@@ -185,24 +185,21 @@ async function unlinkOrganizationUsers(db: any, org: any): Promise<void> {
     const orgIdString = org._id.toString();
     const query = buildUnlinkQuery(org);
 
-    const unlinkResult = await db.collection("users").updateMany(
-        query,
-        {
-            $set: {
-                organization: null,
-                telegramId: null,
-                telegramUsername: null,
-                telegramFirstName: null
-            }
-        }
-    );
+    const unlinkResult = await db.collection("users").updateMany(query, {
+        $set: {
+            organization: null,
+            telegramId: null,
+            telegramUsername: null,
+            telegramFirstName: null,
+        },
+    });
 
     logger.info("Users unlink attempt", {
         telegramGroupId: org.telegramGroupId,
         orgId: orgIdString,
         ownerTelegramId: org.ownerTelegramId,
         matchedCount: unlinkResult.matchedCount,
-        modifiedCount: unlinkResult.modifiedCount
+        modifiedCount: unlinkResult.modifiedCount,
     });
 }
 
@@ -212,18 +209,20 @@ async function unlinkOrganizationUsers(db: any, org: any): Promise<void> {
  * Also unlinks all users associated with this organization
  */
 export async function deleteOrganizationByGroupId(
-    telegramGroupId: string
+    telegramGroupId: string,
 ): Promise<boolean> {
     try {
         const db = await getDatabase();
         if (!db) return false;
 
-        const org = await db.collection("organizations").findOne({ telegramGroupId });
+        const org = await db
+            .collection("organizations")
+            .findOne({ telegramGroupId });
 
         logger.info("Attempting to delete organization", {
             telegramGroupId,
             orgFound: !!org,
-            orgId: org?._id?.toString()
+            orgId: org?._id?.toString(),
         });
 
         if (org) {
@@ -231,7 +230,7 @@ export async function deleteOrganizationByGroupId(
         }
 
         const result = await db.collection("organizations").deleteOne({
-            telegramGroupId
+            telegramGroupId,
         });
 
         if (result.deletedCount > 0) {
@@ -251,7 +250,7 @@ export async function deleteOrganizationByGroupId(
  * Called when owner/member is removed from the group
  */
 export async function unlinkUserFromOrganization(
-    telegramId: string
+    telegramId: string,
 ): Promise<boolean> {
     try {
         const db = await getDatabase();
@@ -264,9 +263,9 @@ export async function unlinkUserFromOrganization(
                     organization: null,
                     telegramId: null,
                     telegramUsername: null,
-                    telegramFirstName: null
-                }
-            }
+                    telegramFirstName: null,
+                },
+            },
         );
 
         if (result.modifiedCount > 0) {
@@ -287,7 +286,7 @@ export async function unlinkUserFromOrganization(
  */
 export async function removeOrganizationOwner(
     telegramGroupId: string,
-    ownerTelegramId: string
+    ownerTelegramId: string,
 ): Promise<boolean> {
     try {
         const db = await getDatabase();
@@ -299,16 +298,19 @@ export async function removeOrganizationOwner(
             {
                 $set: {
                     owner: null,
-                    ownerTelegramId: null
-                }
-            }
+                    ownerTelegramId: null,
+                },
+            },
         );
 
         // Also unlink the user
         await unlinkUserFromOrganization(ownerTelegramId);
 
         if (orgResult.modifiedCount > 0) {
-            logger.info("Owner removed from organization", { telegramGroupId, ownerTelegramId });
+            logger.info("Owner removed from organization", {
+                telegramGroupId,
+                ownerTelegramId,
+            });
             return true;
         }
 
@@ -321,9 +323,12 @@ export async function removeOrganizationOwner(
 
 /**
  * Check if videos should be auto-approved for an organization
- * Priority: Organization setting > Environment variable > Default (false)
+ * Priority: Organization setting > Environment variable > Default (true)
+ * Note: Default is true since videos come from approved Telegram channels
  */
-export function shouldAutoApproveVideos(organization?: Organization | null): boolean {
+export function shouldAutoApproveVideos(
+    organization?: Organization | null,
+): boolean {
     // 1. Check organization setting
     if (organization?.settings?.autoApproveVideos !== undefined) {
         return organization.settings.autoApproveVideos;
@@ -335,8 +340,8 @@ export function shouldAutoApproveVideos(organization?: Organization | null): boo
         return envSetting === "true";
     }
 
-    // 3. Default: require approval
-    return false;
+    // 3. Default: auto-approve (videos come from approved Telegram channels)
+    return true;
 }
 
 // ============================================================================
@@ -347,7 +352,7 @@ export function shouldAutoApproveVideos(organization?: Organization | null): boo
  * Find user by Telegram ID
  */
 export async function findUserByTelegramId(
-    telegramId: string
+    telegramId: string,
 ): Promise<LinkedUser | null> {
     try {
         const db = await getDatabase();
@@ -404,13 +409,15 @@ export async function isUserLinked(telegramId: string): Promise<{
 /**
  * Find organization by ID
  */
-async function findOrganizationById(orgId: string): Promise<Organization | null> {
+async function findOrganizationById(
+    orgId: string,
+): Promise<Organization | null> {
     try {
         const db = await getDatabase();
         if (!db) return null;
 
         const org = await db.collection("organizations").findOne({
-            _id: new ObjectId(orgId)
+            _id: new ObjectId(orgId),
         });
 
         if (!org) return null;
@@ -434,7 +441,7 @@ async function findOrganizationById(orgId: string): Promise<Organization | null>
  */
 export async function isOrganizationOwner(
     telegramId: string,
-    organizationId: string
+    organizationId: string,
 ): Promise<boolean> {
     try {
         const org = await findOrganizationById(organizationId);
@@ -461,7 +468,9 @@ function buildContributorDocument(params: {
         telegramFirstName: params.firstName,
         telegramLinkedAt: new Date(),
         role: "contributor",
-        organization: params.organizationId ? new ObjectId(params.organizationId) : undefined,
+        organization: params.organizationId
+            ? new ObjectId(params.organizationId)
+            : undefined,
         createdAt: new Date(),
         updatedAt: new Date(),
     };
@@ -492,7 +501,7 @@ export async function findOrCreateContributor(params: {
 
         logger.info("Contributor user created", {
             userId,
-            telegramId: params.telegramId
+            telegramId: params.telegramId,
         });
         return { userId, isNew: true };
     } catch (error) {
@@ -524,8 +533,11 @@ export function generateLinkUrl(params: {
     isOwner: boolean;
 }): string {
     // Use CMS_URL for authentication/linking, fallback to FRONTEND_URL for backward compatibility
-    const cmsUrl = Deno.env.get("CMS_URL") || Deno.env.get("FRONTEND_URL") || "http://localhost:3000";
-    console.log('🔗 generateLinkUrl using cmsUrl:', cmsUrl);
+    const cmsUrl =
+        Deno.env.get("CMS_URL") ||
+        Deno.env.get("FRONTEND_URL") ||
+        "http://localhost:3000";
+    console.log("🔗 generateLinkUrl using cmsUrl:", cmsUrl);
 
     const queryParams = new URLSearchParams({
         tg: params.telegramId,
@@ -545,11 +557,11 @@ export function generateLinkUrl(params: {
 
 /**
  * Determine age range from group name
- * 
+ *
  * @deprecated Age ranges are no longer tied to groups. Each video now has
  * its own age range selected by the user. This function returns an empty
  * string for backward compatibility.
- * 
+ *
  * Organizations no longer need an age range field as videos are submitted
  * with user-selected age ranges via inline keyboards.
  */

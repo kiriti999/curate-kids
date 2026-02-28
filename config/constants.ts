@@ -50,11 +50,15 @@ export const VIDEO_CATEGORY_OPTIONS = [
  * Used in video.ts schema
  */
 export const VIDEO_AGE_RANGE_OPTIONS = [
-  { title: '0-2 years', value: '0-2' },
-  { title: '3-5 years', value: '3-5' },
-  { title: '6-8 years', value: '6-8' },
+  { title: '1-2 years', value: '1-2' },
+  { title: '2-3 years', value: '2-3' },
+  { title: '3-4 years', value: '3-4' },
+  { title: '4-5 years', value: '4-5' },
+  { title: '5-8 years', value: '5-8' },
   { title: '9-12 years', value: '9-12' },
-  { title: '13+ years', value: '13+' },
+  { title: '12-15 years', value: '12-15' },
+  { title: '16-18 years', value: '16-18' },
+  { title: '18+ years', value: '18+' },
 ]
 
 /**

@@ -289,15 +289,31 @@ export interface Video {
    */
   slug: string;
   /**
+   * How the video was added
+   */
+  source?: ('url' | 'telegram') | null;
+  /**
    * Full YouTube URL (e.g., https://www.youtube.com/watch?v=...)
    */
-  youtubeUrl: string;
+  youtubeUrl?: string | null;
   /**
    * Auto-extracted YouTube video ID (11 characters)
    */
   youtubeId?: string | null;
   /**
-   * Video duration in seconds (extracted from YouTube API)
+   * Cloudinary video URL (auto-populated for Telegram uploads)
+   */
+  cloudinaryUrl?: string | null;
+  /**
+   * Cloudinary public ID (auto-populated for Telegram uploads)
+   */
+  cloudinaryId?: string | null;
+  /**
+   * Thumbnail image URL (auto-generated for Cloudinary uploads)
+   */
+  thumbnailUrl?: string | null;
+  /**
+   * Video duration in seconds
    */
   duration?: number | null;
   /**
@@ -914,8 +930,12 @@ export interface OrganizationsSelect<T extends boolean = true> {
 export interface VideosSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
+  source?: T;
   youtubeUrl?: T;
   youtubeId?: T;
+  cloudinaryUrl?: T;
+  cloudinaryId?: T;
+  thumbnailUrl?: T;
   duration?: T;
   category?: T;
   ageRange?: T;

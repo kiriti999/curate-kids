@@ -60,17 +60,35 @@ export const Video: CollectionConfig = {
       // Note: Auto-generation will be handled by beforeValidate hook
     },
 
+    // Video source (url = YouTube/link-based, telegram = direct upload to Cloudinary)
+    {
+      name: "source",
+      type: "select",
+      defaultValue: "url",
+      options: [
+        { label: "URL (YouTube/Link)", value: "url" },
+        { label: "Telegram Upload", value: "telegram" },
+      ],
+      admin: {
+        description: "How the video was added",
+        position: "sidebar",
+      },
+    },
+
     // YouTube URL
     {
       name: "youtubeUrl",
       type: "text",
-      required: true,
+      required: false,
       admin: {
         description:
           "Full YouTube URL (e.g., https://www.youtube.com/watch?v=...)",
+        condition: (data) => !data.source || data.source === "url",
       },
-      validate: (value: string | null | undefined) => {
-        if (!value) return "YouTube URL is required";
+      validate: (value: string | null | undefined, { data }: any) => {
+        // Not required for telegram uploads
+        if (data?.source === "telegram") return true;
+        if (!value) return "YouTube URL is required for URL-based videos";
         const youtubeRegex =
           /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([a-zA-Z0-9_-]{11})/;
         if (!youtubeRegex.test(value)) {
@@ -93,12 +111,43 @@ export const Video: CollectionConfig = {
       },
     },
 
+    // Cloudinary URL (for Telegram-uploaded videos)
+    {
+      name: "cloudinaryUrl",
+      type: "text",
+      admin: {
+        description: "Cloudinary video URL (auto-populated for Telegram uploads)",
+        condition: (data) => data.source === "telegram",
+      },
+    },
+
+    // Cloudinary public ID
+    {
+      name: "cloudinaryId",
+      type: "text",
+      admin: {
+        description: "Cloudinary public ID (auto-populated for Telegram uploads)",
+        condition: (data) => data.source === "telegram",
+        position: "sidebar",
+      },
+    },
+
+    // Thumbnail URL (for Cloudinary videos)
+    {
+      name: "thumbnailUrl",
+      type: "text",
+      admin: {
+        description: "Thumbnail image URL (auto-generated for Cloudinary uploads)",
+        condition: (data) => data.source === "telegram",
+      },
+    },
+
     // Video duration (in seconds)
     {
       name: "duration",
       type: "number",
       admin: {
-        description: "Video duration in seconds (extracted from YouTube API)",
+        description: "Video duration in seconds",
         position: "sidebar",
       },
     },

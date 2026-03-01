@@ -42,6 +42,10 @@ node_modules
 *.map
 packages/*/dist/
 
+# Rust / Tauri build output
+**/target/
+**/src-tauri/gen/
+
 # Deployment bundles (too large for git, should be downloaded/generated)
 .curatedreels-bundles/
 *.tar.gz

@@ -44,9 +44,9 @@ export async function uploadVideoFromUrl(
         const folder = options?.folder || "curatedreels/telegram-videos";
 
         // Build params for signature
+        // Note: resource_type is part of the URL path, not a signed parameter
         const params: Record<string, string> = {
             folder,
-            resource_type: "video",
             timestamp: timestamp.toString(),
         };
 
@@ -64,7 +64,6 @@ export async function uploadVideoFromUrl(
         formData.append("timestamp", timestamp.toString());
         formData.append("signature", signature);
         formData.append("folder", folder);
-        formData.append("resource_type", "video");
 
         if (options?.publicId) {
             formData.append("public_id", options.publicId);

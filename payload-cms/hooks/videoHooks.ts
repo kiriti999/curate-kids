@@ -47,14 +47,14 @@ export const beforeChangeVideoHook: CollectionBeforeChangeHook = async ({
   originalDoc,
 }) => {
   // Only check on create, or on update if youtubeUrl/category/ageRange changed
-  if (operation === 'create' || 
-      (operation === 'update' && (
-        data?.youtubeUrl !== originalDoc?.youtubeUrl ||
-        data?.cloudinaryId !== originalDoc?.cloudinaryId ||
-        data?.category !== originalDoc?.category ||
-        data?.ageRange !== originalDoc?.ageRange
-      ))) {
-    
+  if (operation === 'create' ||
+    (operation === 'update' && (
+      data?.youtubeUrl !== originalDoc?.youtubeUrl ||
+      data?.cloudinaryId !== originalDoc?.cloudinaryId ||
+      data?.category !== originalDoc?.category ||
+      data?.ageRange !== originalDoc?.ageRange
+    ))) {
+
     const category = data?.category
     const ageRange = data?.ageRange
 
@@ -73,7 +73,7 @@ export const beforeChangeVideoHook: CollectionBeforeChangeHook = async ({
       })
 
       if (existing.docs.length > 0) {
-        const isDifferentDoc = operation === 'update' 
+        const isDifferentDoc = operation === 'update'
           ? existing.docs[0].id !== originalDoc?.id
           : true
 
@@ -103,7 +103,7 @@ export const beforeChangeVideoHook: CollectionBeforeChangeHook = async ({
       })
 
       if (existing.docs.length > 0) {
-        const isDifferentDoc = operation === 'update' 
+        const isDifferentDoc = operation === 'update'
           ? existing.docs[0].id !== originalDoc?.id
           : true
 

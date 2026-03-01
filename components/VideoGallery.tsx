@@ -215,10 +215,8 @@ function VideoThumbnail({
                     autoplay: 1,
                     fs: 1,
                     rel: 0,
-                    modestbranding: 1,
                     loop: 1,
                     playlist: video.youtubeId,
-                    disablekb: 1,
                 },
                 events: {
                     onStateChange: (e: YTPlayerEvent) => {
@@ -260,12 +258,12 @@ function VideoThumbnail({
             <div className="relative w-full h-full overflow-hidden">
                 <div id={playerElId} className="w-full h-full" />
 
-                {/* Overlay hides YouTube "More videos" panel on pause / end */}
+                {/* Overlay covers related videos suggestions on pause/end but leaves YouTube controls bar visible */}
                 {isPausedOrEnded && (
                     <button
                         type="button"
                         onClick={handleResume}
-                        className="absolute inset-0 z-[2] bg-black/60 flex items-center justify-center border-0 cursor-pointer"
+                        className="absolute inset-0 bottom-12 z-[2] bg-black/60 flex items-center justify-center border-0 cursor-pointer"
                         aria-label="Resume video"
                     >
                         <svg
@@ -277,9 +275,6 @@ function VideoThumbnail({
                         </svg>
                     </button>
                 )}
-
-                {/* Block YouTube logo + branding links at bottom */}
-                <div className="absolute bottom-0 right-0 w-36 h-10 z-[1]" />
                 <button
                     type="button"
                     onClick={onToggleTheatre}

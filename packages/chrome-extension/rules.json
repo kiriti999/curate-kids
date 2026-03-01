@@ -1,0 +1,297 @@
+[
+  {
+    "id": 1,
+    "priority": 10,
+    "action": { "type": "allow" },
+    "condition": {
+      "urlFilter": "||youtube.com/embed/",
+      "resourceTypes": ["main_frame", "sub_frame", "script", "xmlhttprequest"]
+    }
+  },
+  {
+    "id": 2,
+    "priority": 10,
+    "action": { "type": "allow" },
+    "condition": {
+      "urlFilter": "||youtube.com/iframe_api",
+      "resourceTypes": ["main_frame", "sub_frame", "script", "xmlhttprequest"]
+    }
+  },
+  {
+    "id": 3,
+    "priority": 10,
+    "action": { "type": "allow" },
+    "condition": {
+      "urlFilter": "||youtube.com/s/player/",
+      "resourceTypes": ["script", "xmlhttprequest", "other"]
+    }
+  },
+  {
+    "id": 4,
+    "priority": 10,
+    "action": { "type": "allow" },
+    "condition": {
+      "urlFilter": "||youtube.com/youtubei/",
+      "resourceTypes": ["xmlhttprequest", "other"]
+    }
+  },
+  {
+    "id": 5,
+    "priority": 10,
+    "action": { "type": "allow" },
+    "condition": {
+      "urlFilter": "||googlevideo.com/",
+      "resourceTypes": ["media", "xmlhttprequest", "other"]
+    }
+  },
+  {
+    "id": 6,
+    "priority": 10,
+    "action": { "type": "allow" },
+    "condition": {
+      "urlFilter": "||ytimg.com/",
+      "resourceTypes": ["image", "script", "stylesheet", "other"]
+    }
+  },
+  {
+    "id": 7,
+    "priority": 10,
+    "action": { "type": "allow" },
+    "condition": {
+      "urlFilter": "||youtube-nocookie.com/",
+      "resourceTypes": ["main_frame", "sub_frame", "script", "xmlhttprequest", "media"]
+    }
+  },
+  {
+    "id": 8,
+    "priority": 10,
+    "action": { "type": "allow" },
+    "condition": {
+      "urlFilter": "||youtube.com/videoplayback",
+      "resourceTypes": ["media", "xmlhttprequest", "other"]
+    }
+  },
+  {
+    "id": 9,
+    "priority": 10,
+    "action": { "type": "allow" },
+    "condition": {
+      "urlFilter": "||youtube.com/api/",
+      "resourceTypes": ["xmlhttprequest", "other"]
+    }
+  },
+  {
+    "id": 10,
+    "priority": 10,
+    "action": { "type": "allow" },
+    "condition": {
+      "urlFilter": "||youtube.com/generate_204",
+      "resourceTypes": ["xmlhttprequest", "ping", "other"]
+    }
+  },
+
+  {
+    "id": 100,
+    "priority": 1,
+    "action": { 
+      "type": "redirect",
+      "redirect": { "url": "http://localhost:4002/content" }
+    },
+    "condition": {
+      "urlFilter": "||youtube.com/",
+      "resourceTypes": ["main_frame"]
+    }
+  },
+  {
+    "id": 101,
+    "priority": 1,
+    "action": { 
+      "type": "redirect",
+      "redirect": { "url": "http://localhost:4002/content" }
+    },
+    "condition": {
+      "urlFilter": "||youtube.com/watch",
+      "resourceTypes": ["main_frame"]
+    }
+  },
+  {
+    "id": 102,
+    "priority": 1,
+    "action": { 
+      "type": "redirect",
+      "redirect": { "url": "http://localhost:4002/content" }
+    },
+    "condition": {
+      "urlFilter": "||youtube.com/shorts",
+      "resourceTypes": ["main_frame"]
+    }
+  },
+  {
+    "id": 103,
+    "priority": 1,
+    "action": { 
+      "type": "redirect",
+      "redirect": { "url": "http://localhost:4002/content" }
+    },
+    "condition": {
+      "urlFilter": "||youtube.com/results",
+      "resourceTypes": ["main_frame"]
+    }
+  },
+  {
+    "id": 104,
+    "priority": 1,
+    "action": { 
+      "type": "redirect",
+      "redirect": { "url": "http://localhost:4002/content" }
+    },
+    "condition": {
+      "urlFilter": "||youtube.com/channel/",
+      "resourceTypes": ["main_frame"]
+    }
+  },
+  {
+    "id": 105,
+    "priority": 1,
+    "action": { 
+      "type": "redirect",
+      "redirect": { "url": "http://localhost:4002/content" }
+    },
+    "condition": {
+      "urlFilter": "||youtube.com/c/",
+      "resourceTypes": ["main_frame"]
+    }
+  },
+  {
+    "id": 106,
+    "priority": 1,
+    "action": { 
+      "type": "redirect",
+      "redirect": { "url": "http://localhost:4002/content" }
+    },
+    "condition": {
+      "urlFilter": "||youtube.com/@",
+      "resourceTypes": ["main_frame"]
+    }
+  },
+  {
+    "id": 107,
+    "priority": 1,
+    "action": { 
+      "type": "redirect",
+      "redirect": { "url": "http://localhost:4002/content" }
+    },
+    "condition": {
+      "urlFilter": "||youtube.com/user/",
+      "resourceTypes": ["main_frame"]
+    }
+  },
+  {
+    "id": 108,
+    "priority": 1,
+    "action": { 
+      "type": "redirect",
+      "redirect": { "url": "http://localhost:4002/content" }
+    },
+    "condition": {
+      "urlFilter": "||youtube.com/feed/",
+      "resourceTypes": ["main_frame"]
+    }
+  },
+  {
+    "id": 109,
+    "priority": 1,
+    "action": { 
+      "type": "redirect",
+      "redirect": { "url": "http://localhost:4002/content" }
+    },
+    "condition": {
+      "urlFilter": "||youtube.com/playlist",
+      "resourceTypes": ["main_frame"]
+    }
+  },
+  {
+    "id": 110,
+    "priority": 1,
+    "action": { 
+      "type": "redirect",
+      "redirect": { "url": "http://localhost:4002/content" }
+    },
+    "condition": {
+      "urlFilter": "||youtube.com/hashtag/",
+      "resourceTypes": ["main_frame"]
+    }
+  },
+  {
+    "id": 111,
+    "priority": 1,
+    "action": { 
+      "type": "redirect",
+      "redirect": { "url": "http://localhost:4002/content" }
+    },
+    "condition": {
+      "urlFilter": "||youtu.be/",
+      "resourceTypes": ["main_frame"]
+    }
+  },
+  {
+    "id": 112,
+    "priority": 1,
+    "action": { 
+      "type": "redirect",
+      "redirect": { "url": "http://localhost:4002/content" }
+    },
+    "condition": {
+      "urlFilter": "||youtube.com/live/",
+      "resourceTypes": ["main_frame"]
+    }
+  },
+  {
+    "id": 113,
+    "priority": 1,
+    "action": { 
+      "type": "redirect",
+      "redirect": { "url": "http://localhost:4002/content" }
+    },
+    "condition": {
+      "urlFilter": "||youtube.com/gaming",
+      "resourceTypes": ["main_frame"]
+    }
+  },
+  {
+    "id": 114,
+    "priority": 1,
+    "action": { 
+      "type": "redirect",
+      "redirect": { "url": "http://localhost:4002/content" }
+    },
+    "condition": {
+      "urlFilter": "||music.youtube.com/",
+      "resourceTypes": ["main_frame"]
+    }
+  },
+  {
+    "id": 115,
+    "priority": 1,
+    "action": { 
+      "type": "redirect",
+      "redirect": { "url": "http://localhost:4002/content" }
+    },
+    "condition": {
+      "urlFilter": "||tv.youtube.com/",
+      "resourceTypes": ["main_frame"]
+    }
+  },
+  {
+    "id": 116,
+    "priority": 1,
+    "action": { 
+      "type": "redirect",
+      "redirect": { "url": "http://localhost:4002/content" }
+    },
+    "condition": {
+      "urlFilter": "||kids.youtube.com/",
+      "resourceTypes": ["main_frame"]
+    }
+  }
+]

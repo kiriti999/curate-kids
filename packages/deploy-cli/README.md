@@ -187,6 +187,45 @@ After deployment completes, add your bot to a Telegram group:
 2. **Configure your bot** - Send `/start` to your Telegram bot
 3. **Customize branding** - Update colors, logo in the admin panel
 4. **Add videos** - Start curating content!
+5. **Install Safe Browsing extension** - Set up parental controls on your child's browser (see below)
+
+## 🛡️ Safe Browsing (Parental Lock)
+
+CurateKids includes a **Chrome extension** that redirects YouTube visits to your curated content platform, while still allowing embedded videos to play normally.
+
+### Why Use It?
+
+- **Prevents direct YouTube browsing** — kids are redirected to your curated content instead
+- **Embedded videos still work** — videos you've curated play normally within your platform
+- **Password-protected** — only parents can disable the extension
+- **Lightweight** — no background processes, no system proxy, no performance impact
+
+### Installation
+
+1. Download or locate the `packages/chrome-extension` folder from your CurateKids installation
+2. Open **Chrome** and go to `chrome://extensions/`
+3. Enable **Developer mode** (toggle in the top-right corner)
+4. Click **Load unpacked**
+5. Select the `chrome-extension` folder
+6. The extension icon appears in your toolbar — click it to verify it's active
+
+### Setup
+
+1. Click the **CurateKids Safe Browsing** extension icon in Chrome
+2. Click **🔒 Set/Change Password** to set a parental password
+3. Choose a password (minimum 4 characters) — you'll need this to disable the extension
+
+### How It Works
+
+- When your child visits `youtube.com`, they are automatically redirected to your CurateKids content page (`http://localhost:4002/content`)
+- YouTube embeds and iframe API calls are **not affected** — curated videos play normally
+- To disable the redirect, click the extension icon and toggle it off — the parental password is required
+
+### Tips
+
+- **Set a strong password** that your child won't guess
+- **Pin the extension** to the toolbar so you can quickly check its status
+- For additional protection, consider using Chrome's supervised profiles
 
 ## ❓ FAQ
 

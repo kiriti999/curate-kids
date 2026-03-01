@@ -18,8 +18,8 @@ export const beforeValidateVideoHook: CollectionBeforeValidateHook = async ({
   req,
   operation,
 }) => {
-  // Extract YouTube ID from URL
-  if (data?.youtubeUrl) {
+  // Extract YouTube ID from URL (only for URL-based videos)
+  if (data?.youtubeUrl && data?.source !== 'telegram') {
     const extractedId = extractYoutubeId(data.youtubeUrl)
     if (extractedId) {
       data.youtubeId = extractedId
@@ -50,16 +50,46 @@ export const beforeChangeVideoHook: CollectionBeforeChangeHook = async ({
   if (operation === 'create' || 
       (operation === 'update' && (
         data?.youtubeUrl !== originalDoc?.youtubeUrl ||
+        data?.cloudinaryId !== originalDoc?.cloudinaryId ||
         data?.category !== originalDoc?.category ||
         data?.ageRange !== originalDoc?.ageRange
       ))) {
     
-    const youtubeId = data?.youtubeId || (data?.youtubeUrl ? extractYoutubeId(data.youtubeUrl) : null)
     const category = data?.category
     const ageRange = data?.ageRange
 
+    // For Telegram/Cloudinary uploads, check by cloudinaryId
+    if (data?.source === 'telegram' && data?.cloudinaryId && category && ageRange) {
+      const existing = await req.payload.find({
+        collection: 'videos',
+        where: {
+          and: [
+            { cloudinaryId: { equals: data.cloudinaryId } },
+            { category: { equals: category } },
+            { ageRange: { equals: ageRange } },
+          ],
+        },
+        limit: 1,
+      })
+
+      if (existing.docs.length > 0) {
+        const isDifferentDoc = operation === 'update' 
+          ? existing.docs[0].id !== originalDoc?.id
+          : true
+
+        if (isDifferentDoc) {
+          throw new Error(
+            `A video with this Cloudinary ID already exists in category "${category}" for age range "${ageRange}". ` +
+            `Existing video: "${existing.docs[0].title}"`
+          )
+        }
+      }
+    }
+
+    // For YouTube/URL-based videos, check by youtubeId
+    const youtubeId = data?.youtubeId || (data?.youtubeUrl ? extractYoutubeId(data.youtubeUrl) : null)
+
     if (youtubeId && category && ageRange) {
-      // Check for existing video with same youtubeId in same category + ageRange
       const existing = await req.payload.find({
         collection: 'videos',
         where: {
@@ -73,7 +103,6 @@ export const beforeChangeVideoHook: CollectionBeforeChangeHook = async ({
       })
 
       if (existing.docs.length > 0) {
-        // On update, exclude the current document
         const isDifferentDoc = operation === 'update' 
           ? existing.docs[0].id !== originalDoc?.id
           : true

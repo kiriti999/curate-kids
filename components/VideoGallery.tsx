@@ -77,7 +77,11 @@ interface Video {
     id: string;
     title: string;
     youtubeId?: string | null;
-    youtubeUrl: string;
+    youtubeUrl?: string;
+    cloudinaryUrl?: string | null;
+    cloudinaryId?: string | null;
+    thumbnailUrl?: string | null;
+    source?: string | null;
     category: string;
     ageRange: string;
     tags?: Array<{ tag: string; id?: string | null }> | string[] | null;
@@ -90,6 +94,10 @@ interface NormalizedVideo {
     title: string;
     youtubeId: string;
     youtubeUrl: string;
+    cloudinaryUrl: string;
+    cloudinaryId: string;
+    thumbnailUrl: string;
+    source: string;
     category: string;
     ageRange: string;
     tags: string[];
@@ -102,7 +110,11 @@ function normalizeVideo(video: Video): NormalizedVideo {
         id: video.id,
         title: video.title,
         youtubeId: video.youtubeId || "",
-        youtubeUrl: video.youtubeUrl,
+        youtubeUrl: video.youtubeUrl || "",
+        cloudinaryUrl: video.cloudinaryUrl || "",
+        cloudinaryId: video.cloudinaryId || "",
+        thumbnailUrl: video.thumbnailUrl || "",
+        source: video.source || "url",
         category: video.category,
         ageRange: video.ageRange,
         createdAt: video.createdAt,
@@ -196,6 +208,7 @@ function VideoThumbnail({
         `yt-${video.id}-${Math.random().toString(36).slice(2, 8)}`,
     ).current;
     const hasValidYoutubeId = isValidYoutubeId(video.youtubeId);
+    const isCloudinaryVideo = video.source === "telegram" && !!video.cloudinaryUrl;
 
     // Create YouTube player via IFrame API to intercept pause/end events
     useEffect(() => {
@@ -308,7 +321,101 @@ function VideoThumbnail({
         );
     }
 
-    // Show placeholder for non-YouTube videos
+    // Cloudinary video player
+    if (showVideo && isCloudinaryVideo) {
+        return (
+            <div className="relative w-full h-full overflow-hidden bg-black">
+                <video
+                    src={video.cloudinaryUrl}
+                    className="w-full h-full object-contain"
+                    controls
+                    autoPlay
+                    playsInline
+                />
+                <button
+                    type="button"
+                    onClick={onToggleTheatre}
+                    className="absolute top-2 right-2 z-10 bg-black/70 hover:bg-black/90 text-white p-1.5 rounded transition-colors"
+                    aria-label={isTheatre ? "Exit theatre mode" : "Theatre mode"}
+                    title={isTheatre ? "Exit theatre mode" : "Theatre mode"}
+                >
+                    <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                    >
+                        {isTheatre ? (
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M9 9V4.5M9 9H4.5M9 9 3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5 5.25 5.25"
+                            />
+                        ) : (
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
+                            />
+                        )}
+                    </svg>
+                </button>
+            </div>
+        );
+    }
+
+    // Show Cloudinary thumbnail with play button
+    if (isCloudinaryVideo) {
+        return (
+            <button
+                onClick={onPlay}
+                className="relative w-full h-full group"
+                aria-label={`Play ${video.title}`}
+            >
+                {video.thumbnailUrl ? (
+                    <Image
+                        src={video.thumbnailUrl}
+                        alt={video.title}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        loading="lazy"
+                        unoptimized
+                    />
+                ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                        <svg
+                            className="w-12 h-12 text-muted-foreground"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                            />
+                        </svg>
+                    </div>
+                )}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
+                    <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <svg
+                            className="w-8 h-8 text-white ml-1"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path d="M8 5v14l11-7z" />
+                        </svg>
+                    </div>
+                </div>
+            </button>
+        );
+    }
+
+    // Show placeholder for non-YouTube, non-Cloudinary videos
     if (!hasValidYoutubeId) {
         return (
             <div className="relative w-full h-full bg-muted flex items-center justify-center">

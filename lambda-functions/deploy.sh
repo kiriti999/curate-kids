@@ -36,7 +36,7 @@ fi
 AWS_REGION=${AWS_REGION:-"us-east-1"}  # N. Virginia
 FUNCTION_ROLE=${LAMBDA_ROLE:-""}
 MONGODB_URI=${MONGODB_URI:-""}
-RAZORPAY_SECRET=${RAZORPAY_WEBHOOK_SECRET:-""}
+RAZORPAY_SECRET=${RAZOR_PAY_WEBHOOK_SECRET:-""} # Note: RAZOR_PAY_WEBHOOK_SECRET is the correct env var, but we also check RAZORPAY_WEBHOOK_SECRET for backward compatibility
 
 if [ -z "$MONGODB_URI" ]; then
     echo "❌ MONGODB_URI environment variable not set"
@@ -184,7 +184,7 @@ deploy_lambda \
 deploy_lambda \
     "curatedreels-razorpay-webhook" \
     "razorpay-webhook" \
-    "MONGODB_URI=$MONGODB_URI,RAZORPAY_WEBHOOK_SECRET=$RAZORPAY_SECRET"
+    "MONGODB_URI=$MONGODB_URI,RAZOR_PAY_WEBHOOK_SECRET=$RAZORPAY_SECRET,SMTP_HOST=$SMTP_HOST,SMTP_PORT=$SMTP_PORT,SMTP_SECURE=$SMTP_SECURE,SMTP_USER=$SMTP_USER,SMTP_PASS=$SMTP_PASS,SMTP_FROM_EMAIL=$SMTP_FROM_EMAIL"
 
 echo ""
 echo "=============================================="

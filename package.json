@@ -31,7 +31,8 @@
     "license:info": "DOTENV_CONFIG_PATH=packages/admin-cli/.env tsx packages/admin-cli/src/index.ts info",
     "license:verify": "DOTENV_CONFIG_PATH=packages/admin-cli/.env tsx packages/admin-cli/src/index.ts verify",
     "license:stats": "DOTENV_CONFIG_PATH=packages/admin-cli/.env tsx packages/admin-cli/src/index.ts stats",
-    "license:revoke": "DOTENV_CONFIG_PATH=packages/admin-cli/.env tsx packages/admin-cli/src/index.ts revoke"
+    "license:revoke": "DOTENV_CONFIG_PATH=packages/admin-cli/.env tsx packages/admin-cli/src/index.ts revoke",
+    "deploy:lambda": "cd lambda-functions && bash deploy.sh"
   },
   "keywords": [
     "payloadcms"

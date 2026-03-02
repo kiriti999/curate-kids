@@ -41,7 +41,7 @@ exports.handler = async (event) => {
     try {
         // Verify webhook signature
         const razorpaySignature = event.headers['X-Razorpay-Signature'] || event.headers['x-razorpay-signature'];
-        const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+        const webhookSecret = process.env.RAZOR_PAY_WEBHOOK_SECRET;
 
         if (!razorpaySignature || !webhookSecret) {
             return {

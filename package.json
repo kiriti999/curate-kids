@@ -16,6 +16,7 @@
     "cleanup:orgs:manual": "tsx scripts/cleanup-orgs-manual.ts",
     "delete:videos": "tsx scripts/delete-user-videos.ts",
     "fix:db-leftovers": "tsx scripts/fix-db-leftovers.ts",
+    "make:superadmin": "tsx scripts/make-superadmin.ts",
     "bot:leave-groups": "tsx scripts/bot-leave-groups.ts",
     "migrate:export": "tsx migration/export-from-sanity.ts",
     "migrate:transform": "tsx migration/transform-data.ts",

@@ -12,22 +12,36 @@ async function loadPlaylist(slug: string) {
     const payload = await getPayload({ config });
     const { user } = await payload.auth({ headers: await headers() });
 
-    // Access rules on the collection decide whether this viewer may see it
+    // Access rules on the collection decide whether this viewer may see the playlist
     const result = await payload.find({
         collection: "playlists",
         where: { slug: { equals: slug } },
         limit: 1,
-        depth: 1,
+        depth: 0,
         overrideAccess: false,
         user,
     });
     const playlist: any = result.docs[0];
     if (!playlist) return null;
 
-    const videos: PlaylistVideo[] = (playlist.items || [])
-        .map((i: any) => i.video)
-        // depth:1 gives objects; skip deleted refs and unapproved videos
-        .filter((v: any) => v && typeof v === "object" && v.status === "approved")
+    // A viewer who may open the playlist may play everything in it, even videos
+    // from another organization, so load the videos without per-user scoping
+    const ids: string[] = (playlist.items || []).map((i: any) =>
+        typeof i.video === "object" ? i.video?.id : i.video,
+    );
+    const found = ids.length
+        ? await payload.find({
+              collection: "videos",
+              where: { id: { in: ids }, status: { equals: "approved" } },
+              limit: ids.length,
+              depth: 0,
+              overrideAccess: true,
+          })
+        : { docs: [] };
+    const byId = new Map<string, any>(found.docs.map((v: any): [string, any] => [v.id, v]));
+    const videos: PlaylistVideo[] = ids
+        .map((id) => byId.get(id))
+        .filter(Boolean)
         .map((v: any) => ({
             id: v.id,
             title: v.title,

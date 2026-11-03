@@ -6,6 +6,7 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { isOrgAdmin, isPlatformAdmin, relationId, videoScope } from "../../utils/access";
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook, CollectionConfig } from "payload";
 import {
   PAYLOAD_CONFIG,
@@ -29,6 +30,20 @@ const revalidateGallery: CollectionAfterChangeHook & CollectionAfterDeleteHook =
   return doc;
 };
 
+function manageScope(user: any) {
+  if (!user) return false;
+  if (isPlatformAdmin(user)) return true;
+  const or: Record<string, unknown>[] = [{ submittedBy: { equals: user.id } }];
+  if (isOrgAdmin(user)) or.push({ organization: { equals: relationId(user.organization) } });
+  return { or };
+}
+
+// Only admins may approve/reject; contributors can't approve their own videos
+const adminOnlyField = {
+  update: ({ req }: { req: { user?: any } }) =>
+    isPlatformAdmin(req.user) || isOrgAdmin(req.user),
+};
+
 export const Video: CollectionConfig = {
   slug: "videos",
 
@@ -40,16 +55,13 @@ export const Video: CollectionConfig = {
 
   // Access control
   access: {
-    read: () => true, // Public read access for frontend
+    // Videos are separated per user/organization; see utils/access.ts
+    read: ({ req }) => videoScope(req.user as any),
     create: ({ req }) => !!req.user, // Authenticated users only
-    update: ({ req }) => !!req.user,
-    // Admins can delete any video; other users only videos they submitted
-    delete: ({ req }) => {
-      const user = req.user as any;
-      if (!user) return false;
-      if (user.role === "superadmin" || user.role === "admin") return true;
-      return { submittedBy: { equals: user.id } };
-    },
+    // Platform admins manage anything; org admins their organization's videos;
+    // everyone else only the videos they submitted
+    update: ({ req }) => manageScope(req.user as any),
+    delete: ({ req }) => manageScope(req.user as any),
   },
 
   fields: [
@@ -297,6 +309,7 @@ export const Video: CollectionConfig = {
       type: "select",
       required: true,
       defaultValue: "pending",
+      access: adminOnlyField,
       options: [
         { label: "Pending", value: "pending" },
         { label: "Approved", value: "approved" },

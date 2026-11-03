@@ -5,6 +5,7 @@
  */
 
 import config from "@payload-config";
+import { headers } from "next/headers";
 import { getPayload } from "payload";
 import type { ActivityLog, Category, Video } from "@/types/payload";
 import { logger } from "@/utils/logger";
@@ -90,6 +91,36 @@ export async function getVideos(
     return result.docs as Video[];
   } catch (error) {
     logger.error("Error fetching videos", { error });
+    return [];
+  }
+}
+
+/**
+ * Videos the signed-in user may see: their own plus their organization's
+ * (platform admins see everything, signed-out visitors nothing).
+ * Reads the session from the request cookies, so callers render per request.
+ */
+export async function getVideosForCurrentUser(
+  params: GetVideosParams = {},
+): Promise<Video[]> {
+  try {
+    const payload = await getPayloadClient();
+    const { user } = await payload.auth({ headers: await headers() });
+    if (!user) return [];
+
+    const result = await payload.find({
+      collection: "videos",
+      where: buildVideoWhereClause(params),
+      limit: params.limit || 50,
+      page: params.page || 1,
+      sort: "-createdAt",
+      // The collection's read access applies the per-user/organization scope
+      overrideAccess: false,
+      user,
+    });
+    return result.docs as Video[];
+  } catch (error) {
+    logger.error("Error fetching videos for current user", { error });
     return [];
   }
 }

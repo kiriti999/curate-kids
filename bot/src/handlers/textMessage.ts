@@ -9,7 +9,7 @@ import { hasVideoUrl, parseVideoUrl, getPlatformDisplayName, getPlatformEmoji } 
 import { buildAgeRangeKeyboard } from "../utils/keyboard.ts";
 import { createStateKey, setState, type MessageState } from "../types/state.ts";
 import { getYouTubeMetadata } from "../services/youtube.ts";
-import { checkCanSubmit } from "./organizationHandler.ts";
+import { checkCanSubmit, handleLinkCommand } from "./organizationHandler.ts";
 import { resolveSubmitter } from "../services/organization.ts";
 import { handlePlaylistNameReply } from "./playlistHandler.ts";
 import {
@@ -76,8 +76,13 @@ export async function handleTextMessage(ctx: Context): Promise<void> {
       userRole: user?.role,
     });
   } else {
-    // Private chat: attribute the video to the sender's linked account, if any
+    // Private chat: the video belongs to the sender's linked account
     ({ organizationId, submittedByUserId } = await resolveSubmitter("private", chatId, userId));
+    if (!submittedByUserId) {
+      // Not linked yet: send the "link your account" button instead of saving an ownerless video
+      await handleLinkCommand(ctx);
+      return;
+    }
   }
 
   // Fetch metadata and check embeddability for YouTube

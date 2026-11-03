@@ -21,7 +21,7 @@ export default function AuthGate({ children }: AuthGateProps) {
     console.log('[AuthGate useEffect] Checking redirect...', { requireLogin, isAuthenticated });
     if (requireLogin && !isAuthenticated) {
       console.log('[AuthGate] 🚀 REDIRECTING TO /login');
-      router.push("/login");
+      router.replace("/login");
     }
   }, [requireLogin, isAuthenticated, router]);
 

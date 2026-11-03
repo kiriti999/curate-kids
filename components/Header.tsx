@@ -38,6 +38,12 @@ export default function Header() {
                                     <span>📺 My Videos</span>
                                 </Link>
                                 <Link
+                                    href="/playlists"
+                                    className="hidden md:flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                                >
+                                    <span>🎞️ Playlists</span>
+                                </Link>
+                                <Link
                                     href="/parental-controls"
                                     className="hidden md:flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                                 >

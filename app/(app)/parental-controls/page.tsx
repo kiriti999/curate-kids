@@ -7,11 +7,10 @@ import { Shield, ShieldCheck, ShieldX, Download, ExternalLink, RefreshCw, Monito
 
 const API_BASE = "http://127.0.0.1:45192";
 
-// Download URLs — points to GitHub Releases by default.
-// Override with NEXT_PUBLIC_SAFE_BROWSE_DOWNLOAD_BASE env var.
-const DOWNLOAD_BASE =
-    process.env.NEXT_PUBLIC_SAFE_BROWSE_DOWNLOAD_BASE ||
-    "https://github.com/AKcreation/curatekids/releases/latest/download";
+// Installer URLs. No installers are published yet, so the download section is
+// hidden unless NEXT_PUBLIC_SAFE_BROWSE_DOWNLOAD_BASE points at a location
+// that serves CurateKids-Safe-Browse.dmg and CurateKids-Safe-Browse-setup.exe.
+const DOWNLOAD_BASE = process.env.NEXT_PUBLIC_SAFE_BROWSE_DOWNLOAD_BASE;
 
 const DOWNLOAD_MAC = `${DOWNLOAD_BASE}/CurateKids-Safe-Browse.dmg`;
 const DOWNLOAD_WIN = `${DOWNLOAD_BASE}/CurateKids-Safe-Browse-setup.exe`;
@@ -222,13 +221,13 @@ function ParentalControls() {
                                 </h2>
                             </div>
                             <p className="text-sm text-muted-foreground mb-4">
-                                The Safe Browse companion app needs to be installed and running
-                                on this device to manage YouTube blocking. It runs quietly in
-                                your system tray.
+                                The Safe Browse companion app needs to be running on this
+                                device to manage YouTube blocking from this page.
                             </p>
                         </div>
 
-                        {/* Download section */}
+                        {/* Download section (only when installers are configured) */}
+                        {DOWNLOAD_BASE && (
                         <div className="bg-card border rounded-xl p-6 mb-6">
                             <h3 className="font-semibold text-foreground mb-4">
                                 Download Safe Browse
@@ -260,6 +259,7 @@ function ParentalControls() {
                                 </a>
                             </div>
                         </div>
+                        )}
 
                         {/* Alternative: manual scripts */}
                         <div className="bg-card border rounded-xl p-6 mb-6">
@@ -267,8 +267,9 @@ function ParentalControls() {
                                 Alternative: Manual scripts
                             </h3>
                             <p className="text-sm text-muted-foreground mb-3">
-                                If you prefer not to install the companion app, you can
-                                download standalone scripts to run manually.
+                                {DOWNLOAD_BASE
+                                    ? "If you prefer not to install the companion app, you can download standalone scripts to run manually."
+                                    : "The companion app isn't available yet. Download a standalone script to block YouTube on this device instead."}
                             </p>
                             <div className="flex gap-3">
                                 <a
@@ -297,7 +298,7 @@ function ParentalControls() {
                                 className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 mx-auto"
                             >
                                 <RefreshCw className="w-3.5 h-3.5" />
-                                Already installed? Click to retry connection
+                                Companion app already running? Click to retry connection
                             </button>
                         </div>
                     </>

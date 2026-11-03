@@ -9,6 +9,7 @@ import { buildAgeRangeKeyboard } from "../utils/keyboard.ts";
 import { createStateKey, setState, type MessageState } from "../types/state.ts";
 import { uploadVideoFromUrl } from "../services/cloudinary.ts";
 import { resolveSubmitter } from "../services/organization.ts";
+import { handleLinkCommand } from "./organizationHandler.ts";
 import {
   ERROR_UPLOAD_FAILED,
   PROMPT_SELECT_AGE_RANGE,
@@ -61,7 +62,14 @@ export async function handleVideoUpload(ctx: Context): Promise<void> {
     return;
   }
 
-  await processVideoUpload(ctx, video, messageId, chatId, userId, caption);
+  // Videos belong to a linked account; ask unlinked senders to link before uploading anything
+  const submitter = await resolveSubmitter(ctx.chat?.type, chatId, userId);
+  if (!submitter.submittedByUserId) {
+    await handleLinkCommand(ctx);
+    return;
+  }
+
+  await processVideoUpload(ctx, video, messageId, chatId, userId, caption, submitter);
 }
 
 /**
@@ -84,7 +92,8 @@ async function processVideoUpload(
   messageId: number,
   chatId: number,
   userId: number,
-  caption: string
+  caption: string,
+  submitter: { organizationId?: string; submittedByUserId?: string }
 ): Promise<void> {
   const processingMsg = await ctx.reply(PROMPT_UPLOADING, {
     parse_mode: PARSE_MODE_MARKDOWN,
@@ -104,7 +113,6 @@ async function processVideoUpload(
       duration: cloudinaryResult.duration,
     });
 
-    const submitter = await resolveSubmitter(ctx.chat?.type, chatId, userId);
     const state = {
       ...buildVideoState(messageId, chatId, userId, caption, cloudinaryResult),
       ...submitter,

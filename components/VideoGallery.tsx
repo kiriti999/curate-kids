@@ -987,10 +987,14 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
                 { method: "DELETE", credentials: "include" },
             );
             const body = await res.json().catch(() => ({}));
-            const removed: string[] = (body.docs || []).map((d: { id: string }) => d.id);
+            // Payload answers with the deleted docs plus per-id errors. Ids that
+            // match nothing (already deleted elsewhere) are in neither list.
+            if (!Array.isArray(body.docs)) throw new Error(String(res.status));
+            const failedIds = new Set<string>((body.errors || []).map((e: { id: string }) => e.id));
+            const removed = ids.filter((id) => !failedIds.has(id));
             removed.forEach(handleDeleted);
             setSelectedIds(new Set());
-            const failed = ids.length - removed.length;
+            const failed = failedIds.size;
             if (failed > 0) {
                 window.alert(`${failed} video${failed > 1 ? "s" : ""} couldn't be deleted.`);
             } else {
@@ -1130,7 +1134,8 @@ function VideoCard({
                 method: "DELETE",
                 credentials: "include",
             });
-            if (!res.ok) throw new Error(String(res.status));
+            // 404 means it was already deleted elsewhere; just drop it from the page
+            if (!res.ok && res.status !== 404) throw new Error(String(res.status));
             onDeleted(video.id);
         } catch {
             window.alert("Couldn't delete this video. Please try again.");

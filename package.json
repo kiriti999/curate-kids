@@ -14,6 +14,7 @@
     "cleanup:orgs": "tsx scripts/cleanup-orphaned-orgs.ts",
     "cleanup:orgs:dry-run": "tsx scripts/cleanup-orphaned-orgs.ts --dry-run",
     "cleanup:orgs:manual": "tsx scripts/cleanup-orgs-manual.ts",
+    "delete:videos": "tsx scripts/delete-user-videos.ts",
     "bot:leave-groups": "tsx scripts/bot-leave-groups.ts",
     "migrate:export": "tsx migration/export-from-sanity.ts",
     "migrate:transform": "tsx migration/transform-data.ts",

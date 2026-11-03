@@ -31,7 +31,13 @@ export const Video: CollectionConfig = {
     read: () => true, // Public read access for frontend
     create: ({ req }) => !!req.user, // Authenticated users only
     update: ({ req }) => !!req.user,
-    delete: ({ req }) => !!req.user,
+    // Admins can delete any video; other users only videos they submitted
+    delete: ({ req }) => {
+      const user = req.user as any;
+      if (!user) return false;
+      if (user.role === "superadmin" || user.role === "admin") return true;
+      return { submittedBy: { equals: user.id } };
+    },
   },
 
   fields: [

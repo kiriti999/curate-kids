@@ -18,6 +18,12 @@ import {
   findOrganizationByGroupId,
   shouldAutoApproveVideos,
 } from "../services/organization.ts";
+import { findUserByTelegramId } from "../services/organization.ts";
+import {
+  buildAddToPlaylistKeyboard,
+  handlePlaylistCallback,
+  isPlaylistCallback,
+} from "./playlistHandler.ts";
 import {
   ERROR_INVALID_SELECTION,
   ERROR_SELECTION_EXPIRED,
@@ -46,6 +52,12 @@ export async function handleCallbackQuery(ctx: Context): Promise<void> {
   const userId = ctx.from?.id;
 
   if (!userId) return;
+
+  // Playlist actions (pl:/pla:/pln:)
+  if (isPlaylistCallback(data)) {
+    await handlePlaylistCallback(ctx, data);
+    return;
+  }
 
   // Check if it's an age range selection (age:msgId:chatId:range)
   if (data.startsWith("age:")) {
@@ -230,7 +242,13 @@ async function handleSubmissionSuccess(
 
     await ctx.editMessageText(
       `✅ *Video saved!*\n\n📁 Category: ${category}\n👶 Age: ${state.ageRange}\n${sourceEmoji} Source: ${sourceLabel}\n\n_ID: ${documentId}_`,
-      { parse_mode: PARSE_MODE_MARKDOWN }
+      {
+        parse_mode: PARSE_MODE_MARKDOWN,
+        // Playlists belong to linked accounts only
+        reply_markup: (await canUsePlaylists(state))
+          ? buildAddToPlaylistKeyboard(documentId)
+          : undefined,
+      }
     );
   } catch {
     // Ignore "message not modified" errors
@@ -242,6 +260,14 @@ async function handleSubmissionSuccess(
     ageRange: state.ageRange,
     source: state.source,
   });
+}
+
+/**
+ * Whether the submitter has a linked account (required to own playlists)
+ */
+async function canUsePlaylists(state: MessageState): Promise<boolean> {
+  if (state.submittedByUserId) return true;
+  return !!(await findUserByTelegramId(String(state.userId)));
 }
 
 /**

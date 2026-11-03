@@ -1,6 +1,6 @@
-# CurateKids YouTube Blocker - Chrome Extension
+# CuratedReels Safe Browsing - Chrome Extension
 
-A Chrome extension that redirects YouTube browsing to CurateKids content (`http://localhost:4002/content`) while allowing embedded videos to play.
+A Chrome extension that redirects YouTube browsing to CurateKids content (`https://curatedreels.com/content`) while allowing embedded videos to play.
 
 ## Features
 
@@ -29,21 +29,21 @@ A Chrome extension that redirects YouTube browsing to CurateKids content (`http:
 
 ### Verify It's Working
 
-1. Try visiting `youtube.com` - should redirect to `localhost:4002/content`
+1. Try visiting `youtube.com` - should redirect to `curatedreels.com/content`
 2. Your CurateKids app with embedded videos - embeds should work normally
 
 ## What Happens
 
 | URL Pattern | Behavior |
 |-------------|----------|
-| youtube.com (homepage) | ➡️ Redirects to localhost:4002/content |
-| youtube.com/watch?v=xxx | ➡️ Redirects to localhost:4002/content |
-| youtube.com/shorts/xxx | ➡️ Redirects to localhost:4002/content |
-| youtube.com/results?search_query=xxx | ➡️ Redirects to localhost:4002/content |
-| youtube.com/@channel | ➡️ Redirects to localhost:4002/content |
-| youtube.com/feed/* | ➡️ Redirects to localhost:4002/content |
-| music.youtube.com | ➡️ Redirects to localhost:4002/content |
-| youtu.be/xxx | ➡️ Redirects to localhost:4002/content |
+| youtube.com (homepage) | ➡️ Redirects to curatedreels.com/content |
+| youtube.com/watch?v=xxx | ➡️ Redirects to curatedreels.com/content |
+| youtube.com/shorts/xxx | ➡️ Redirects to curatedreels.com/content |
+| youtube.com/results?search_query=xxx | ➡️ Redirects to curatedreels.com/content |
+| youtube.com/@channel | ➡️ Redirects to curatedreels.com/content |
+| youtube.com/feed/* | ➡️ Redirects to curatedreels.com/content |
+| music.youtube.com | ➡️ Redirects to curatedreels.com/content |
+| youtu.be/xxx | ➡️ Redirects to curatedreels.com/content |
 | youtube.com/embed/xxx | ✅ Allowed (for embeds) |
 | youtube.com/iframe_api | ✅ Allowed (for player) |
 | ytimg.com/* (thumbnails) | ✅ Allowed |

@@ -17,6 +17,7 @@
     "delete:videos": "tsx scripts/delete-user-videos.ts",
     "fix:db-leftovers": "tsx scripts/fix-db-leftovers.ts",
     "make:superadmin": "tsx scripts/make-superadmin.ts",
+    "build:extension": "./scripts/build-extension.sh",
     "bot:leave-groups": "tsx scripts/bot-leave-groups.ts",
     "migrate:export": "tsx migration/export-from-sanity.ts",
     "migrate:transform": "tsx migration/transform-data.ts",

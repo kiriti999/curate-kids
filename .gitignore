@@ -53,3 +53,5 @@ packages/*/dist/
 release-bundles/
 release-staging/
 output/
+.vercel
+.env*

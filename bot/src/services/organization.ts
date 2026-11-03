@@ -194,13 +194,15 @@ async function unlinkOrganizationUsers(db: any, org: any): Promise<void> {
     const orgIdString = org._id.toString();
     const query = buildUnlinkQuery(org);
 
+    // telegramId has a unique index: remove the field rather than storing null,
+    // otherwise a second unlinked user collides on { telegramId: null }
     const unlinkResult = await db.collection("users").updateMany(query, {
         $set: {
             organization: null,
-            telegramId: null,
             telegramUsername: null,
             telegramFirstName: null,
         },
+        $unset: { telegramId: "" },
     });
 
     logger.info("Users unlink attempt", {
@@ -270,10 +272,11 @@ export async function unlinkUserFromOrganization(
             {
                 $set: {
                     organization: null,
-                    telegramId: null,
                     telegramUsername: null,
                     telegramFirstName: null,
                 },
+                // Remove (don't null) the uniquely-indexed field
+                $unset: { telegramId: "" },
             },
         );
 

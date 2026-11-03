@@ -14,6 +14,10 @@ export const CATEGORIES = [
   { value: "sports", label: "⚽ Sports" },
   { value: "nature", label: "🌿 Nature" },
   { value: "stories", label: "📖 Stories" },
+  { value: "spiritual", label: "🕉️ Spiritual" },
+  { value: "friendship", label: "🤝 Friendship" },
+  { value: "morals", label: "🧭 Morals" },
+  { value: "safety", label: "🛡️ Safety" },
 ] as const;
 
 export type VideoCategory = typeof CATEGORIES[number]["value"];

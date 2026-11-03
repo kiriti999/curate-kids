@@ -32,7 +32,7 @@ export default function LoginForm() {
         if (!result.success) {
           setError(result.message || "Login failed");
         } else {
-          router.push("/content");
+          router.replace("/content"); // replace so Back skips the login page
         }
       } else if (mode === "forgot-password") {
         const { forgotPassword } = await import("@/lib/auth");

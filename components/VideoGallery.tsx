@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AddToPlaylistButton from "@/components/AddToPlaylistButton";
 import { useAuth } from "@/components/AuthProvider";
+import { PlaylistsProvider } from "@/components/PlaylistsContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -1014,6 +1015,7 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
     }, [selectedVisible, handleDeleted]);
 
     return (
+        <PlaylistsProvider>
         <div className="flex gap-6">
             <Sidebar
                 searchQuery={filters.searchQuery}
@@ -1074,6 +1076,7 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
                 />
             )}
         </div>
+        </PlaylistsProvider>
     );
 }
 

@@ -25,12 +25,30 @@ export async function GET(req: NextRequest) {
             depth: 0,
         })
 
+        // References to deleted videos can linger in older playlists; only count real ones
+        const allIds = Array.from(
+            new Set(result.docs.flatMap((p: any) => (p.items || []).map((i: any) => relId(i.video)))),
+        ).filter(Boolean) as string[]
+        const existing = allIds.length
+            ? await payload.find({
+                  collection: 'videos',
+                  where: { id: { in: allIds } },
+                  limit: allIds.length,
+                  depth: 0,
+                  pagination: false,
+                  overrideAccess: true,
+              })
+            : { docs: [] as any[] }
+        const existingIds = new Set(existing.docs.map((v: any) => String(v.id)))
+
         const playlists = result.docs.map((p: any) => ({
             id: p.id,
             title: p.title,
             slug: p.slug,
             isPublic: !!p.isPublic,
-            videoIds: (p.items || []).map((i: any) => relId(i.video)),
+            videoIds: (p.items || [])
+                .map((i: any) => relId(i.video))
+                .filter((id: string) => existingIds.has(String(id))),
         }))
         return NextResponse.json({ playlists })
     } catch (error) {

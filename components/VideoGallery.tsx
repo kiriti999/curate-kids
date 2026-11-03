@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import AddToPlaylistButton from "@/components/AddToPlaylistButton";
 import { useAuth } from "@/components/AuthProvider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -935,15 +936,40 @@ function VideoCard({ video }: { video: NormalizedVideo }) {
     const [isTheatre, setIsTheatre] = useState(false);
     const [showVideo, setShowVideo] = useState(false);
 
+    // Theatre mode gets its own history entry so the browser Back button
+    // closes the player instead of leaving the page.
+    const openTheatre = useCallback(() => {
+        window.history.pushState(
+            { ...window.history.state, theatre: video.id },
+            "",
+        );
+        setIsTheatre(true);
+    }, [video.id]);
+
     const handlePlay = useCallback(() => {
         setShowVideo(true);
-        setIsTheatre(true);
-    }, []);
+        openTheatre();
+    }, [openTheatre]);
 
     const handleCloseTheatre = useCallback(() => {
-        setIsTheatre(false);
-        setShowVideo(false);
-    }, []);
+        if (window.history.state?.theatre === video.id) {
+            // Pop our entry; the popstate listener below closes the player
+            window.history.back();
+        } else {
+            setIsTheatre(false);
+            setShowVideo(false);
+        }
+    }, [video.id]);
+
+    useEffect(() => {
+        if (!isTheatre) return;
+        const onPopState = () => {
+            setIsTheatre(false);
+            setShowVideo(false);
+        };
+        window.addEventListener("popstate", onPopState);
+        return () => window.removeEventListener("popstate", onPopState);
+    }, [isTheatre]);
 
     if (isTheatre) {
         return (
@@ -983,25 +1009,28 @@ function VideoCard({ video }: { video: NormalizedVideo }) {
     }
 
     return (
-        <Card className="overflow-hidden p-0">
-            <div className="aspect-video bg-black">
+        <Card className="p-0">
+            <div className="aspect-video bg-black rounded-t-xl overflow-hidden">
                 <VideoThumbnail
                     video={video}
                     isTheatre={isTheatre}
                     showVideo={showVideo}
                     onPlay={handlePlay}
-                    onToggleTheatre={() => setIsTheatre(true)}
+                    onToggleTheatre={openTheatre}
                 />
             </div>
             <CardContent className="p-3 space-y-2">
                 <h2 className="font-medium text-sm line-clamp-2">{video.title}</h2>
-                <div className="flex flex-wrap gap-1.5">
-                    <Badge variant="outline" className="text-xs">
-                        {video.category}
-                    </Badge>
-                    <Badge variant="secondary" className="text-xs">
-                        {video.ageRange}
-                    </Badge>
+                <div className="flex items-center justify-between gap-2">
+                    <div className="flex flex-wrap gap-1.5">
+                        <Badge variant="outline" className="text-xs">
+                            {video.category}
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs">
+                            {video.ageRange}
+                        </Badge>
+                    </div>
+                    <AddToPlaylistButton videoId={video.id} />
                 </div>
             </CardContent>
         </Card>

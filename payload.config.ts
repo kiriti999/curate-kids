@@ -22,6 +22,7 @@ import { AffiliatePartner } from "./payload-cms/collections/AffiliatePartner";
 import { Category } from "./payload-cms/collections/Category";
 import { Media } from "./payload-cms/collections/Media";
 import { Organization } from "./payload-cms/collections/Organization";
+import { Playlist } from "./payload-cms/collections/Playlist";
 import { TermsAcceptance } from "./payload-cms/collections/TermsAcceptance";
 import { User } from "./payload-cms/collections/User";
 // Import collections
@@ -74,6 +75,7 @@ export default buildConfig({
     Organization,
     Video,
     Category,
+    Playlist,
     ActivityLog,
     AdPlacement,
     AffiliatePartner,

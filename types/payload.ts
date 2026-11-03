@@ -71,6 +71,7 @@ export interface Config {
     organizations: Organization;
     videos: Video;
     categories: Category;
+    playlists: Playlist;
     'activity-logs': ActivityLog;
     'ad-placements': AdPlacement;
     'affiliate-partners': AffiliatePartner;
@@ -87,6 +88,7 @@ export interface Config {
     organizations: OrganizationsSelect<false> | OrganizationsSelect<true>;
     videos: VideosSelect<false> | VideosSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    playlists: PlaylistsSelect<false> | PlaylistsSelect<true>;
     'activity-logs': ActivityLogsSelect<false> | ActivityLogsSelect<true>;
     'ad-placements': AdPlacementsSelect<false> | AdPlacementsSelect<true>;
     'affiliate-partners': AffiliatePartnersSelect<false> | AffiliatePartnersSelect<true>;
@@ -499,6 +501,35 @@ export interface Media {
   };
 }
 /**
+ * Ordered playlists of videos
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "playlists".
+ */
+export interface Playlist {
+  id: string;
+  title: string;
+  /**
+   * Auto-generated from title
+   */
+  slug: string;
+  description?: string | null;
+  owner: string | User;
+  organization?: (string | null) | Organization;
+  /**
+   * Public playlists can be viewed by anyone with the link
+   */
+  isPublic?: boolean | null;
+  items?:
+    | {
+        video: string | Video;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Immutable audit trail for all platform activities
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -802,6 +833,10 @@ export interface PayloadLockedDocument {
         value: string | Category;
       } | null)
     | ({
+        relationTo: 'playlists';
+        value: string | Playlist;
+      } | null)
+    | ({
         relationTo: 'activity-logs';
         value: string | ActivityLog;
       } | null)
@@ -982,6 +1017,26 @@ export interface CategoriesSelect<T extends boolean = true> {
   childCount?: T;
   videoCount?: T;
   notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "playlists_select".
+ */
+export interface PlaylistsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  description?: T;
+  owner?: T;
+  organization?: T;
+  isPublic?: T;
+  items?:
+    | T
+    | {
+        video?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }

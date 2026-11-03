@@ -109,7 +109,7 @@ export default function AddToPlaylistButton({ videoId }: { videoId: string }) {
             <button
                 type="button"
                 onClick={() => setOpen((o) => !o)}
-                className="text-xs text-muted-foreground hover:text-foreground border rounded-full px-2.5 py-1 transition-colors"
+                className="text-xs whitespace-nowrap text-muted-foreground hover:text-foreground border rounded-full px-2.5 py-1 transition-colors"
                 aria-haspopup="menu"
                 aria-expanded={open}
             >

@@ -1088,7 +1088,7 @@ function VideoCard({
             </div>
             <CardContent className="p-3 space-y-2">
                 <h2 className="font-medium text-sm line-clamp-2">{video.title}</h2>
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex flex-wrap gap-1.5">
                         <Badge variant="outline" className="text-xs">
                             {video.category}
@@ -1103,7 +1103,7 @@ function VideoCard({
                                 type="button"
                                 onClick={handleDelete}
                                 disabled={deleting}
-                                className="text-xs text-muted-foreground hover:text-destructive border rounded-full px-2.5 py-1 transition-colors disabled:opacity-50"
+                                className="text-xs whitespace-nowrap text-muted-foreground hover:text-destructive border rounded-full px-2.5 py-1 transition-colors disabled:opacity-50"
                                 aria-label={`Delete ${video.title}`}
                             >
                                 {deleting ? "Deleting…" : "🗑 Delete"}

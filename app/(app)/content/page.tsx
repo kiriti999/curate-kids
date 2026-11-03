@@ -4,11 +4,11 @@ import AuthGate from "@/components/AuthGate";
 import Header from "@/components/Header";
 import { Card, CardContent } from "@/components/ui/card";
 import VideoGallery from "@/components/VideoGallery";
-import { getVideos } from "@/lib/payloadcms";
+import { getVideosForCurrentUser } from "@/lib/payloadcms";
 import { logger } from "@/utils/logger";
 
-// Enable ISR (Incremental Static Regeneration) for better Vercel performance
-export const revalidate = 30; // 30 seconds
+// Each user sees their own videos, so this page is rendered per request
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
     title: "My Videos | CuratedReels",
@@ -67,7 +67,7 @@ function VideoGallerySkeleton() {
 
 async function VideoContent() {
     try {
-        const videos = await getVideos({ limit: 100 });
+        const videos = await getVideosForCurrentUser({ limit: 100 });
         logger.debug("Videos loaded for content page", { count: videos.length });
         return <VideoGallery videos={videos as any} />;
     } catch (error) {

@@ -6,8 +6,22 @@
  */
 
 import { CollectionConfig } from 'payload'
+import { isOrgAdmin, isPlatformAdmin, relationId } from '../../utils/access'
 import { USER_ROLES, USER_STATUSES } from '../../config/constants'
 import { beforeChangeUserHook, afterLoginUserHook } from '../hooks/userHooks'
+
+function userScope(user: any) {
+  if (!user) return false
+  if (isPlatformAdmin(user)) return true
+  const or: Record<string, unknown>[] = [{ id: { equals: user.id } }]
+  if (isOrgAdmin(user)) or.push({ organization: { equals: relationId(user.organization) } })
+  return { or }
+}
+
+// Only platform admins may change privileges; org admins and users can't promote anyone
+const platformAdminOnly = {
+  update: ({ req }: { req: { user?: any } }) => isPlatformAdmin(req.user),
+}
 
 export const User: CollectionConfig = {
   slug: 'users',
@@ -41,24 +55,12 @@ export const User: CollectionConfig = {
 
   // Access control
   access: {
-    // Admins can read everyone; users can only read their own account
-    read: ({ req }) => {
-      const user = req.user
-      if (!user) return false
-      if (user.role === 'admin' || user.role === 'superadmin') return true
-      return { id: { equals: user.id } }
-    },
+    // Platform admins see everyone; org admins their organization's members; others only themselves
+    read: ({ req }) => userScope(req.user),
     // Only admins can create users (no public signup)
     create: ({ req }) => req.user?.role === 'admin' || req.user?.role === 'superadmin',
-    // Admins can update everyone; users can only update their own account
-    update: ({ req }) => {
-      const user = req.user
-      if (!user) return false
-      if (user.role === 'admin' || user.role === 'superadmin') return true
-      return { id: { equals: user.id } }
-    },
-    // Only admins can delete users
-    delete: ({ req }) => req.user?.role === 'admin' || req.user?.role === 'superadmin',
+    update: ({ req }) => userScope(req.user),
+    delete: ({ req }) => (isPlatformAdmin(req.user) || isOrgAdmin(req.user) ? userScope(req.user) : false),
   },
 
   fields: [
@@ -79,9 +81,7 @@ export const User: CollectionConfig = {
       type: 'select',
       required: true,
       defaultValue: 'contributor',
-      access: {
-        update: ({ req }) => req.user?.role === 'admin' || req.user?.role === 'superadmin',
-      },
+      access: platformAdminOnly,
       options: [
         { label: 'Super Admin', value: 'superadmin' },
         { label: 'Admin (Org Owner)', value: 'admin' },
@@ -98,9 +98,7 @@ export const User: CollectionConfig = {
       name: 'organization',
       type: 'relationship',
       relationTo: 'organizations',
-      access: {
-        update: ({ req }) => req.user?.role === 'admin' || req.user?.role === 'superadmin',
-      },
+      access: platformAdminOnly,
       admin: {
         description: 'Organization this user belongs to',
         position: 'sidebar',
@@ -155,9 +153,7 @@ export const User: CollectionConfig = {
       type: 'select',
       required: true,
       defaultValue: 'active',
-      access: {
-        update: ({ req }) => req.user?.role === 'admin' || req.user?.role === 'superadmin',
-      },
+      access: platformAdminOnly,
       options: [...USER_STATUSES],
       admin: {
         description: 'Account status',

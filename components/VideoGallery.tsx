@@ -87,6 +87,7 @@ interface Video {
     ageRange: string;
     tags?: Array<{ tag: string; id?: string | null }> | string[] | null;
     createdAt?: string;
+    submittedBy?: string | { id: string } | null;
 }
 
 // Normalized video with string[] tags
@@ -103,6 +104,12 @@ interface NormalizedVideo {
     ageRange: string;
     tags: string[];
     createdAt?: string;
+    submittedById: string;
+}
+
+function submitterId(submittedBy: Video["submittedBy"]): string {
+    if (!submittedBy) return "";
+    return typeof submittedBy === "string" ? submittedBy : submittedBy.id;
 }
 
 // Normalize video data for consistent rendering
@@ -119,6 +126,7 @@ function normalizeVideo(video: Video): NormalizedVideo {
         category: video.category,
         ageRange: video.ageRange,
         createdAt: video.createdAt,
+        submittedById: submitterId(video.submittedBy),
         tags: Array.isArray(video.tags)
             ? video.tags.map((tag) => (typeof tag === "string" ? tag : tag.tag))
             : [],
@@ -857,8 +865,14 @@ function useProcessedVideos(
 
 export default function VideoGallery({ videos }: VideoGalleryProps) {
     const filters = useFilterState();
+    // Videos deleted in this session are hidden right away (the page itself is cached)
+    const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
+    const visibleVideos = useMemo(
+        () => videos.filter((v) => !deletedIds.has(v.id)),
+        [videos, deletedIds],
+    );
     const { filteredVideos, categoryCounts, ageRangeCounts } = useProcessedVideos(
-        videos,
+        visibleVideos,
         filters,
     );
     const [showCategoryManager, setShowCategoryManager] = useState(false);
@@ -868,6 +882,17 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
     const { categories: fetchedCategories } = useFetchCategories();
 
     const isAdmin = user?.role === "admin" || user?.role === "superadmin";
+
+    // Admins can delete any video; other users only the ones they submitted
+    const canDelete = useCallback(
+        (video: NormalizedVideo) =>
+            !!user && (isAdmin || (!!video.submittedById && video.submittedById === user.id)),
+        [user, isAdmin],
+    );
+    const handleDeleted = useCallback(
+        (id: string) => setDeletedIds((prev) => new Set(prev).add(id)),
+        [],
+    );
 
     return (
         <div className="flex gap-6">
@@ -903,7 +928,11 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
                 {filteredVideos.length === 0 ? (
                     <EmptyState hasActiveFilters={filters.hasActiveFilters} />
                 ) : (
-                    <VirtualizedVideoGrid videos={filteredVideos} />
+                    <VirtualizedVideoGrid
+                        videos={filteredVideos}
+                        canDelete={canDelete}
+                        onDeleted={handleDeleted}
+                    />
                 )}
             </main>
 
@@ -919,22 +948,60 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
 }
 
 // Simple grid component (removed virtualization for better layout stability)
-function VirtualizedVideoGrid({ videos }: { videos: NormalizedVideo[] }) {
+function VirtualizedVideoGrid({
+    videos,
+    canDelete,
+    onDeleted,
+}: {
+    videos: NormalizedVideo[];
+    canDelete: (video: NormalizedVideo) => boolean;
+    onDeleted: (id: string) => void;
+}) {
     if (videos.length === 0) return null;
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 pb-20">
             {videos.map((video) => (
-                <VideoCard key={video.id} video={video} />
+                <VideoCard
+                    key={video.id}
+                    video={video}
+                    canDelete={canDelete(video)}
+                    onDeleted={onDeleted}
+                />
             ))}
         </div>
     );
 }
 
 // Extracted video card component for cleaner code
-function VideoCard({ video }: { video: NormalizedVideo }) {
+function VideoCard({
+    video,
+    canDelete,
+    onDeleted,
+}: {
+    video: NormalizedVideo;
+    canDelete: boolean;
+    onDeleted: (id: string) => void;
+}) {
     const [isTheatre, setIsTheatre] = useState(false);
     const [showVideo, setShowVideo] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+
+    const handleDelete = useCallback(async () => {
+        if (!window.confirm(`Delete "${video.title}"? This can't be undone.`)) return;
+        setDeleting(true);
+        try {
+            const res = await fetch(`/api/videos/${video.id}`, {
+                method: "DELETE",
+                credentials: "include",
+            });
+            if (!res.ok) throw new Error(String(res.status));
+            onDeleted(video.id);
+        } catch {
+            window.alert("Couldn't delete this video. Please try again.");
+            setDeleting(false);
+        }
+    }, [video.id, video.title, onDeleted]);
 
     // Theatre mode gets its own history entry so the browser Back button
     // closes the player instead of leaving the page.
@@ -1030,7 +1097,20 @@ function VideoCard({ video }: { video: NormalizedVideo }) {
                             {video.ageRange}
                         </Badge>
                     </div>
-                    <AddToPlaylistButton videoId={video.id} />
+                    <div className="flex items-center gap-2">
+                        {canDelete && (
+                            <button
+                                type="button"
+                                onClick={handleDelete}
+                                disabled={deleting}
+                                className="text-xs text-muted-foreground hover:text-destructive border rounded-full px-2.5 py-1 transition-colors disabled:opacity-50"
+                                aria-label={`Delete ${video.title}`}
+                            >
+                                {deleting ? "Deleting…" : "🗑 Delete"}
+                            </button>
+                        )}
+                        <AddToPlaylistButton videoId={video.id} />
+                    </div>
                 </div>
             </CardContent>
         </Card>

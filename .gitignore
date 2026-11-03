@@ -55,3 +55,6 @@ release-staging/
 output/
 .vercel
 .env*
+
+# Allow the packaged browser extension to be committed and served
+!public/downloads/*.zip

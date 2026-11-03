@@ -1,37 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
-
-interface PlaylistSummary {
-    id: string;
-    title: string;
-    videoIds: string[];
-}
+import { type PlaylistSummary, usePlaylists } from "@/components/PlaylistsContext";
 
 /** "Add to playlist" menu for a video card. Renders nothing for signed-out users. */
 export default function AddToPlaylistButton({ videoId }: { videoId: string }) {
     const { isAuthenticated } = useAuth();
     const [open, setOpen] = useState(false);
-    const [playlists, setPlaylists] = useState<PlaylistSummary[] | null>(null);
+    const { playlists, setPlaylists, error: loadError } = usePlaylists();
     const [newTitle, setNewTitle] = useState("");
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     const rootRef = useRef<HTMLDivElement>(null);
-
-    const load = useCallback(async () => {
-        try {
-            const res = await fetch("/api/playlists", { credentials: "include" });
-            if (!res.ok) throw new Error();
-            setPlaylists((await res.json()).playlists);
-        } catch {
-            setError("Couldn't load playlists");
-        }
-    }, []);
-
-    useEffect(() => {
-        if (open && playlists === null) load();
-    }, [open, playlists, load]);
+    const inPlaylist = !!playlists?.some((p) => p.videoIds.includes(videoId));
 
     // Close when clicking outside
     useEffect(() => {
@@ -109,18 +91,23 @@ export default function AddToPlaylistButton({ videoId }: { videoId: string }) {
             <button
                 type="button"
                 onClick={() => setOpen((o) => !o)}
-                className="text-xs whitespace-nowrap text-muted-foreground hover:text-foreground border rounded-full px-2.5 py-1 transition-colors"
+                className={`text-xs whitespace-nowrap border rounded-full px-2.5 py-1 transition-colors ${
+                    inPlaylist
+                        ? "border-green-500/60 text-green-500 hover:text-green-400"
+                        : "text-muted-foreground hover:text-foreground"
+                }`}
                 aria-haspopup="menu"
                 aria-expanded={open}
+                title={inPlaylist ? "In one of your playlists" : "Add to a playlist"}
             >
-                ➕ Playlist
+                {inPlaylist ? "✓ In playlist" : "➕ Playlist"}
             </button>
             {open && (
                 <div
                     role="menu"
                     className="absolute right-0 bottom-full mb-2 z-20 w-64 rounded-lg border bg-background shadow-lg p-2 space-y-1"
                 >
-                    {playlists === null && !error && (
+                    {playlists === null && !error && !loadError && (
                         <p className="text-xs text-muted-foreground p-2">Loading…</p>
                     )}
                     {playlists?.length === 0 && (
@@ -160,7 +147,9 @@ export default function AddToPlaylistButton({ videoId }: { videoId: string }) {
                             Add
                         </button>
                     </form>
-                    {error && <p className="text-xs text-destructive px-1">{error}</p>}
+                    {(error || loadError) && (
+                        <p className="text-xs text-destructive px-1">{error || loadError}</p>
+                    )}
                 </div>
             )}
         </div>

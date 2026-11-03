@@ -29,6 +29,21 @@ if (fs.existsSync(envLocalPath)) {
     }
 }
 
+// Fall back to the bot's or Vercel's env file if MONGODB_URI isn't set in the shell/.env
+if (!process.env.MONGODB_URI) {
+    for (const file of ['bot/.env', '.env.vercel']) {
+        const p = path.resolve(process.cwd(), file)
+        if (fs.existsSync(p)) {
+            const uri = dotenv.parse(fs.readFileSync(p)).MONGODB_URI
+            if (uri) {
+                process.env.MONGODB_URI = uri
+                console.log(`Using MONGODB_URI from ${file}`)
+                break
+            }
+        }
+    }
+}
+
 const MONGODB_URI = process.env.MONGODB_URI
 const args = process.argv.slice(2)
 const email = args.find((a) => !a.startsWith('--'))

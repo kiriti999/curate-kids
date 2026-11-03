@@ -30,6 +30,32 @@ const revalidateGallery: CollectionAfterChangeHook & CollectionAfterDeleteHook =
   return doc;
 };
 
+// Playlists only store references, so drop the video from any playlist that has it
+const removeFromPlaylists: CollectionAfterDeleteHook = async ({ id, req }) => {
+  try {
+    const playlists = await req.payload.find({
+      collection: "playlists",
+      where: { "items.video": { equals: id } },
+      limit: 1000,
+      depth: 0,
+      overrideAccess: true,
+    });
+    for (const playlist of playlists.docs as any[]) {
+      const items = (playlist.items || [])
+        .filter((item: any) => String(typeof item.video === "object" ? item.video?.id : item.video) !== String(id))
+        .map((item: any) => ({ video: typeof item.video === "object" ? item.video?.id : item.video }));
+      await req.payload.update({
+        collection: "playlists",
+        id: playlist.id,
+        data: { items } as any,
+        overrideAccess: true,
+      });
+    }
+  } catch (error) {
+    req.payload.logger.error({ err: error, msg: "Failed to remove deleted video from playlists" });
+  }
+};
+
 function manageScope(user: any) {
   if (!user) return false;
   if (isPlatformAdmin(user)) return true;
@@ -368,6 +394,6 @@ export const Video: CollectionConfig = {
     afterRead: [afterReadVideoHook],
 
     afterChange: [revalidateGallery],
-    afterDelete: [revalidateGallery],
+    afterDelete: [revalidateGallery, removeFromPlaylists],
   },
 };

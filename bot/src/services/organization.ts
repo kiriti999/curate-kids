@@ -123,8 +123,17 @@ export async function createOrganization(params: {
         const db = await getDatabase();
         if (!db) return null;
 
+        // The organizations collection has a leftover unique index on `slug`, so every
+        // document needs a distinct slug or the second organization fails with E11000.
+        const slugBase = params.name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/(^-|-$)/g, "")
+            .substring(0, 60) || "org";
+
         const doc = {
             name: params.name,
+            slug: `${slugBase}-${crypto.randomUUID().slice(0, 6)}`,
             telegramGroupId: params.telegramGroupId,
             ageRange: params.ageRange,
             ownerTelegramId: params.ownerTelegramId,

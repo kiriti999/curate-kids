@@ -36,7 +36,7 @@ async function getMongoClient(): Promise<MongoClient | null> {
     return mongoClient;
 }
 
-async function getDatabase() {
+export async function getDatabase() {
     const client = await getMongoClient();
     if (!client) return null;
     return client.db("curatedreels");

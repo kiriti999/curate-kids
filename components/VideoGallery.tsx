@@ -1,5 +1,6 @@
 "use client";
 
+import { Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -771,16 +772,63 @@ function EmptyState({ hasActiveFilters }: { hasActiveFilters: boolean }) {
 function ResultsHeader({
     count,
     hasActiveFilters,
+    canSelect,
+    selectMode,
+    selectedCount,
+    deletableCount,
+    deleting,
+    onToggleSelectMode,
+    onSelectAll,
+    onDeleteSelected,
 }: {
     count: number;
     hasActiveFilters: boolean;
+    canSelect: boolean;
+    selectMode: boolean;
+    selectedCount: number;
+    deletableCount: number;
+    deleting: boolean;
+    onToggleSelectMode: () => void;
+    onSelectAll: () => void;
+    onDeleteSelected: () => void;
 }) {
     return (
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
             <p className="text-sm text-muted-foreground">
                 {count} video{count !== 1 ? "s" : ""}
                 {hasActiveFilters && " (filtered)"}
             </p>
+            {canSelect && (
+                <div className="flex items-center gap-2 text-sm">
+                    {selectMode && (
+                        <>
+                            <button
+                                type="button"
+                                onClick={onSelectAll}
+                                className="text-muted-foreground hover:text-foreground"
+                            >
+                                {selectedCount === deletableCount ? "Clear" : `Select all (${deletableCount})`}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={onDeleteSelected}
+                                disabled={selectedCount === 0 || deleting}
+                                className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-3 py-1 text-white disabled:opacity-40"
+                            >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                {deleting ? "Deleting…" : `Delete (${selectedCount})`}
+                            </button>
+                        </>
+                    )}
+                    <button
+                        type="button"
+                        onClick={onToggleSelectMode}
+                        className="rounded-full border px-3 py-1 text-muted-foreground hover:text-foreground"
+                    >
+                        {selectMode ? "Cancel" : "Select"}
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
@@ -894,6 +942,67 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
         [],
     );
 
+    // Multi-select delete
+    const [selectMode, setSelectMode] = useState(false);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [bulkDeleting, setBulkDeleting] = useState(false);
+    const deletableVideos = useMemo(
+        () => filteredVideos.filter(canDelete),
+        [filteredVideos, canDelete],
+    );
+    // Only count selections that are still visible and deletable (filters can change)
+    const selectedVisible = useMemo(
+        () => deletableVideos.filter((v) => selectedIds.has(v.id)),
+        [deletableVideos, selectedIds],
+    );
+
+    const toggleSelectMode = useCallback(() => {
+        setSelectMode((on) => !on);
+        setSelectedIds(new Set());
+    }, []);
+    const toggleSelected = useCallback((id: string) => {
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    }, []);
+    const selectAll = useCallback(() => {
+        setSelectedIds(
+            selectedVisible.length === deletableVideos.length
+                ? new Set()
+                : new Set(deletableVideos.map((v) => v.id)),
+        );
+    }, [deletableVideos, selectedVisible.length]);
+
+    const deleteSelected = useCallback(async () => {
+        const ids = selectedVisible.map((v) => v.id);
+        if (ids.length === 0) return;
+        if (!window.confirm(`Delete ${ids.length} video${ids.length > 1 ? "s" : ""}? This can't be undone.`)) return;
+        setBulkDeleting(true);
+        try {
+            const res = await fetch(
+                `/api/videos?where[id][in]=${encodeURIComponent(ids.join(","))}`,
+                { method: "DELETE", credentials: "include" },
+            );
+            const body = await res.json().catch(() => ({}));
+            const removed: string[] = (body.docs || []).map((d: { id: string }) => d.id);
+            removed.forEach(handleDeleted);
+            setSelectedIds(new Set());
+            const failed = ids.length - removed.length;
+            if (failed > 0) {
+                window.alert(`${failed} video${failed > 1 ? "s" : ""} couldn't be deleted.`);
+            } else {
+                setSelectMode(false);
+            }
+        } catch {
+            window.alert("Couldn't delete the selected videos. Please try again.");
+        } finally {
+            setBulkDeleting(false);
+        }
+    }, [selectedVisible, handleDeleted]);
+
     return (
         <div className="flex gap-6">
             <Sidebar
@@ -924,6 +1033,14 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
                 <ResultsHeader
                     count={filteredVideos.length}
                     hasActiveFilters={filters.hasActiveFilters}
+                    canSelect={deletableVideos.length > 0}
+                    selectMode={selectMode}
+                    selectedCount={selectedVisible.length}
+                    deletableCount={deletableVideos.length}
+                    deleting={bulkDeleting}
+                    onToggleSelectMode={toggleSelectMode}
+                    onSelectAll={selectAll}
+                    onDeleteSelected={deleteSelected}
                 />
                 {filteredVideos.length === 0 ? (
                     <EmptyState hasActiveFilters={filters.hasActiveFilters} />
@@ -932,6 +1049,9 @@ export default function VideoGallery({ videos }: VideoGalleryProps) {
                         videos={filteredVideos}
                         canDelete={canDelete}
                         onDeleted={handleDeleted}
+                        selectMode={selectMode}
+                        selectedIds={selectedIds}
+                        onToggleSelected={toggleSelected}
                     />
                 )}
             </main>
@@ -952,10 +1072,16 @@ function VirtualizedVideoGrid({
     videos,
     canDelete,
     onDeleted,
+    selectMode,
+    selectedIds,
+    onToggleSelected,
 }: {
     videos: NormalizedVideo[];
     canDelete: (video: NormalizedVideo) => boolean;
     onDeleted: (id: string) => void;
+    selectMode: boolean;
+    selectedIds: Set<string>;
+    onToggleSelected: (id: string) => void;
 }) {
     if (videos.length === 0) return null;
 
@@ -967,6 +1093,9 @@ function VirtualizedVideoGrid({
                     video={video}
                     canDelete={canDelete(video)}
                     onDeleted={onDeleted}
+                    selectMode={selectMode}
+                    selected={selectedIds.has(video.id)}
+                    onToggleSelected={onToggleSelected}
                 />
             ))}
         </div>
@@ -978,10 +1107,16 @@ function VideoCard({
     video,
     canDelete,
     onDeleted,
+    selectMode,
+    selected,
+    onToggleSelected,
 }: {
     video: NormalizedVideo;
     canDelete: boolean;
     onDeleted: (id: string) => void;
+    selectMode: boolean;
+    selected: boolean;
+    onToggleSelected: (id: string) => void;
 }) {
     const [isTheatre, setIsTheatre] = useState(false);
     const [showVideo, setShowVideo] = useState(false);
@@ -1077,7 +1212,18 @@ function VideoCard({
 
     return (
         <Card className="p-0">
-            <div className="aspect-video bg-black rounded-t-xl overflow-hidden">
+            <div className="relative aspect-video bg-black rounded-t-xl overflow-hidden">
+                {selectMode && canDelete && (
+                    <label className="absolute top-2 left-2 z-10 flex items-center justify-center w-7 h-7 rounded bg-black/70 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={selected}
+                            onChange={() => onToggleSelected(video.id)}
+                            className="w-4 h-4 cursor-pointer"
+                            aria-label={`Select ${video.title}`}
+                        />
+                    </label>
+                )}
                 <VideoThumbnail
                     video={video}
                     isTheatre={isTheatre}
@@ -1098,15 +1244,16 @@ function VideoCard({
                         </Badge>
                     </div>
                     <div className="flex items-center gap-2">
-                        {canDelete && (
+                        {canDelete && !selectMode && (
                             <button
                                 type="button"
                                 onClick={handleDelete}
                                 disabled={deleting}
-                                className="text-xs whitespace-nowrap text-muted-foreground hover:text-destructive border rounded-full px-2.5 py-1 transition-colors disabled:opacity-50"
+                                className="text-muted-foreground hover:text-destructive border rounded-full p-1.5 transition-colors disabled:opacity-50"
                                 aria-label={`Delete ${video.title}`}
+                                title="Delete video"
                             >
-                                {deleting ? "Deleting…" : "🗑 Delete"}
+                                <Trash2 className="w-3.5 h-3.5" />
                             </button>
                         )}
                         <AddToPlaylistButton videoId={video.id} />

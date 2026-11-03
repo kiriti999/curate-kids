@@ -41,14 +41,24 @@ export const User: CollectionConfig = {
 
   // Access control
   access: {
-    // Users can read their own data and admins can read all
-    read: () => true,
+    // Admins can read everyone; users can only read their own account
+    read: ({ req }) => {
+      const user = req.user
+      if (!user) return false
+      if (user.role === 'admin' || user.role === 'superadmin') return true
+      return { id: { equals: user.id } }
+    },
     // Only admins can create users (no public signup)
     create: ({ req }) => req.user?.role === 'admin' || req.user?.role === 'superadmin',
-    // Users can update their own data, admins can update all
-    update: () => true,
+    // Admins can update everyone; users can only update their own account
+    update: ({ req }) => {
+      const user = req.user
+      if (!user) return false
+      if (user.role === 'admin' || user.role === 'superadmin') return true
+      return { id: { equals: user.id } }
+    },
     // Only admins can delete users
-    delete: ({ req }) => req.user?.role === 'admin',
+    delete: ({ req }) => req.user?.role === 'admin' || req.user?.role === 'superadmin',
   },
 
   fields: [
@@ -69,6 +79,9 @@ export const User: CollectionConfig = {
       type: 'select',
       required: true,
       defaultValue: 'contributor',
+      access: {
+        update: ({ req }) => req.user?.role === 'admin' || req.user?.role === 'superadmin',
+      },
       options: [
         { label: 'Super Admin', value: 'superadmin' },
         { label: 'Admin (Org Owner)', value: 'admin' },
@@ -85,6 +98,9 @@ export const User: CollectionConfig = {
       name: 'organization',
       type: 'relationship',
       relationTo: 'organizations',
+      access: {
+        update: ({ req }) => req.user?.role === 'admin' || req.user?.role === 'superadmin',
+      },
       admin: {
         description: 'Organization this user belongs to',
         position: 'sidebar',
@@ -139,6 +155,9 @@ export const User: CollectionConfig = {
       type: 'select',
       required: true,
       defaultValue: 'active',
+      access: {
+        update: ({ req }) => req.user?.role === 'admin' || req.user?.role === 'superadmin',
+      },
       options: [...USER_STATUSES],
       admin: {
         description: 'Account status',

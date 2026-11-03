@@ -114,6 +114,8 @@ export async function getVideosForCurrentUser(
       limit: params.limit || 50,
       page: params.page || 1,
       sort: "-createdAt",
+      // IDs are enough for the gallery; skipping relationship population saves queries
+      depth: 0,
       // The collection's read access applies the per-user/organization scope
       overrideAccess: false,
       user,

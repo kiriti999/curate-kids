@@ -570,3 +570,24 @@ export function detectAgeRangeFromGroupName(groupName: string): string {
     // Return empty string for organizations
     return "";
 }
+
+/**
+ * Who a submission belongs to: the linked account of the sender and the
+ * organization of the group (or, in a private chat, the sender's own).
+ * Videos need both so the website can keep each user's videos separate.
+ */
+export async function resolveSubmitter(
+    chatType: string | undefined,
+    chatId: number,
+    telegramUserId: number,
+): Promise<{ organizationId?: string; submittedByUserId?: string }> {
+    const user = await findUserByTelegramId(String(telegramUserId));
+    let organizationId = user?.organization;
+
+    if (chatType !== "private") {
+        const org = await findOrganizationByGroupId(String(chatId));
+        organizationId = org?.id ?? organizationId;
+    }
+
+    return { organizationId, submittedByUserId: user?.id };
+}

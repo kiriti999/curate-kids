@@ -10,6 +10,7 @@ import { buildAgeRangeKeyboard } from "../utils/keyboard.ts";
 import { createStateKey, setState, type MessageState } from "../types/state.ts";
 import { getYouTubeMetadata } from "../services/youtube.ts";
 import { checkCanSubmit } from "./organizationHandler.ts";
+import { resolveSubmitter } from "../services/organization.ts";
 import { handlePlaylistNameReply } from "./playlistHandler.ts";
 import {
   PROMPT_SELECT_AGE_RANGE,
@@ -74,6 +75,9 @@ export async function handleTextMessage(ctx: Context): Promise<void> {
       orgId: organizationId,
       userRole: user?.role,
     });
+  } else {
+    // Private chat: attribute the video to the sender's linked account, if any
+    ({ organizationId, submittedByUserId } = await resolveSubmitter("private", chatId, userId));
   }
 
   // Fetch metadata and check embeddability for YouTube

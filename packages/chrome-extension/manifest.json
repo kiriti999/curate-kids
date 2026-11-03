@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "CurateKids Safe Browsing",
-  "version": "1.0.0",
-  "description": "Parental lock - Redirects YouTube browsing to CurateKids content while allowing embedded videos",
+  "name": "CuratedReels Safe Browsing",
+  "version": "1.1.0",
+  "description": "Parental lock - Redirects YouTube browsing to CuratedReels while allowing embedded videos",
   "permissions": [
     "declarativeNetRequest",
     "storage"
@@ -12,7 +12,7 @@
     "*://youtube.com/*",
     "*://*.youtu.be/*",
     "*://youtu.be/*",
-    "http://localhost:4002/*"
+    "https://curatedreels.com/*"
   ],
   "declarative_net_request": {
     "rule_resources": [

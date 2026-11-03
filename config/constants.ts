@@ -43,6 +43,10 @@ export const VIDEO_CATEGORY_OPTIONS = [
   { title: 'Sports', value: 'sports' },
   { title: 'Nature', value: 'nature' },
   { title: 'Stories', value: 'stories' },
+  { title: 'Spiritual', value: 'spiritual' },
+  { title: 'Friendship', value: 'friendship' },
+  { title: 'Morals', value: 'morals' },
+  { title: 'Safety', value: 'safety' },
 ]
 
 /**

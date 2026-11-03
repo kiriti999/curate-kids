@@ -148,6 +148,10 @@ const FALLBACK_CATEGORIES = [
     { value: "sports", label: "Sports" },
     { value: "nature", label: "Nature" },
     { value: "stories", label: "Stories" },
+    { value: "spiritual", label: "Spiritual" },
+    { value: "friendship", label: "Friendship" },
+    { value: "morals", label: "Morals" },
+    { value: "safety", label: "Safety" },
 ];
 
 // Fetch categories from the Payload CMS categories collection via API
@@ -164,11 +168,13 @@ function useFetchCategories() {
                 if (!res.ok) throw new Error("Failed to fetch");
                 const data = await res.json();
                 if (!cancelled && data.categories && data.categories.length > 0) {
+                    // Defaults first, plus any extra categories created in the admin panel
+                    const merged = new Map(
+                        FALLBACK_CATEGORIES.map((c) => [c.value, c.label] as [string, string]),
+                    );
+                    for (const c of data.categories) merged.set(c.value, c.label);
                     setCategories(
-                        data.categories.map((c: any) => ({
-                            value: c.value,
-                            label: c.label,
-                        })),
+                        Array.from(merged, ([value, label]) => ({ value, label })),
                     );
                 }
             } catch (err) {

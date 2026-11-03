@@ -5,7 +5,8 @@
  * Migrated from Sanity CMS video document type.
  */
 
-import type { CollectionConfig } from "payload";
+import { revalidatePath } from "next/cache";
+import type { CollectionAfterChangeHook, CollectionAfterDeleteHook, CollectionConfig } from "payload";
 import {
   PAYLOAD_CONFIG,
   VIDEO_AGE_RANGE_OPTIONS,
@@ -16,6 +17,17 @@ import {
   beforeChangeVideoHook,
   beforeValidateVideoHook,
 } from "../hooks/videoHooks";
+
+// Keep the cached gallery page in sync with admin/API changes. Outside a Next.js
+// request (scripts, type generation) revalidation isn't available, so ignore that.
+const revalidateGallery: CollectionAfterChangeHook & CollectionAfterDeleteHook = ({ doc }) => {
+  try {
+    revalidatePath("/content");
+  } catch {
+    /* not running inside Next.js */
+  }
+  return doc;
+};
 
 export const Video: CollectionConfig = {
   slug: "videos",
@@ -341,5 +353,8 @@ export const Video: CollectionConfig = {
 
     // T020: Calculate viewCount from ActivityLog (implemented for future use)
     afterRead: [afterReadVideoHook],
+
+    afterChange: [revalidateGallery],
+    afterDelete: [revalidateGallery],
   },
 };

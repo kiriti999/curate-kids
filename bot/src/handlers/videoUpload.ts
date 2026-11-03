@@ -8,6 +8,7 @@ import * as logger from "../utils/logger.ts";
 import { buildAgeRangeKeyboard } from "../utils/keyboard.ts";
 import { createStateKey, setState, type MessageState } from "../types/state.ts";
 import { uploadVideoFromUrl } from "../services/cloudinary.ts";
+import { resolveSubmitter } from "../services/organization.ts";
 import {
   ERROR_UPLOAD_FAILED,
   PROMPT_SELECT_AGE_RANGE,
@@ -103,13 +104,13 @@ async function processVideoUpload(
       duration: cloudinaryResult.duration,
     });
 
-    const state = buildVideoState(
-      messageId,
-      chatId,
-      userId,
-      caption,
-      cloudinaryResult
-    );
+    const submitter = await resolveSubmitter(ctx.chat?.type, chatId, userId);
+    const state = {
+      ...buildVideoState(messageId, chatId, userId, caption, cloudinaryResult),
+      ...submitter,
+      submitterTelegramId: String(userId),
+      submitterTelegramUsername: ctx.from?.username,
+    };
     await setState(createStateKey(chatId, messageId), state);
 
     await sendAgeRangeSelection(ctx, chatId, processingMsg.message_id, caption, cloudinaryResult, messageId);

@@ -2,13 +2,20 @@
 
 import { useRouter } from "next/navigation";
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "./AuthProvider";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Input } from "./ui/input";
 
 type AuthMode = "login" | "forgot-password";
+
+const GOOGLE_ERROR_MESSAGES: Record<string, string> = {
+  google_not_authorized:
+    "That Google account doesn't have access. Ask an admin to add your email, then try again.",
+  google_failed: "Google sign-in didn't complete. Please try again.",
+  google_unavailable: "Google sign-in isn't available right now.",
+};
 
 export default function LoginForm() {
   const router = useRouter();
@@ -19,6 +26,16 @@ export default function LoginForm() {
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
+  const [redirectTo, setRedirectTo] = useState("/content");
+
+  // Show Google sign-in errors (?error=...) and remember where to send the user afterwards.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const googleError = params.get("error");
+    if (googleError && GOOGLE_ERROR_MESSAGES[googleError]) setError(GOOGLE_ERROR_MESSAGES[googleError]);
+    const redirect = params.get("redirect");
+    if (redirect) setRedirectTo(redirect);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,6 +127,22 @@ export default function LoginForm() {
               )}
             </Button>
           </form>
+
+          {mode === "login" && (
+            <div className="mt-6 space-y-4">
+              <p className="text-center text-xs text-muted-foreground">or</p>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  window.location.href = `/api/auth/google?redirect=${encodeURIComponent(redirectTo)}`;
+                }}
+              >
+                Continue with Google
+              </Button>
+            </div>
+          )}
 
           <div className="mt-6 text-center text-sm">
             {mode === "login" && (

@@ -19,6 +19,7 @@ import {
   handleStatusCommand,
 } from "./handlers/organizationHandler.ts";
 import { validateConnection as validatePayloadConnection } from "./services/payload.ts";
+import { checkDatabase } from "./services/organization.ts";
 
 // Check if we should use polling mode (for local development)
 const USE_POLLING = Deno.env.get("USE_POLLING") === "true";
@@ -230,6 +231,15 @@ if (USE_POLLING) {
         );
       }
       return new Response("CuratedReels Bot is running! 🤖", { status: 200 });
+    }
+
+    // Reports whether the database login works. Public and minimal on purpose: details stay in the logs.
+    if (req.method === "GET" && url.pathname === "/health") {
+      const database = areEnvVarsConfigured() && (await checkDatabase());
+      return Response.json(
+        { bot: "running", database: database ? "ok" : "unavailable" },
+        { status: database ? 200 : 503 },
+      );
     }
     
     // Webhook endpoint - requires env vars

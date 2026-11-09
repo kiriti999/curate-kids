@@ -25,8 +25,11 @@ async function getMongoClient(): Promise<MongoClient | null> {
 
     if (!mongoClient) {
         try {
-            mongoClient = new MongoClient(MONGODB_URI);
-            await mongoClient.connect();
+            // Only cache the client once it has really connected, so a failed login
+            // (for example after a password change) is retried on the next request.
+            const client = new MongoClient(MONGODB_URI);
+            await client.connect();
+            mongoClient = client;
             logger.info("MongoDB connected for organization service");
         } catch (error) {
             logger.error("Failed to connect to MongoDB", { error: String(error) });
@@ -34,6 +37,20 @@ async function getMongoClient(): Promise<MongoClient | null> {
         }
     }
     return mongoClient;
+}
+
+/** Lightweight database check used by /health and by error messages. Never throws. */
+export async function checkDatabase(): Promise<boolean> {
+    try {
+        const db = await getDatabase();
+        if (!db) return false;
+        await db.command({ ping: 1 });
+        return true;
+    } catch (error) {
+        logger.error("Database ping failed", { error: String(error) });
+        mongoClient = null; // reconnect on the next call
+        return false;
+    }
 }
 
 export async function getDatabase() {

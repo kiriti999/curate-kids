@@ -11,6 +11,7 @@
 import { Context, InlineKeyboard } from "grammy";
 import * as logger from "../utils/logger.ts";
 import {
+  checkDatabase,
   findOrganizationByGroupId,
   createOrganization,
   deleteOrganizationByGroupId,
@@ -474,8 +475,13 @@ export async function checkCanSubmit(ctx: Context): Promise<{
   const org = await findOrganizationByGroupId(chatId!);
 
   if (!org) {
+    // findOrganizationByGroupId also returns null when the database is unreachable, so tell the
+    // two situations apart instead of telling users their group is not configured.
+    const databaseUp = await checkDatabase();
     await ctx.reply(
-      "⚠️ This group is not configured yet. Please ask the group owner to set up CuratedReels."
+      databaseUp
+        ? "⚠️ This group is not configured yet. Please ask the group owner to set up CuratedReels."
+        : "⚠️ CuratedReels is temporarily unavailable. Please try again in a few minutes."
     );
     return { canSubmit: false };
   }

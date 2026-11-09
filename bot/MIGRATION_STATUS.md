@@ -72,7 +72,7 @@ Please verify/update the MongoDB Atlas credentials:
 7. Click **Add User**
 8. Update `MONGODB_URI` in `.env` with new credentials:
    ```
-   MONGODB_URI=mongodb+srv://kiritik999:***REMOVED***@curatedreels.qoymsy.mongodb.net/curatedreels?retryWrites=true&w=majority
+   MONGODB_URI=mongodb+srv://kiritik999:<REDACTED>@curatedreels.qoymsy.mongodb.net/curatedreels?retryWrites=true&w=majority
    ```
 
 ### Option 3: Get New Connection String

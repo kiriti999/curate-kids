@@ -1,0 +1,18 @@
+# Secret scanning config (used by the pre-commit hook). Extends gitleaks' default rules.
+title = "gitleaks config"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "curl examples with placeholder values in documentation"
+targetRules = ["curl-auth-header", "curl-auth-user"]
+paths = ['''\.md$''']
+
+[[allowlists]]
+description = "lockfiles, example env files and generated release bundles"
+paths = ['''pnpm-lock\.yaml$''', '''package-lock\.json$''', '''(^|/)\.env(\.[a-z]+)*\.example$''', '''release-bundles/''', '''release-staging/''']
+
+[[allowlists]]
+description = "documentation placeholder license keys"
+regexes = ['''ck_live_abc123''']

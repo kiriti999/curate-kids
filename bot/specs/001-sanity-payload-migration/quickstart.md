@@ -154,7 +154,7 @@ PAYLOAD_API_KEY=your-api-key-here
 # Sanity credentials (already present)
 SANITY_PROJECT_ID=3rcl6ir9
 SANITY_DATASET=production
-SANITY_TOKEN=***REMOVED***
+SANITY_TOKEN=<REDACTED>
 
 # Optional: Migration settings
 MIGRATION_BATCH_SIZE=100  # Records per batch

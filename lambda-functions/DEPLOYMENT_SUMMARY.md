@@ -72,7 +72,7 @@ When you're ready to go live with Razorpay:
    aws lambda update-function-configuration \
      --function-name curatedreels-razorpay-webhook \
      --region us-east-1 \
-     --environment "Variables={MONGODB_URI=mongodb+srv://kiritik999:***REMOVED***@curatedreels.3nm5xs2.mongodb.net/curatedreels,RAZORPAY_WEBHOOK_SECRET=your_actual_secret}"
+     --environment "Variables={MONGODB_URI=mongodb+srv://kiritik999:<REDACTED>@curatedreels.3nm5xs2.mongodb.net/curatedreels,RAZORPAY_WEBHOOK_SECRET=your_actual_secret}"
    ```
 
 ### 2. Test License Verification
@@ -144,7 +144,7 @@ db.deployments.createIndex({ status: 1 })
 All Lambda functions now use these environment variables:
 
 ```bash
-MONGODB_URI=mongodb+srv://kiritik999:***REMOVED***@curatedreels.3nm5xs2.mongodb.net/curatedreels
+MONGODB_URI=mongodb+srv://kiritik999:<REDACTED>@curatedreels.3nm5xs2.mongodb.net/curatedreels
 RAZORPAY_WEBHOOK_SECRET=placeholder_secret_update_later  # Update for production
 ```
 

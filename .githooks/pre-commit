@@ -1,0 +1,4 @@
+#!/bin/sh
+# Blocks commits that contain secrets. Install once: brew install gitleaks
+command -v gitleaks >/dev/null 2>&1 || { echo "gitleaks is not installed (brew install gitleaks)"; exit 1; }
+exec gitleaks git --staged --redact --no-banner --config .gitleaks.toml

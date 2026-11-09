@@ -209,7 +209,7 @@ MongoError: bad auth : authentication failed
 
 **Connection String:**
 ```
-MONGODB_URI=mongodb+srv://kiritik999:***REMOVED***@curatedreels.qoymsy.mongodb.net/curatedreels
+MONGODB_URI=mongodb+srv://kiritik999:<REDACTED>@curatedreels.qoymsy.mongodb.net/curatedreels
 ```
 
 **Possible Causes:**

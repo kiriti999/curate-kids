@@ -58,3 +58,14 @@ output/
 
 # Allow the packaged browser extension to be committed and served
 !public/downloads/*.zip
+
+# Secrets - never commit
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+.curatedreels-bundles/
+.curatekids-bundles/
+**/.curatekids-bundles/

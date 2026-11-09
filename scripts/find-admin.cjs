@@ -7,7 +7,8 @@
 
 const { MongoClient } = require('mongodb')
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://kiritik999_db_user:***REMOVED***@deploy-test-cluster.jzptbh.mongodb.net/curatedreels'
+const MONGODB_URI = process.env.MONGODB_URI
+if (!MONGODB_URI) throw new Error('MONGODB_URI is required')
 
 async function findAdminUser() {
   console.log('🔍 Searching for admin user in MongoDB...\n')

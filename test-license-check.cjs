@@ -11,7 +11,8 @@ async function test() {
     const db = client.db();
     console.log('Connected to DB:', db.databaseName);
 
-    const key = '***REMOVED***';
+    const key = process.env.LICENSE_KEY;
+    if (!key) throw new Error('LICENSE_KEY is required');
     console.log('Searching for key:', key);
 
     const license = await db.collection('licenses').findOne({ key });

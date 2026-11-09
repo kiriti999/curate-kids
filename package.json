@@ -6,6 +6,7 @@
   "main": "package.json",
   "license": "UNLICENSED",
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks || true",
     "dev": "NODE_ENV=development && next dev -p 4002",
     "build": "NODE_ENV=production && next build",
     "start": "NODE_ENV=production && next start -p 4002",

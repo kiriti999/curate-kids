@@ -39,6 +39,22 @@ import {
   PARSE_MODE_MARKDOWN,
 } from "./constants.ts";
 
+/** Readable details from a Telegram/grammY error (the raw object is too long to see in the logs). */
+function describeTelegramError(error: unknown): Record<string, unknown> {
+  const e = error as { description?: string; error_code?: number; message?: string };
+  return { description: e?.description ?? e?.message ?? String(error), errorCode: e?.error_code };
+}
+
+/** Answer a button press without letting an expired query ("query is too old") break the handler. */
+async function safeAnswer(ctx: Context, text?: string): Promise<void> {
+  try {
+    if (text) await ctx.answerCallbackQuery(text);
+    else await ctx.answerCallbackQuery();
+  } catch (error) {
+    logger.warn("answerCallbackQuery failed", describeTelegramError(error));
+  }
+}
+
 /**
  * Handle callback queries from age range and category selection buttons
  * Validates user authorization and submits video to PayloadCMS
@@ -109,16 +125,24 @@ async function handleAgeRangeSelection(ctx: Context, data: string, userId: numbe
 
   // Show category selection
   const keyboard = buildCategoryKeyboard(messageId, chatId);
+  const text = `👶 *Age Range: ${ageRange}*\n\n${PROMPT_SELECT_CATEGORY}`;
+
+  // Acknowledge the tap straight away so Telegram doesn't expire it while we edit the message.
+  await safeAnswer(ctx, `Age range: ${ageRange}`);
 
   try {
-    await ctx.editMessageText(
-      `👶 *Age Range: ${ageRange}*\n\n${PROMPT_SELECT_CATEGORY}`,
-      { reply_markup: keyboard, parse_mode: PARSE_MODE_MARKDOWN }
-    );
-    await ctx.answerCallbackQuery(`Age range: ${ageRange}`);
+    await ctx.editMessageText(text, { reply_markup: keyboard, parse_mode: PARSE_MODE_MARKDOWN });
   } catch (error) {
-    logger.error("Error updating message with category selection", { error });
-    await ctx.answerCallbackQuery(ERROR_SUBMISSION_FAILED);
+    const details = describeTelegramError(error);
+    logger.error("Error updating message with category selection", details);
+    if (String(details.description).includes("message is not modified")) return; // already showing categories
+
+    // Don't leave the user stuck: send the category choices as a new message instead.
+    try {
+      await ctx.reply(text, { reply_markup: keyboard, parse_mode: PARSE_MODE_MARKDOWN });
+    } catch (replyError) {
+      logger.error("Fallback category message failed", describeTelegramError(replyError));
+    }
   }
 }
 
@@ -174,7 +198,7 @@ async function handleCategorySelection(ctx: Context, data: string, userId: numbe
  * Handle expired selection state
  */
 async function handleExpiredSelection(ctx: Context): Promise<void> {
-  await ctx.answerCallbackQuery(ERROR_SELECTION_EXPIRED);
+  await safeAnswer(ctx, ERROR_SELECTION_EXPIRED);
   await ctx.editMessageText(ERROR_SELECTION_EXPIRED_MSG);
 }
 
@@ -182,7 +206,7 @@ async function handleExpiredSelection(ctx: Context): Promise<void> {
  * Handle submission failure
  */
 async function handleSubmissionFailure(ctx: Context): Promise<void> {
-  await ctx.answerCallbackQuery(ERROR_SUBMISSION_FAILED);
+  await safeAnswer(ctx, ERROR_SUBMISSION_FAILED);
   await ctx.editMessageText(ERROR_SUBMISSION_FAILED_MSG);
 }
 

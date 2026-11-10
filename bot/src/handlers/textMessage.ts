@@ -12,6 +12,7 @@ import { getYouTubeMetadata } from "../services/youtube.ts";
 import { checkCanSubmit, handleLinkCommand } from "./organizationHandler.ts";
 import { resolveSubmitter } from "../services/organization.ts";
 import { handlePlaylistNameReply } from "./playlistHandler.ts";
+import { handleCategoryNameReply } from "./categoryHandler.ts";
 import {
   PROMPT_SELECT_AGE_RANGE,
   LOG_VIDEO_DETECTED,
@@ -38,9 +39,10 @@ export async function handleTextMessage(ctx: Context): Promise<void> {
 
   if (!chatId || !userId || !text) return;
 
-  // A reply to the "name your playlist" prompt takes priority over link detection
-  if (!hasVideoUrl(text) && !text.startsWith("/") && (await handlePlaylistNameReply(ctx, text))) {
-    return;
+  // A reply to the "type a new category name" or "name your playlist" prompt takes priority over link detection
+  if (!hasVideoUrl(text) && !text.startsWith("/")) {
+    if (await handleCategoryNameReply(ctx, text)) return;
+    if (await handlePlaylistNameReply(ctx, text)) return;
   }
 
   if (!hasVideoUrl(text)) return;

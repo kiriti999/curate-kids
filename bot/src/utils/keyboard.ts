@@ -20,7 +20,15 @@ export const CATEGORIES = [
   { value: "safety", label: "🛡️ Safety" },
 ] as const;
 
-export type VideoCategory = typeof CATEGORIES[number]["value"];
+/** A category button: `value` is the slug stored on videos, `label` is what the user sees. */
+export interface CategoryChoice {
+  value: string;
+  label: string;
+}
+
+/** Categories can be created from Telegram, so any slug is valid (not just the built-in ones). */
+export type VideoCategory = string;
+export const NEW_CATEGORY_PREFIX = "catnew";
 export type AgeRange = typeof AGE_RANGES[number]["value"];
 
 /**
@@ -50,28 +58,32 @@ export function buildAgeRangeKeyboard(messageId: number, chatId: number): Inline
 /**
  * Build inline keyboard for category selection
  */
-export function buildCategoryKeyboard(messageId: number, chatId: number): InlineKeyboard {
+export function buildCategoryKeyboard(
+  messageId: number,
+  chatId: number,
+  categories: readonly CategoryChoice[] = CATEGORIES,
+): InlineKeyboard {
   const keyboard = new InlineKeyboard();
 
-  for (let i = 0; i < CATEGORIES.length; i += 2) {
-    const row: { text: string; callback_data: string }[] = [];
-
-    row.push({
-      text: CATEGORIES[i].label,
-      callback_data: `cat:${messageId}:${chatId}:${CATEGORIES[i].value}`,
-    });
-
-    if (CATEGORIES[i + 1]) {
-      row.push({
-        text: CATEGORIES[i + 1].label,
-        callback_data: `cat:${messageId}:${chatId}:${CATEGORIES[i + 1].value}`,
-      });
-    }
-
-    keyboard.row(...row.map(btn => InlineKeyboard.text(btn.text, btn.callback_data)));
+  for (let i = 0; i < categories.length; i += 2) {
+    const row = [categories[i], categories[i + 1]]
+      .filter((c): c is CategoryChoice => Boolean(c))
+      .map((c) => InlineKeyboard.text(c.label, `cat:${messageId}:${chatId}:${c.value}`));
+    keyboard.row(...row);
   }
 
+  // Lets the sender add a category that isn't listed.
+  keyboard.row(InlineKeyboard.text("➕ New category", `${NEW_CATEGORY_PREFIX}:${messageId}:${chatId}`));
   return keyboard;
+}
+
+/** Parse the "New category" button data: catnew:<messageId>:<chatId> */
+export function parseNewCategoryData(data: string): { messageId: number; chatId: number } | null {
+  const parts = data.split(":");
+  if (parts.length !== 3 || parts[0] !== NEW_CATEGORY_PREFIX) return null;
+  const messageId = parseInt(parts[1], 10);
+  const chatId = parseInt(parts[2], 10);
+  return Number.isNaN(messageId) || Number.isNaN(chatId) ? null : { messageId, chatId };
 }
 
 /**

@@ -208,7 +208,7 @@ export const Video: CollectionConfig = {
       },
     },
 
-    // Category (select from predefined options)
+    // Category (select from predefined options, plus any category created later)
     {
       name: "category",
       type: "select",
@@ -217,6 +217,22 @@ export const Video: CollectionConfig = {
         label: opt.title,
         value: opt.value,
       })),
+      // The dropdown lists the built-in options, but categories can also be created from the website's
+      // admin screen or the Telegram bot (they live in the `categories` collection). Accept those too,
+      // otherwise a video saved under a new category could not be edited in the CMS.
+      validate: async (value: unknown, { req }: { req: any }) => {
+        const slug = Array.isArray(value) ? value[0] : value
+        if (typeof slug !== "string" || slug.length === 0) return "Category is required"
+        if (VIDEO_CATEGORY_OPTIONS.some((opt) => opt.value === slug)) return true
+        const found = await req.payload.find({
+          collection: "categories",
+          where: { slug: { equals: slug } },
+          limit: 1,
+          depth: 0,
+          req,
+        })
+        return found.docs.length > 0 ? true : `Unknown category: ${slug}`
+      },
       admin: {
         description: "Video category",
       },

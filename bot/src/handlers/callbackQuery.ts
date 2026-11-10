@@ -5,6 +5,7 @@
 
 import type { Context } from "grammy";
 import * as logger from "../utils/logger.ts";
+import { describeTelegramError, safeAnswer } from "../utils/telegram.ts";
 import { parseCallbackData, parseAgeRangeData, buildCategoryKeyboard } from "../utils/keyboard.ts";
 import { createStateKey, getState, deleteState, setState, type MessageState } from "../types/state.ts";
 import {
@@ -19,6 +20,8 @@ import {
   shouldAutoApproveVideos,
 } from "../services/organization.ts";
 import { findUserByTelegramId } from "../services/organization.ts";
+import { listCategories } from "../services/category.ts";
+import { handleNewCategoryRequest } from "./categoryHandler.ts";
 import {
   buildAddToPlaylistKeyboard,
   handlePlaylistCallback,
@@ -38,22 +41,6 @@ import {
   LOG_VIDEO_SUBMITTED,
   PARSE_MODE_MARKDOWN,
 } from "./constants.ts";
-
-/** Readable details from a Telegram/grammY error (the raw object is too long to see in the logs). */
-function describeTelegramError(error: unknown): Record<string, unknown> {
-  const e = error as { description?: string; error_code?: number; message?: string };
-  return { description: e?.description ?? e?.message ?? String(error), errorCode: e?.error_code };
-}
-
-/** Answer a button press without letting an expired query ("query is too old") break the handler. */
-async function safeAnswer(ctx: Context, text?: string): Promise<void> {
-  try {
-    if (text) await ctx.answerCallbackQuery(text);
-    else await ctx.answerCallbackQuery();
-  } catch (error) {
-    logger.warn("answerCallbackQuery failed", describeTelegramError(error));
-  }
-}
 
 /**
  * Handle callback queries from age range and category selection buttons
@@ -78,6 +65,12 @@ export async function handleCallbackQuery(ctx: Context): Promise<void> {
   // Check if it's an age range selection (age:msgId:chatId:range)
   if (data.startsWith("age:")) {
     await handleAgeRangeSelection(ctx, data, userId);
+    return;
+  }
+
+  // "New category" button (catnew:msgId:chatId)
+  if (data.startsWith("catnew:")) {
+    await handleNewCategoryRequest(ctx, data, userId);
     return;
   }
 
@@ -124,7 +117,7 @@ async function handleAgeRangeSelection(ctx: Context, data: string, userId: numbe
   await setState(stateKey, updatedState);
 
   // Show category selection
-  const keyboard = buildCategoryKeyboard(messageId, chatId);
+  const keyboard = buildCategoryKeyboard(messageId, chatId, await listCategories());
   const text = `👶 *Age Range: ${ageRange}*\n\n${PROMPT_SELECT_CATEGORY}`;
 
   // Acknowledge the tap straight away so Telegram doesn't expire it while we edit the message.

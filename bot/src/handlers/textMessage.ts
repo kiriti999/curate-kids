@@ -23,6 +23,11 @@ import {
 // Error messages
 const ERROR_VIDEO_NOT_EMBEDDABLE = "⚠️ *This video cannot be embedded on websites.*\n\nThe video owner or copyright holder has blocked it from being displayed on external sites.\n\nPlease try a different video.";
 
+/** Escape legacy Telegram Markdown special chars so URLs/titles with _ or * don't fail parsing */
+function escapeMarkdown(value: string): string {
+  return value.replace(/([_*`\[])/g, "\\$1");
+}
+
 /**
  * Handle incoming text messages containing video URLs
  * Detects platform, fetches metadata for YouTube, and prompts for age range selection
@@ -124,7 +129,7 @@ export async function handleTextMessage(ctx: Context): Promise<void> {
   const keyboard = buildAgeRangeKeyboard(messageId, chatId);
 
   await ctx.reply(
-    `${emoji} *${platformName} video detected:*\n${title}\n\n${PROMPT_SELECT_AGE_RANGE}`,
+    `${emoji} *${platformName} video detected:*\n${escapeMarkdown(title)}\n\n${PROMPT_SELECT_AGE_RANGE}`,
     { reply_markup: keyboard, parse_mode: PARSE_MODE_MARKDOWN }
   );
 

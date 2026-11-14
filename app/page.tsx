@@ -24,6 +24,12 @@ export const metadata: Metadata = {
     type: "website",
     siteName: "CuratedReels",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "CuratedReels | Video Curation Platform",
+    description:
+      "Deploy your own branded video curation platform with Telegram bot integration and full customization.",
+  },
 };
 
 export default function Home() {

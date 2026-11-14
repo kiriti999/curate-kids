@@ -13,6 +13,9 @@ export const metadata: Metadata = {
     "content curation",
     "business solution",
   ],
+  alternates: {
+    canonical: "https://curatedreels.com/",
+  },
   openGraph: {
     title: "CuratedReels | White-Label Video Curation Platform",
     description:

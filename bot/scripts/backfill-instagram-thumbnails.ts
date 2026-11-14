@@ -46,7 +46,18 @@ let updated = 0;
 let missed = 0;
 
 for (const doc of pending) {
-  const shortcode = String(doc.instagramId);
+  // Some stored instagramId values contain the full URL or trailing query
+  // strings (e.g. "DfrzO-qOtuj/?utm_source=..."). Keep only the shortcode.
+  const raw = String(doc.instagramId);
+  const shortcodeMatch =
+    raw.match(/instagram\.com\/(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/) ??
+    raw.match(/^([A-Za-z0-9_-]+)/);
+  if (!shortcodeMatch) {
+    missed++;
+    console.log(`  MISS  ${doc._id}  unparseable instagramId: ${raw}`);
+    continue;
+  }
+  const shortcode = shortcodeMatch[1];
   // Instagram shortcodes work under either path; try reel first, then post
   const candidates = [
     `https://www.instagram.com/reel/${shortcode}/`,

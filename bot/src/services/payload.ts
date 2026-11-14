@@ -15,6 +15,7 @@ export interface VideoSubmission {
   videoUrl: string;
   platform: "youtube" | "facebook" | "instagram" | "linkedin";
   videoId: string;
+  thumbnailUrl?: string;
   category: VideoCategory;
   ageRange: AgeRange;
   tags: string[];
@@ -148,6 +149,7 @@ export async function createVideo(
       submission.platform === "instagram" ? submission.videoId : undefined,
     linkedInId:
       submission.platform === "linkedin" ? submission.videoId : undefined,
+    thumbnailUrl: submission.thumbnailUrl || undefined,
     category: submission.category,
     ageRange: submission.ageRange,
     tags: submission.tags,

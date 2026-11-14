@@ -363,6 +363,7 @@ async function submitUrlVideo(
     videoUrl: state.videoUrl,
     platform: state.platform || "youtube",
     videoId: state.videoId,
+    thumbnailUrl: state.thumbnailUrl,
     category: category as VideoSubmission["category"],
     ageRange: state.ageRange,
     tags: [],

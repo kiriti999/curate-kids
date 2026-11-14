@@ -432,6 +432,34 @@ function VideoThumbnail({
         );
     }
 
+    // Non-YouTube videos with a stored thumbnail (e.g. Instagram via oEmbed)
+    if (!hasValidYoutubeId && video.thumbnailUrl) {
+        return (
+            <button
+                onClick={onPlay}
+                className="relative w-full h-full group"
+                aria-label={`Play ${video.title}`}
+            >
+                <Image
+                    src={video.thumbnailUrl}
+                    alt={video.title}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    loading="lazy"
+                    unoptimized
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
+                    <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                        </svg>
+                    </div>
+                </div>
+            </button>
+        );
+    }
+
     // Show placeholder for non-YouTube, non-Cloudinary videos
     if (!hasValidYoutubeId) {
         return (

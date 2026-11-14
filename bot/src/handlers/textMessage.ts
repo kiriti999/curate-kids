@@ -9,6 +9,7 @@ import { hasVideoUrl, parseVideoUrl, getPlatformDisplayName, getPlatformEmoji } 
 import { buildAgeRangeKeyboard } from "../utils/keyboard.ts";
 import { createStateKey, setState, type MessageState } from "../types/state.ts";
 import { getYouTubeMetadata } from "../services/youtube.ts";
+import { getInstagramOembed } from "../services/metaOembed.ts";
 import { checkCanSubmit, handleLinkCommand } from "./organizationHandler.ts";
 import { resolveSubmitter } from "../services/organization.ts";
 import { handlePlaylistNameReply } from "./playlistHandler.ts";
@@ -93,7 +94,7 @@ export async function handleTextMessage(ctx: Context): Promise<void> {
   }
 
   // Fetch metadata and check embeddability for YouTube
-  const { title, embeddable } = await fetchVideoMetadata(platform, url, videoId);
+  const { title, embeddable, thumbnailUrl } = await fetchVideoMetadata(platform, url, videoId);
 
   // Block non-embeddable YouTube videos
   if (platform === "youtube" && !embeddable) {
@@ -113,6 +114,7 @@ export async function handleTextMessage(ctx: Context): Promise<void> {
     videoUrl: url,
     videoId: videoId || url,
     title,
+    thumbnailUrl: thumbnailUrl || undefined,
     ageRange: "" as any, // Will be filled after age range selection
     createdAt: Date.now(),
     platform,
@@ -141,13 +143,13 @@ export async function handleTextMessage(ctx: Context): Promise<void> {
  * @param platform - Video platform identifier
  * @param url - Video URL
  * @param videoId - Platform-specific video ID
- * @returns Object with title and embeddable flag
+ * @returns Object with title, embeddable flag, and optional thumbnail URL
  */
 async function fetchVideoMetadata(
   platform: string,
   url: string,
   videoId: string | null
-): Promise<{ title: string; embeddable: boolean }> {
+): Promise<{ title: string; embeddable: boolean; thumbnailUrl?: string }> {
   if (platform === "youtube" && videoId) {
     const metadata = await getYouTubeMetadata(videoId);
     if (metadata) {
@@ -157,6 +159,10 @@ async function fetchVideoMetadata(
       };
     }
   }
-  // For non-YouTube platforms, assume embeddable (we can't check)
+  if (platform === "instagram") {
+    const oembed = await getInstagramOembed(url);
+    return { title: url, embeddable: true, thumbnailUrl: oembed?.thumbnailUrl ?? undefined };
+  }
+  // For other non-YouTube platforms, assume embeddable (we can't check)
   return { title: url, embeddable: true };
 }

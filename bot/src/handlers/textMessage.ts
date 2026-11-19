@@ -1,15 +1,14 @@
 /**
  * Text message handler - Processes video URLs from text messages
- * Detects YouTube, Facebook, Instagram, and LinkedIn video links
+ * Accepts YouTube links only; replies to any other link that it isn't supported
  */
 
 import type { Context } from "grammy";
 import * as logger from "../utils/logger.ts";
-import { hasVideoUrl, parseVideoUrl, getPlatformDisplayName, getPlatformEmoji } from "../utils/urlParser.ts";
+import { hasLink, parseVideoUrl } from "../utils/urlParser.ts";
 import { buildAgeRangeKeyboard } from "../utils/keyboard.ts";
 import { createStateKey, setState, type MessageState } from "../types/state.ts";
 import { getYouTubeMetadata } from "../services/youtube.ts";
-import { getInstagramOembed } from "../services/metaOembed.ts";
 import { checkCanSubmit, handleLinkCommand } from "./organizationHandler.ts";
 import { resolveSubmitter } from "../services/organization.ts";
 import { handlePlaylistNameReply } from "./playlistHandler.ts";
@@ -22,6 +21,7 @@ import {
 } from "./constants.ts";
 
 // Error messages
+const ERROR_ONLY_YOUTUBE = "⚠️ Only YouTube reels are accepted.";
 const ERROR_VIDEO_NOT_EMBEDDABLE = "⚠️ *This video cannot be embedded on websites.*\n\nThe video owner or copyright holder has blocked it from being displayed on external sites.\n\nPlease try a different video.";
 
 /** Escape legacy Telegram Markdown special chars so URLs/titles with _ or * don't fail parsing */
@@ -46,19 +46,24 @@ export async function handleTextMessage(ctx: Context): Promise<void> {
   if (!chatId || !userId || !text) return;
 
   // A reply to the "type a new category name" or "name your playlist" prompt takes priority over link detection
-  if (!hasVideoUrl(text) && !text.startsWith("/")) {
+  if (!hasLink(text) && !text.startsWith("/")) {
     if (await handleCategoryNameReply(ctx, text)) return;
     if (await handlePlaylistNameReply(ctx, text)) return;
   }
 
-  if (!hasVideoUrl(text)) return;
+  if (!hasLink(text)) return;
 
   const parsed = parseVideoUrl(text);
-  if (!parsed) return;
+  if (!parsed) {
+    logger.info("Non-YouTube link rejected", { chatId, messageId });
+    await ctx.reply(ERROR_ONLY_YOUTUBE, {
+      // @ts-ignore - reply_to_message_id is valid
+      reply_to_message_id: messageId,
+    });
+    return;
+  }
 
   const { platform, url, videoId } = parsed;
-  const platformName = getPlatformDisplayName(platform);
-  const emoji = getPlatformEmoji(platform);
 
   logger.info(LOG_VIDEO_DETECTED, { platform, chatId, messageId });
 
@@ -93,11 +98,11 @@ export async function handleTextMessage(ctx: Context): Promise<void> {
     }
   }
 
-  // Fetch metadata and check embeddability for YouTube
-  const { title, embeddable, thumbnailUrl } = await fetchVideoMetadata(platform, url, videoId);
+  // Fetch metadata and check embeddability
+  const { title, embeddable } = await fetchVideoMetadata(url, videoId);
 
   // Block non-embeddable YouTube videos
-  if (platform === "youtube" && !embeddable) {
+  if (!embeddable) {
     logger.warn("Video not embeddable, rejecting", { videoId, chatId });
     await ctx.reply(ERROR_VIDEO_NOT_EMBEDDABLE, {
       parse_mode: PARSE_MODE_MARKDOWN,
@@ -112,9 +117,8 @@ export async function handleTextMessage(ctx: Context): Promise<void> {
     chatId,
     userId,
     videoUrl: url,
-    videoId: videoId || url,
+    videoId,
     title,
-    thumbnailUrl: thumbnailUrl || undefined,
     ageRange: "" as any, // Will be filled after age range selection
     createdAt: Date.now(),
     platform,
@@ -131,7 +135,7 @@ export async function handleTextMessage(ctx: Context): Promise<void> {
   const keyboard = buildAgeRangeKeyboard(messageId, chatId);
 
   await ctx.reply(
-    `${emoji} *${platformName} video detected:*\n${escapeMarkdown(title)}\n\n${PROMPT_SELECT_AGE_RANGE}`,
+    `🎬 *YouTube video detected:*\n${escapeMarkdown(title)}\n\n${PROMPT_SELECT_AGE_RANGE}`,
     { reply_markup: keyboard, parse_mode: PARSE_MODE_MARKDOWN }
   );
 
@@ -139,30 +143,19 @@ export async function handleTextMessage(ctx: Context): Promise<void> {
 }
 
 /**
- * Fetch video metadata from platform API
- * @param platform - Video platform identifier
- * @param url - Video URL
- * @param videoId - Platform-specific video ID
- * @returns Object with title, embeddable flag, and optional thumbnail URL
+ * Fetch YouTube video metadata
+ * @param url - Video URL (used as the title if the lookup fails)
+ * @param videoId - YouTube video ID
+ * @returns Object with title and embeddable flag
  */
 async function fetchVideoMetadata(
-  platform: string,
   url: string,
-  videoId: string | null
-): Promise<{ title: string; embeddable: boolean; thumbnailUrl?: string }> {
-  if (platform === "youtube" && videoId) {
-    const metadata = await getYouTubeMetadata(videoId);
-    if (metadata) {
-      return {
-        title: metadata.title,
-        embeddable: metadata.embeddable,
-      };
-    }
+  videoId: string
+): Promise<{ title: string; embeddable: boolean }> {
+  const metadata = await getYouTubeMetadata(videoId);
+  if (metadata) {
+    return { title: metadata.title, embeddable: metadata.embeddable };
   }
-  if (platform === "instagram") {
-    const oembed = await getInstagramOembed(url);
-    return { title: url, embeddable: true, thumbnailUrl: oembed?.thumbnailUrl ?? undefined };
-  }
-  // For other non-YouTube platforms, assume embeddable (we can't check)
+  // Lookup failed (e.g. API quota); accept the video with the URL as its title
   return { title: url, embeddable: true };
 }

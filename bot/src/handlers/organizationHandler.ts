@@ -45,7 +45,7 @@ const WELCOME_MEMBER_MSG = `
 
 You can now submit videos to this group by sharing video links here.
 
-No registration needed - just share a YouTube, Facebook, Instagram, or LinkedIn video link!
+No registration needed - just share a YouTube video link!
 `;
 
 // Only shown if requireLinking is enabled for the org (optional)

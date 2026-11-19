@@ -1,6 +1,6 @@
 # CuratedReels Telegram Bot (Deno)
 
-Telegram bot for curating videos from YouTube, Facebook, Instagram, and LinkedIn. Uses MongoDB Atlas for video storage and metadata management.
+Telegram bot for curating videos from YouTube. Uses MongoDB Atlas for video storage and metadata management.
 
 ## Local Development
 
@@ -113,9 +113,7 @@ The bot stores videos in MongoDB with the following structure:
 ## Supported Platforms
 
 - ✅ YouTube (with metadata)
-- ✅ Facebook
-- ✅ Instagram
-- ✅ LinkedIn
+- ❌ Any other link: the bot replies "Only YouTube reels are accepted."
 
 ## Architecture
 

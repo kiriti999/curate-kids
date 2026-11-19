@@ -13,7 +13,7 @@ export interface VideoSubmission {
   title: string;
   slug: string;
   videoUrl: string;
-  platform: "youtube" | "facebook" | "instagram" | "linkedin";
+  platform: "youtube";
   videoId: string;
   thumbnailUrl?: string;
   category: VideoCategory;
@@ -61,7 +61,6 @@ interface VideoDocument {
   // IDs for other platforms
   linkedInId?: string;
   facebookId?: string;
-  instagramId?: string;
   thumbnailUrl?: string;
   duration?: number;
   category: string;
@@ -139,16 +138,8 @@ export async function createVideo(
   const document: VideoDocument = {
     title: submission.title,
     slug: submission.slug,
-    youtubeUrl:
-      submission.platform === "youtube" ? submission.videoUrl : undefined,
-    youtubeId:
-      submission.platform === "youtube" ? submission.videoId : undefined,
-    facebookId:
-      submission.platform === "facebook" ? submission.videoId : undefined,
-    instagramId:
-      submission.platform === "instagram" ? submission.videoId : undefined,
-    linkedInId:
-      submission.platform === "linkedin" ? submission.videoId : undefined,
+    youtubeUrl: submission.videoUrl,
+    youtubeId: submission.videoId,
     thumbnailUrl: submission.thumbnailUrl || undefined,
     category: submission.category,
     ageRange: submission.ageRange,
@@ -224,9 +215,6 @@ function addPlatformIdConditions(document: VideoDocument): any[] {
   }
   if (document.facebookId) {
     conditions.push({ facebookId: document.facebookId });
-  }
-  if (document.instagramId) {
-    conditions.push({ instagramId: document.instagramId });
   }
 
   return conditions;

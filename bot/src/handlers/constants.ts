@@ -18,7 +18,7 @@ export const SUCCESS_VIDEO_SAVED = "✅ Video saved!";
 export const PROMPT_SELECT_AGE_RANGE = "👶 Please select the age range for this video:";
 export const PROMPT_SELECT_CATEGORY = "📁 Please select a category:";
 export const PROMPT_UPLOADING = "📤 *Uploading video...*\nThis may take a moment.";
-export const PROMPT_CLOUDINARY_DISABLED = "⚠️ Direct video uploads are not enabled yet. Please share a YouTube or Facebook link instead.";
+export const PROMPT_CLOUDINARY_DISABLED = "⚠️ Direct video uploads are not enabled yet. Please share a YouTube link instead.";
 
 // Log messages
 export const LOG_AGE_RANGE_BUTTONS_SENT = "Age range buttons sent";

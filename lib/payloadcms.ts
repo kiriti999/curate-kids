@@ -47,6 +47,8 @@ function buildVideoWhereClause(params: GetVideosParams): Record<string, any> {
   const where: Record<string, any> = {
     // Only show approved videos by default
     status: { equals: "approved" },
+    // Instagram is no longer supported; hide legacy Instagram submissions
+    instagramId: { exists: false },
   };
 
   if (params.category) {

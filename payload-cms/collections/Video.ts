@@ -167,16 +167,13 @@ export const Video: CollectionConfig = {
       },
     },
 
-    // Instagram shortcode (set by the Telegram bot for Instagram links)
+    // Instagram shortcode on legacy bot submissions. Instagram is no longer
+    // supported; the field exists only so those videos can be filtered out.
     {
       name: "instagramId",
       type: "text",
       required: false,
-      admin: {
-        readOnly: true,
-        position: "sidebar",
-        description: "Instagram post/reel shortcode",
-      },
+      admin: { hidden: true },
     },
 
     // Cloudinary URL (for Telegram-uploaded videos)

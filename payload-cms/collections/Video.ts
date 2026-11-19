@@ -167,6 +167,18 @@ export const Video: CollectionConfig = {
       },
     },
 
+    // Instagram shortcode (set by the Telegram bot for Instagram links)
+    {
+      name: "instagramId",
+      type: "text",
+      required: false,
+      admin: {
+        readOnly: true,
+        position: "sidebar",
+        description: "Instagram post/reel shortcode",
+      },
+    },
+
     // Cloudinary URL (for Telegram-uploaded videos)
     {
       name: "cloudinaryUrl",

@@ -75,6 +75,22 @@ function isValidYoutubeId(id: string | undefined | null): boolean {
     return /^[a-zA-Z0-9_-]{11}$/.test(id);
 }
 
+/**
+ * Extract an Instagram shortcode from a stored instagramId (which may contain a
+ * full URL or trailing query string) or, failing that, from a URL in the title.
+ */
+function getInstagramShortcode(
+    instagramId: string | null | undefined,
+    title: string,
+): string {
+    const urlPattern = /instagram\.com\/(?:p|reels?|tv)\/([A-Za-z0-9_-]+)/;
+    const match =
+        instagramId?.match(urlPattern) ??
+        instagramId?.match(/^([A-Za-z0-9_-]+)/) ??
+        title.match(urlPattern);
+    return match?.[1] ?? "";
+}
+
 // PayloadCMS Video interface
 interface Video {
     id: string;
@@ -84,6 +100,7 @@ interface Video {
     cloudinaryUrl?: string | null;
     cloudinaryId?: string | null;
     thumbnailUrl?: string | null;
+    instagramId?: string | null;
     source?: string | null;
     category: string;
     ageRange: string;
@@ -101,6 +118,7 @@ interface NormalizedVideo {
     cloudinaryUrl: string;
     cloudinaryId: string;
     thumbnailUrl: string;
+    instagramShortcode: string;
     source: string;
     category: string;
     ageRange: string;
@@ -124,6 +142,7 @@ function normalizeVideo(video: Video): NormalizedVideo {
         cloudinaryUrl: video.cloudinaryUrl || "",
         cloudinaryId: video.cloudinaryId || "",
         thumbnailUrl: video.thumbnailUrl || "",
+        instagramShortcode: getInstagramShortcode(video.instagramId, video.title),
         source: video.source || "url",
         category: video.category,
         ageRange: video.ageRange,
@@ -226,6 +245,7 @@ function VideoThumbnail({
     ).current;
     const hasValidYoutubeId = isValidYoutubeId(video.youtubeId);
     const isCloudinaryVideo = video.source === "telegram" && !!video.cloudinaryUrl;
+    const isInstagramVideo = !hasValidYoutubeId && !!video.instagramShortcode;
 
     // Create YouTube player via IFrame API to intercept pause/end events
     useEffect(() => {
@@ -382,6 +402,21 @@ function VideoThumbnail({
         );
     }
 
+    // Instagram embed player (vertical reel, centred)
+    if (showVideo && isInstagramVideo) {
+        return (
+            <div className="relative w-full h-full overflow-auto bg-black flex justify-center">
+                <iframe
+                    src={`https://www.instagram.com/reel/${video.instagramShortcode}/embed/`}
+                    title={video.title}
+                    className="h-full w-full max-w-[540px] bg-white border-0"
+                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                    allowFullScreen
+                />
+            </div>
+        );
+    }
+
     // Show Cloudinary thumbnail with play button
     if (isCloudinaryVideo) {
         return (
@@ -461,9 +496,16 @@ function VideoThumbnail({
     }
 
     // Show placeholder for non-YouTube, non-Cloudinary videos
+    // (clickable when we know how to play it, e.g. Instagram without a thumbnail)
     if (!hasValidYoutubeId) {
+        const Wrapper = isInstagramVideo ? "button" : "div";
         return (
-            <div className="relative w-full h-full bg-muted flex items-center justify-center">
+            <Wrapper
+                {...(isInstagramVideo
+                    ? { type: "button" as const, onClick: onPlay, "aria-label": `Play ${video.title}` }
+                    : {})}
+                className={`relative w-full h-full bg-muted flex items-center justify-center${isInstagramVideo ? " cursor-pointer hover:bg-muted/80 transition-colors" : ""}`}
+            >
                 <div className="text-center p-4">
                     <svg
                         className="w-12 h-12 mx-auto text-muted-foreground mb-2"
@@ -478,9 +520,11 @@ function VideoThumbnail({
                             d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
                         />
                     </svg>
-                    <p className="text-sm text-muted-foreground">External video</p>
+                    <p className="text-sm text-muted-foreground">
+                        {isInstagramVideo ? "Play Instagram reel" : "External video"}
+                    </p>
                 </div>
-            </div>
+            </Wrapper>
         );
     }
 

@@ -136,7 +136,10 @@ export default function PlaylistPlayer({
                                         src={instagramEmbedUrl(current.instagramShortcode)}
                                         title={current.title}
                                         className="h-full w-full max-w-[400px] bg-white border-0"
-                                        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                                        // No allow-popups / allow-top-navigation: links inside the embed
+                                        // ("Watch on Instagram", profile) can't take kids off the site
+                                        sandbox="allow-scripts allow-same-origin allow-presentation"
+                                        allow="autoplay; encrypted-media; picture-in-picture"
                                         allowFullScreen
                                     />
                                 </div>

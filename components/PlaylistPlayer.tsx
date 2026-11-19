@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { instagramEmbedUrl } from "@/lib/instagram";
 
 export interface PlaylistVideo {
     id: string;
@@ -9,6 +10,7 @@ export interface PlaylistVideo {
     cloudinaryUrl: string;
     source: string;
     thumbnailUrl: string;
+    instagramShortcode: string;
 }
 
 const YT_ENDED = 0;
@@ -126,6 +128,18 @@ export default function PlaylistPlayer({
                                     playsInline
                                     onEnded={next}
                                 />
+                            ) : current.instagramShortcode ? (
+                                // Instagram's embed has no "ended" event, so use Next to advance
+                                <div className="w-full h-full flex justify-center">
+                                    <iframe
+                                        key={current.id}
+                                        src={instagramEmbedUrl(current.instagramShortcode)}
+                                        title={current.title}
+                                        className="h-full w-full max-w-[400px] bg-white border-0"
+                                        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                                        allowFullScreen
+                                    />
+                                </div>
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center text-sm text-white/70">
                                     This video can't be played inline.

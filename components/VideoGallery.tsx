@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { getInstagramShortcode, instagramEmbedUrl } from "@/lib/instagram";
 
 const CategoryManager = dynamic(() => import("@/components/CategoryManager"), {
     ssr: false,
@@ -73,22 +74,6 @@ function loadYouTubeIframeAPI(): Promise<void> {
 function isValidYoutubeId(id: string | undefined | null): boolean {
     if (!id) return false;
     return /^[a-zA-Z0-9_-]{11}$/.test(id);
-}
-
-/**
- * Extract an Instagram shortcode from a stored instagramId (which may contain a
- * full URL or trailing query string) or, failing that, from a URL in the title.
- */
-function getInstagramShortcode(
-    instagramId: string | null | undefined,
-    title: string,
-): string {
-    const urlPattern = /instagram\.com\/(?:p|reels?|tv)\/([A-Za-z0-9_-]+)/;
-    const match =
-        instagramId?.match(urlPattern) ??
-        instagramId?.match(/^([A-Za-z0-9_-]+)/) ??
-        title.match(urlPattern);
-    return match?.[1] ?? "";
 }
 
 // PayloadCMS Video interface
@@ -407,7 +392,7 @@ function VideoThumbnail({
         return (
             <div className="relative w-full h-full overflow-auto bg-black flex justify-center">
                 <iframe
-                    src={`https://www.instagram.com/reel/${video.instagramShortcode}/embed/`}
+                    src={instagramEmbedUrl(video.instagramShortcode)}
                     title={video.title}
                     className="h-full w-full max-w-[540px] bg-white border-0"
                     allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"

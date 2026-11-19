@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { getPayload } from "payload";
 import Header from "@/components/Header";
 import PlaylistPlayer, { type PlaylistVideo } from "@/components/PlaylistPlayer";
+import { getInstagramShortcode } from "@/lib/instagram";
 
 export const dynamic = "force-dynamic"; // visibility depends on the viewer
 
@@ -49,6 +50,7 @@ async function loadPlaylist(slug: string) {
             cloudinaryUrl: v.cloudinaryUrl || "",
             source: v.source || "url",
             thumbnailUrl: v.thumbnailUrl || "",
+            instagramShortcode: getInstagramShortcode(v.instagramId, v.title || ""),
         }));
 
     return {
